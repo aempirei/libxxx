@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 #include <boost/regex.hpp>
-// #include <regex>
+#include <list>
 #include <climits>
 
 namespace lang {
@@ -46,6 +46,10 @@ namespace lang {
 		rule& operator<<(const recursive_type::value_type&);
 		rule& operator<<(const symbol&);
 		rule& operator<<(const quantifier&);
+
+		static rule singleton(const symbol&);
+
+		static std::list<rule> singletons(const std::list<symbol>&);
 	};
 
 	using grammar = std::map<symbol,std::list<rule>>;

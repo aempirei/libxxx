@@ -43,37 +43,44 @@ std::string qstring(const quantifier& x) {
 
 int main(int argc, char **argv) {
 
-	if(argc < 3) {
+	if(argc < 1) {
 		usage(*argv);
 		return -1;
 	}
 
-	rule a;
-	rule b;
-	rule c;
+	grammar plang;
 
 	std::locale::global(std::locale("en_US.UTF-8"));
 
-	a << rule::terminal << argv[2];
-	b << rule::recursive << "suck-a-dick" << "fuck-you" << q::plus << "dicks" << q::question << "fcks" << q::star << "nl";
+	plang[""] = { rule::singleton("statement") << q::star };
 
-	std::cout << "B = " << std::endl;
+	plang["statement"] = rule::singletons({ "typedef", "funcdef", "funcdecl", "comment" });
 
-	std::cout << "string = " << argv[1] << std::endl;
-	std::cout << "regex  = " << argv[2] << std::endl;
-
-	std::cout << "a is a " << (a.type == rule::terminal ? "regex" : "list") << std::endl;
-
-	boost::cmatch cm;
-
-	if(boost::regex_search(argv[1], cm, a.terminal_value)) {
-		std::cout << "regex matches string!" << std::endl;
-		for(auto x : cm)
-			std::cout << "\tmatch: " << x << std::endl;
+	for(auto x : plang) {
+		std::cout << x.first << " := " << std::endl;
 	}
 
-	for(auto x : b.recursive_value)
-		std::cout << '\t' << x.first << ' ' << qstring(x.second) << std::endl;
+	/*
+
+	   std::cout << "B = " << std::endl;
+
+	   std::cout << "string = " << argv[1] << std::endl;
+	   std::cout << "regex  = " << argv[2] << std::endl;
+
+	   std::cout << "a is a " << (a.type == rule::terminal ? "regex" : "list") << std::endl;
+
+	   boost::cmatch cm;
+
+	   if(boost::regex_search(argv[1], cm, a.terminal_value)) {
+	   std::cout << "regex matches string!" << std::endl;
+	   for(auto x : cm)
+	   std::cout << "\tmatch: " << x << std::endl;
+	   }
+
+	   for(auto x : b.recursive_value)
+	   std::cout << '\t' << x.first << ' ' << qstring(x.second) << std::endl;
+
+	 */
 
 	return 0;
 }

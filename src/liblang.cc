@@ -7,15 +7,6 @@
 
 #include <unistd.h>
 
-#include <sstream>
-#include <iostream>
-#include <iomanip>
-
-#include <list>
-#include <stack>
-#include <thread>
-#include <mutex>
-
 #include <stdexcept>
 
 #include <liblang.hh>
@@ -94,7 +85,7 @@ namespace lang {
 				throw std::runtime_error("rule type is undefined");
 				break;
 			case rule::terminal:
-				terminal_value = regex(x, regex::perl);
+				terminal_value = boost::regex(x, regex::perl);
 				break;
 			case rule::recursive:
 				recursive_value.push_back(recursive_type::value_type(x, q::one));
@@ -118,5 +109,16 @@ namespace lang {
 		recursive_value.back().second = x;
 
 		return *this;
+	}
+
+	rule rule::singleton(const symbol& x) {
+		return rule(rule::recursive) << x;
+	}
+
+	std::list<rule> rule::singletons(const std::list<symbol>& xs) {
+		std::list<rule> y;
+		for(auto x : xs)
+			y.push_back(singleton(x));
+		return y;
 	}
 }
