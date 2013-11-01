@@ -19,7 +19,7 @@
 #include <liblang.hh>
 
 namespace lang {
-	const quantifier QSTAR(0,INT_MAX);
-	const quantifier QPLUS(1,INT_MAX);
-	const quantifier QQUESTION(0,1);
+	const quantifier q::star     = quantifier(0,INT_MAX);
+	const quantifier q::plus     = quantifier(1,INT_MAX);
+	const quantifier q::question = quantifier(0,1);
 }
