@@ -1,7 +1,7 @@
 CXX = g++
 CPPFLAGS = -Isrc
 CXXFLAGS = -Wall -W -pedantic -std=gnu++11 -O3
-LIBFLAGS = -Llib -lboost_regex -llang -lpthread
+LIBFLAGS = -Llib -llang -lpthread -lboost_regex
 TARGETS = lib/liblang.a bin/demo
 
 .PHONY : all wipe clean $(TARGETS)

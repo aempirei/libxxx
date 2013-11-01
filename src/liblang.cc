@@ -24,16 +24,16 @@ namespace lang {
 		reset_type(t);
 	}
 
-	rule::rule() : rule(rule::undefined) {
+	rule::rule() : rule(rule_type::undefined) {
 		// nothing
 	}
 
-	rule::rule(const terminal_type& x) : rule(rule::terminal) {
+	rule::rule(const terminal_type& x) : rule(rule_type::terminal) {
 		terminal_value = x;
 		// nothing
 	}
 
-	rule::rule(const recursive_type& x) : rule(rule::recursive) {
+	rule::rule(const recursive_type& x) : rule(rule_type::recursive) {
 		recursive_value = x;
 		// nothing
 	}
@@ -60,8 +60,8 @@ namespace lang {
 
 	rule& rule::operator<<(const terminal_type& x) {
 
-		if(type != rule::terminal)
-			reset_type(rule::terminal);
+		if(type != rule_type::terminal)
+			reset_type(rule_type::terminal);
 
 		terminal_value = x;
 
@@ -70,8 +70,8 @@ namespace lang {
 
 	rule& rule::operator<<(const recursive_type::value_type& x) {
 
-		if(type != rule::recursive)
-			reset_type(rule::recursive);
+		if(type != rule_type::recursive)
+			reset_type(rule_type::recursive);
 
 		recursive_value.push_back(x);
 
@@ -80,14 +80,16 @@ namespace lang {
 
 	rule& rule::operator<<(const symbol& x) {
 
+				std::string r = x;
 		switch(type) {
-			case rule::undefined:
+			case rule_type::undefined:
 				throw std::runtime_error("rule type is undefined");
 				break;
-			case rule::terminal:
-				terminal_value = boost::regex(x, regex::perl);
+			case rule_type::terminal:
+
+				terminal_value = regex(r.c_str());
 				break;
-			case rule::recursive:
+			case rule_type::recursive:
 				recursive_value.push_back(recursive_type::value_type(x, q::one));
 				break;
 			default:
@@ -100,7 +102,7 @@ namespace lang {
 
 	rule& rule::operator<<(const quantifier& x) {
 
-		if(type != rule::recursive)
+		if(type != rule_type::recursive)
 			throw std::runtime_error("rule type is not recursive");
 
 		if(recursive_value.empty())
@@ -112,13 +114,13 @@ namespace lang {
 	}
 
 	rule rule::singleton(const symbol& x) {
-		return rule(rule::recursive) << x;
+		return rule() << rule_type::recursive << x;
 	}
 
 	std::list<rule> rule::singletons(const std::list<symbol>& xs) {
 		std::list<rule> y;
 		for(auto x : xs)
-			y.push_back(singleton(x));
+			y.push_back(rule::singleton(x));
 		return y;
 	}
 }

@@ -52,13 +52,11 @@ int main(int argc, char **argv) {
 
 	std::locale::global(std::locale("en_US.UTF-8"));
 
-	plang[""] = { rule::singleton("statement") << q::star };
+	plang[""] = { rule::singleton("statement") };// << q::star };
 
-	plang["statement"] = rule::singletons({ "typedef", "funcdef", "funcdecl", "comment" });
+	//plang["statement"] = rule::singletons({ "typedef", "funcdef", "funcdecl", "comment" });
 
-	for(auto x : plang) {
-		std::cout << x.first << " := " << std::endl;
-	}
+	//for(auto x : plang) { std::cout << x.first << " := " << std::endl; }
 
 	/*
 

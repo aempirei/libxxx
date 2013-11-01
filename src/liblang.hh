@@ -22,11 +22,7 @@ namespace lang {
 		enum class rule_type { undefined, terminal, recursive };
 
 		typedef std::list<predicate> recursive_type;
-		typedef regex terminal_type;
-
-		static const rule_type terminal  = rule_type::terminal;
-		static const rule_type recursive = rule_type::recursive;
-		static const rule_type undefined = rule_type::undefined;
+		typedef boost::regex terminal_type;
 
 		rule_type type;
 
@@ -51,6 +47,8 @@ namespace lang {
 
 		static std::list<rule> singletons(const std::list<symbol>&);
 	};
+
+	using rule_type = rule::rule_type;
 
 	using grammar = std::map<symbol,std::list<rule>>;
 
