@@ -113,14 +113,14 @@ namespace lang {
 		return *this;
 	}
 
-	rule rule::singleton(const symbol& x) {
+	rule rule::recursive(const symbol& x) {
 		return rule() << rule_type::recursive << x;
 	}
 
 	std::list<rule> rule::singletons(const std::list<symbol>& xs) {
 		std::list<rule> y;
 		for(auto x : xs)
-			y.push_back(rule::singleton(x));
+			y.push_back(rule::recursive(x));
 		return y;
 	}
 }

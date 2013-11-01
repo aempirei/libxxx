@@ -43,7 +43,7 @@ namespace lang {
 		rule& operator<<(const symbol&);
 		rule& operator<<(const quantifier&);
 
-		static rule singleton(const symbol&);
+		static rule recursive(const symbol&);
 
 		static std::list<rule> singletons(const std::list<symbol>&);
 	};

@@ -22,21 +22,34 @@ static void usage(const char *arg0) {
 
 std::string qstring(const quantifier& x) {
 
+	if(x == q::one) {
+
+		return "";
+
+	} else if(x == q::question) {
+
+		return "?";
+
+	} else if(x == q::star) {
+
+		return "*";
+
+	} else if(x == q::plus) {
+
+		return "+";
+	}
+
 	std::stringstream ss;
 
-	ss << '[';
+	ss << '{' << x.first;
 
-	if(x.first == x.second) {
-		ss << x.first;
-	} else {
-		if(x.first != 0)
-			ss << x.first;
-		ss << "...";
+	if(x.first != x.second) {
+		ss << ',';
 		if(x.second != INT_MAX)
 			ss << x.second;
 	}
 
-	ss << ']';
+	ss << '}';
 
 	return ss.str();
 }
@@ -52,13 +65,42 @@ int main(int argc, char **argv) {
 
 	std::locale::global(std::locale("en_US.UTF-8"));
 
-	plang[""] = { rule::singleton("statement") };// << q::star };
+	plang["s"] = { rule::recursive("statement") << q::star };
 
-	//plang["statement"] = rule::singletons({ "typedef", "funcdef", "funcdecl", "comment" });
+	plang["statement"] = rule::singletons({ "typedef", "funcdef", "funcdecl", "comment" });
 
-	//for(auto x : plang) { std::cout << x.first << " := " << std::endl; }
+	plang["typedef"] = { rule::recursive("name") << "tilde" << "signature" };
 
-	/*
+	for(auto x : plang) {
+
+		std::cout << x.first << " :=";
+
+		for(auto iter = x.second.begin(); iter != x.second.end(); iter++) {
+
+			auto& y = *iter;
+
+			if(y.type == rule::rule_type::recursive) {
+
+				for(auto z : y.recursive_value)
+					std::cout << ' ' << z.first << qstring(z.second);
+
+			} else if(y.type == rule::rule_type::terminal) {
+
+				std::cout << " /regex/" << std::endl;
+
+			} else {
+
+				std::cout << " UNDEFINED" << std::endl;
+			}
+
+			if(next(iter) == x.second.end())
+				std::cout << std::endl;
+			else
+				std::cout << " /";
+		}
+	}
+
+/*
 
 	   std::cout << "B = " << std::endl;
 
