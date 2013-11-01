@@ -95,7 +95,7 @@ namespace lang {
 
 			case rule_type::terminal:
 
-				terminal_value.assign(x.c_str(), regex::perl);
+				terminal_value.assign(("\\A" + x).c_str(), regex::perl);
 				break;
 
 			case rule_type::recursive:

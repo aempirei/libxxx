@@ -58,7 +58,10 @@ std::string qstring(const quantifier& x) {
 
 void define_p_grammar(grammar& z) {
 
-#define RULE(X) { rule() << X }
+#define RULE(X)         { rule() << X }
+#define RULES(...)      rule::singletons({ __VA_ARGS__ })
+#define LITERAL(X,Y)    X[Y] = RULE(Y)
+#define ESCAPED(X,Y)    X[Y] = RULE("\\" Y)
 
         //
         // recursive rules
@@ -68,20 +71,19 @@ void define_p_grammar(grammar& z) {
 
         z["s"]                  = RULE("statement" << q::star);
 
-        z["statement"]          = rule::singletons({ "typedef", "funcdef", "funcdecl", "comment" });
+        z["statement"]          = RULES("typedef", "funcdef", "funcdecl", "comment");
 
-        z["typedef"]            = RULE("name" << "tilde" << "signature");
-        z["funcdef"]            = RULE("name" << "larrow" << "funcbody");
-        z["funcdecl"]           = RULE("name" << "colon" << "signature");
+        z["typedef"]            = RULE("." << "name" << "." << "tilde" << "." << "signature" << ".");
+        z["funcdef"]            = RULE("." << "name" << "." << "larrow" << "." << "funcbody" << ".");
+        z["funcdecl"]           = RULE("." << "name" << "." << "colon" << "." << "signature" << ".");
 
-        z["comment"]            = RULE("hash" << "tail");
+        z["comment"]            = RULE("." << "hash" << "tail");
 
-        z["name"]               = RULE("token" << "dtoken" << q::star);
-        z["dtoken"]             = RULE("dash" << "token");
+        z["name"]               = RULE("token" << "dash.token" << q::star);
+        z["dash.token"]             = RULE("dash" << "token");
 
-        z["token"]              = rule::singletons({ "symbol", "abstraction" });
-
-        z["abstraction"]        = rule::singletons({  "abstraction1", "abstraction2", "abstraction3", "abstraction4", "abstraction5" });
+        z["token"]              = RULES("symbol", "abstraction");
+        z["abstraction"]        = RULES("abstraction1", "abstraction2", "abstraction3", "abstraction4", "abstraction5");
 
         z["abstraction1"]       = RULE("[" << "name" << "]");
         z["abstraction2"]       = RULE("{" << "name" << "}");
@@ -89,38 +91,17 @@ void define_p_grammar(grammar& z) {
         z["abstraction4"]       = RULE("/" << "name" << "/");
         z["abstraction5"]       = RULE("\\" << "name" << "\\");
 
-        //
-        // terminal rules
-        //
+        z["signature"]          = RULE("name._" << q::star << "name" << "." << "->" << "." << "name");
+        z["name._"]             = RULE("name" << "_");
 
-        rule::default_type = rule_type::terminal;
+        z["reference"]          = RULE("@" << "number" << q::question);
 
-        z["tail"]       = { rule() << "[^\\n]*$" };
-        z["symbol"]     = { rule() << "[[:alpha:]][[:alnum:]]*" };
+        z["funcbody"]           = RULE("expr.," << q::star << "expr");
+        z["expr.,"]             = RULE("expr" << "." << "," << ".");
+        z["expr"]               = RULE("call.|" << q::star << "call");
 
-        z["."]          = { rule() << "\\s*" };
-        z["_"]          = { rule() << "\\s+" };
+        z["call.|"]             = RULE("call" << "." << "|" << ".");
 
-        z["["]          = { rule() << "\\[" };
-        z["]"]          = { rule() << "\\]" };
-
-        z["{"]          = { rule() << "\\{" };
-        z["}"]          = { rule() << "\\}" };
-
-        z["<"]          = { rule() << "<" };
-        z[">"]          = { rule() << ">" };
-
-        z["/"]          = { rule() << "\\/" };
-        z["\\"]         = { rule() << "\\\\" };
-
-        z["<-"]         = { rule() << "<-" };
-        z[":"]          = { rule() << ":" };
-        z["~"]          = { rule() << "~" };
-        z["-"]          = { rule() << "-" };
-
-        // signature := ( name _ ) * name . "->" . name
-        // 
-        // funcbody := ( expr . "," . ) * expr
         // expr := ( call . "|" . ) * call
         // 
         // call := name ( _ parameter ) *
@@ -128,14 +109,52 @@ void define_p_grammar(grammar& z) {
         // parameter := name / literal / reference
         // 
         // literal := literal1 / literal2
-        // 
-        // literal1 =~ /\A"([^"]|\\"|\\\\)*"/
-        // literal2 =~ /\A\(([^)]*|\\\\|\\\))*\)/
-        // 
-        // 
-        // reference =~ "@" number ?
-        // 
-        // number =~ /\A(0|[1-9]\d*)/
+ 
+        //
+        // terminal rules
+        //
+
+        rule::default_type = rule_type::terminal;
+
+        //
+
+        z["."]          = RULE("\\s*");
+        z["_"]          = RULE("\\s+");
+        
+        //
+
+        z["tail"]       = RULE("[^\\n]*$");
+        z["symbol"]     = RULE("[[:alpha:]][[:alnum:]]*");
+
+        z["literal1"]   = RULE("\"(\\\\\\\\|\\\\\"|[^\"])*\"");
+        z["literal2"]   = RULE("\\((\\\\\\\\|\\\\\\)|[^)])*\\)");
+
+        z["number"]     = RULE("(0|[1-9]\\d*)\\b");
+
+        //
+
+        ESCAPED(z,"\\");
+        ESCAPED(z,"/");
+
+        ESCAPED(z,"{");
+        ESCAPED(z,"}");
+
+        ESCAPED(z,"[");
+        ESCAPED(z,"]");
+
+        ESCAPED(z,"|");
+
+        //
+
+        LITERAL(z,"<");
+        LITERAL(z,">");
+
+        LITERAL(z,"<-");
+        LITERAL(z,":");
+        LITERAL(z,"~");
+        LITERAL(z,"-");
+        LITERAL(z,",");
+        LITERAL(z,"@");
 }
 
 int grammar_rule_width(const grammar& g) {
