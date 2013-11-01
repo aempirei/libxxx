@@ -30,6 +30,10 @@ namespace lang {
 		rule(terminal_type);
 		rule(recursive_type);
 		rule(const rule&);
+
+		rule& operator<<(const terminal_type&);
+		rule& operator<<(const recursive_type::value_type&);
+		rule& operator<<(const recursive_type::value_type::first_type&);
 	};
 
 	using grammar = std::map<symbol,std::list<rule>>;
@@ -38,5 +42,6 @@ namespace lang {
 		static const quantifier star;
 		static const quantifier plus;
 		static const quantifier question;
+		static const quantifier singleton;
 	};
 }
