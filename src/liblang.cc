@@ -94,7 +94,7 @@ namespace lang {
 				throw std::runtime_error("rule type is undefined");
 				break;
 			case rule::terminal:
-				terminal_value.assign(x.c_str());//, regex::extended);
+				terminal_value = regex(x, regex::perl);
 				break;
 			case rule::recursive:
 				recursive_value.push_back(recursive_type::value_type(x, q::one));

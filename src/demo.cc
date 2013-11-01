@@ -64,13 +64,13 @@ int main(int argc, char **argv) {
 
 	std::cout << "a is a " << (a.type == rule::terminal ? "regex" : "list") << std::endl;
 
-	// if(boost::regex_match(argv[1], cm, a.terminal_value)) std::cout << "regex matches string!" << std::endl;
-
-	boost::regex e("(.)",  boost::regex::perl|boost::regex::icase);
-
 	boost::cmatch cm;
 
-	std::cout << "test match: " << boost::regex_match("fuck you", cm, e) << std::endl;
+	if(boost::regex_search(argv[1], cm, a.terminal_value)) {
+		std::cout << "regex matches string!" << std::endl;
+		for(auto x : cm)
+			std::cout << "\tmatch: " << x << std::endl;
+	}
 
 	for(auto x : b.recursive_value)
 		std::cout << '\t' << x.first << ' ' << qstring(x.second) << std::endl;
