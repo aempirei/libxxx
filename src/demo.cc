@@ -79,8 +79,8 @@ void define_p_grammar(grammar& z) {
 
         z["comment"]            = RULE("." << "hash" << "tail");
 
-        z["name"]               = RULE("token" << "dash.token" << q::star);
-        z["dash.token"]             = RULE("dash" << "token");
+        z["name"]               = RULE("token" << "-token" << q::star);
+        z["-token"]             = RULE("-" << "token");
 
         z["token"]              = RULES("symbol", "abstraction");
         z["abstraction"]        = RULES("abstraction1", "abstraction2", "abstraction3", "abstraction4", "abstraction5");
@@ -91,24 +91,23 @@ void define_p_grammar(grammar& z) {
         z["abstraction4"]       = RULE("/" << "name" << "/");
         z["abstraction5"]       = RULE("\\" << "name" << "\\");
 
-        z["signature"]          = RULE("name._" << q::star << "name" << "." << "->" << "." << "name");
-        z["name._"]             = RULE("name" << "_");
+        z["signature"]          = RULE("name_" << q::star << "name" << "." << "->" << "." << "name");
+        z["name_"]              = RULE("name" << "_");
 
         z["reference"]          = RULE("@" << "number" << q::question);
 
-        z["funcbody"]           = RULE("expr.," << q::star << "expr");
-        z["expr.,"]             = RULE("expr" << "." << "," << ".");
-        z["expr"]               = RULE("call.|" << q::star << "call");
+        z["funcbody"]           = RULE("expr.,." << q::star << "expr");
 
-        z["call.|"]             = RULE("call" << "." << "|" << ".");
+        z["expr"]               = RULE("call.|." << q::star << "call");
+        z["expr.,."]            = RULE("expr" << "." << "," << ".");
 
-        // expr := ( call . "|" . ) * call
-        // 
-        // call := name ( _ parameter ) *
-        // 
-        // parameter := name / literal / reference
-        // 
-        // literal := literal1 / literal2
+        z["call"]               = RULE("name" << "_parameter" << q::star);
+        z["call.|."]            = RULE("call" << "." << "|" << ".");
+
+        z["parameter"]          = RULES("name", "literal", "reference");
+        z["_parameter"]         = RULE("_" << "parameter");
+
+        z["literal"]            = RULES("literal1", "literal2");
  
         //
         // terminal rules
