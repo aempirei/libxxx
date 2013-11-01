@@ -14,7 +14,7 @@ bin:
 
 clean :
 	rm -f src/*~ src/*.o $(TARGETS)
-	rm -r bin lib
+	rm -rf bin lib
 
 src/liblang.o: src/liblang.cc src/liblang.hh
 
