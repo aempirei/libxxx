@@ -30,28 +30,28 @@ std::string qstring(const quantifier& x) {
 
         } else if(x == q::question) {
 
-                return "?";
+                return "\33[1;34m?\33[0m";
 
         } else if(x == q::star) {
 
-                return "*";
+                return "\33[1;34m*\33[0m";
 
         } else if(x == q::plus) {
 
-                return "+";
+                return "\33[1;34m+\33[0m";
         }
 
         std::stringstream ss;
 
-        ss << '{' << x.first;
+        ss << "\33[1;34m{\33[0;34m" << x.first;
 
         if(x.first != x.second) {
-                ss << ',';
+                ss << "\33[1;34m,\33[0;34m";
                 if(x.second != INT_MAX)
                         ss << x.second;
         }
 
-        ss << '}';
+        ss << "\33[1;34m}\33[0m";
 
         return ss.str();
 }
@@ -171,6 +171,11 @@ std::string rule_list_string(const std::list<rule>& rs) {
 
         std::stringstream ss;
 
+        const char yel[] = "\33[1;33m";
+        const char brown[] = "\33[0;33m";
+        const char red[] = "\33[0;31m";
+        const char none[] = "\33[0m";
+
         for(auto iter = rs.begin(); iter != rs.end(); iter++) {
 
                 auto& y = *iter;
@@ -182,7 +187,7 @@ std::string rule_list_string(const std::list<rule>& rs) {
 
                 } else if(y.type == rule::rule_type::terminal) {
 
-                        ss << " /" << y.terminal_value.str() << '/';
+                        ss << ' ' << yel << '/' << brown << y.terminal_value.str() << yel << '/' << none;
 
                 } else {
 
@@ -192,7 +197,7 @@ std::string rule_list_string(const std::list<rule>& rs) {
                 if(next(iter) == rs.end())
                         ss << std::endl;
                 else
-                        ss << " /";
+                        ss << ' ' << red << '/' << none;
         }
 
         return ss.str();
@@ -214,7 +219,7 @@ int main(int argc, char **argv) {
         int width = grammar_rule_width(plang);
 
         for(auto x : plang)
-                std::cout << std::left << std::setw(width) << x.first << " :=" << rule_list_string(x.second);
+                std::cout << std::setw(width) << x.first << " \33[1;30m:=\33[0m" << rule_list_string(x.second);
 
 /*
 
