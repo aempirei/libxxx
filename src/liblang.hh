@@ -27,8 +27,8 @@ namespace lang {
 		recursive_type recursive_value;
 
 		rule();
-		rule(terminal_type);
-		rule(recursive_type);
+		rule(const terminal_type&);
+		rule(const recursive_type&);
 		rule(const rule&);
 
 		rule& operator<<(const terminal_type&);
