@@ -13,44 +13,48 @@ namespace lang {
 
 	using quantifier = std::pair<int,int>;
 
-	using symbol = std::string;
-
-	using predicate = std::pair<symbol,quantifier>;
+	using predicate = std::pair<std::string,quantifier>;
 
 	struct rule {
 
-		enum class rule_type { undefined, terminal, recursive };
+		enum class rule_type { undefined, terminal, recursive, literal };
 
-		typedef std::list<predicate> recursive_type;
-		typedef boost::regex terminal_type;
+		typedef std::list<predicate>    recursive_type;
+		typedef regex                   terminal_type;
+                typedef std::string             literal_type;
+
+                static rule_type default_type;
 
 		rule_type type;
 
-		terminal_type terminal_value;
-		recursive_type recursive_value;
+		terminal_type   terminal_value;
+		recursive_type  recursive_value;
+                literal_type    literal_value;
 
 		rule();
 		rule(rule_type);
 		rule(const terminal_type&);
 		rule(const recursive_type&);
 		rule(const rule&);
+                rule(const std::string&);
 
 		void reset_type(rule_type);
 
 		rule& operator<<(rule_type);
 		rule& operator<<(const terminal_type&);
 		rule& operator<<(const recursive_type::value_type&);
-		rule& operator<<(const symbol&);
+		rule& operator<<(const std::string&);
 		rule& operator<<(const quantifier&);
 
-		static rule recursive(const symbol&);
+		static rule recursive(const std::string&);
+                static rule terminal(const std::string&);
 
-		static std::list<rule> singletons(const std::list<symbol>&);
+		static std::list<rule> singletons(const std::list<std::string>&);
 	};
 
 	using rule_type = rule::rule_type;
 
-	using grammar = std::map<symbol,std::list<rule>>;
+	using grammar = std::map<std::string,std::list<rule>>;
 
 	struct q {
 		static const quantifier star;

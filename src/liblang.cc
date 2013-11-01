@@ -20,11 +20,13 @@ namespace lang {
 	const quantifier q::question  = quantifier(0,1);
 	const quantifier q::one       = quantifier(1,1);
 
+        rule_type rule::default_type = rule_type::undefined;
+
 	rule::rule(rule_type t) {
 		reset_type(t);
 	}
 
-	rule::rule() : rule(rule_type::undefined) {
+	rule::rule() : rule(default_type) {
 		// nothing
 	}
 
@@ -43,6 +45,10 @@ namespace lang {
 		terminal_value = x.terminal_value;
 		recursive_value = x.recursive_value;
 	}
+
+        rule::rule(const std::string& x) : rule() {
+                operator<<(x);
+        }
 	
 	void rule::reset_type(rule_type t) {
 		type = t;
@@ -78,21 +84,27 @@ namespace lang {
 		return *this;
 	}
 
-	rule& rule::operator<<(const symbol& x) {
+	rule& rule::operator<<(const std::string& x) {
 
-				std::string r = x;
 		switch(type) {
+
 			case rule_type::undefined:
+
 				throw std::runtime_error("rule type is undefined");
 				break;
+
 			case rule_type::terminal:
 
-				terminal_value = regex(r.c_str());
+				terminal_value.assign(x.c_str(), regex::perl);
 				break;
+
 			case rule_type::recursive:
+
 				recursive_value.push_back(recursive_type::value_type(x, q::one));
 				break;
+
 			default:
+
 				throw std::runtime_error("rule type is unknown");
 				break;
 		}
@@ -113,11 +125,15 @@ namespace lang {
 		return *this;
 	}
 
-	rule rule::recursive(const symbol& x) {
-		return rule() << rule_type::recursive << x;
+	rule rule::recursive(const std::string& x) {
+		return rule(rule_type::recursive) << x;
 	}
 
-	std::list<rule> rule::singletons(const std::list<symbol>& xs) {
+        rule rule::terminal(const std::string& x) {
+                return rule(rule_type::terminal) << x;
+        }
+
+	std::list<rule> rule::singletons(const std::list<std::string>& xs) {
 		std::list<rule> y;
 		for(auto x : xs)
 			y.push_back(rule::recursive(x));
