@@ -19,8 +19,7 @@
 #include <liblang.hh>
 
 namespace lang {
-	struct rule {
-		int a;
-	};
+	const quantifier QSTAR(0,INT_MAX);
+	const quantifier QPLUS(1,INT_MAX);
+	const quantifier QQUESTION(0,1);
 }
-
