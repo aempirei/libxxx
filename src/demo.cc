@@ -69,7 +69,7 @@ void define_p_grammar(grammar& z) {
 
         rule::default_type = rule_type::recursive;
 
-        z["s"]                  = RULE("statement" << q::star);
+        z["document"]           = RULE("statement" << q::star);
 
         z["statement"]          = RULES("typedef", "funcdef", "funcdecl", "comment");
 
@@ -203,6 +203,9 @@ std::string rule_list_string(const std::list<rule>& rs) {
         return ss.str();
 }
 
+void parse_grammar(grammar& g, FILE *fp) {
+}
+
 int main(int argc, char **argv) {
 
         if(argc < 1) {
@@ -221,27 +224,7 @@ int main(int argc, char **argv) {
         for(auto x : plang)
                 std::cout << std::setw(width) << x.first << " \33[1;30m:=\33[0m" << rule_list_string(x.second);
 
-/*
-
-           std::cout << "B = " << std::endl;
-
-           std::cout << "string = " << argv[1] << std::endl;
-           std::cout << "regex  = " << argv[2] << std::endl;
-
-           std::cout << "a is a " << (a.type == rule::terminal ? "regex" : "list") << std::endl;
-
-           boost::cmatch cm;
-
-           if(boost::regex_search(argv[1], cm, a.terminal_value)) {
-           std::cout << "regex matches string!" << std::endl;
-           for(auto x : cm)
-           std::cout << "\tmatch: " << x << std::endl;
-           }
-
-           for(auto x : b.recursive_value)
-           std::cout << '\t' << x.first << ' ' << qstring(x.second) << std::endl;
-
-         */
+        parse_grammar(plang, stdin);
 
         return 0;
 }
