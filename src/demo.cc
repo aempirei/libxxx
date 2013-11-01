@@ -56,31 +56,30 @@ std::string qstring(const quantifier& x) {
         return ss.str();
 }
 
-void define_p_grammar(grammar& z) {
-
 #define RULE(X)         { rule() << X }
 #define RULES(...)      rule::singletons({ __VA_ARGS__ })
 #define LITERAL(X,Y)    X[Y] = RULE(Y)
-#define ESCAPED(X,Y)    X[Y] = RULE("\\" Y)
+#define ESCAPED(X,Y)    X[Y] = RULE("\\" + Y)
+
+void define_p_grammar(grammar& z) {
+
+        rule::default_type = rule_type::recursive;
 
         //
         // recursive rules
         //
 
-        rule::default_type = rule_type::recursive;
-
         z["document"]           = RULE("statement" << q::star);
 
         z["statement"]          = RULES("typedef", "funcdef", "funcdecl", "comment");
 
-        z["typedef"]            = RULE("." << "name" << "." << "tilde" << "." << "signature" << ".");
-        z["funcdef"]            = RULE("." << "name" << "." << "larrow" << "." << "funcbody" << ".");
-        z["funcdecl"]           = RULE("." << "name" << "." << "colon" << "." << "signature" << ".");
+        z["typedef"]            = RULE("." << "name" << "." << "~" << "." << "signature" << ".");
+        z["funcdef"]            = RULE("." << "name" << "." << "<-" << "." << "funcbody" << ".");
+        z["funcdecl"]           = RULE("." << "name" << "." << ":" << "." << "signature" << ".");
 
         z["comment"]            = RULE("." << "hash" << "tail");
 
-        z["name"]               = RULE("token" << "-token" << q::star);
-        z["-token"]             = RULE("-" << "token");
+        z["name"]               = { RULE("token" << "-" << "name"), RULE("token") };
 
         z["token"]              = RULES("symbol", "abstraction");
         z["abstraction"]        = RULES("abstraction1", "abstraction2", "abstraction3", "abstraction4", "abstraction5");
@@ -91,36 +90,42 @@ void define_p_grammar(grammar& z) {
         z["abstraction4"]       = RULE("/" << "name" << "/");
         z["abstraction5"]       = RULE("\\" << "name" << "\\");
 
-        z["signature"]          = RULE("name_" << q::star << "name" << "." << "->" << "." << "name");
-        z["name_"]              = RULE("name" << "_");
+        z["fullname"]           = { RULE("name" << "_" << "fullname"), RULE("name") };
 
+        z["signature"]          = RULE("fullname" << "." << "->" << "." << "name");
         z["reference"]          = RULE("@" << "number" << q::question);
 
-        z["funcbody"]           = RULE("expr.,." << q::star << "expr");
-
-        z["expr"]               = RULE("call.|." << q::star << "call");
-        z["expr.,."]            = RULE("expr" << "." << "," << ".");
-
-        z["call"]               = RULE("name" << "_parameter" << q::star);
-        z["call.|."]            = RULE("call" << "." << "|" << ".");
+        z["funcbody"]           = { RULE("expr" << "." << "," << "." << "funcbody"), RULE("expr") };
+        z["expr"]               = { RULE("call" << "." << "|" << "." << "expr"), RULE("call") };
+        z["call"]               = { RULE("name" << "_" << "parameters"), RULE("name") };
+        z["parameters"]         = { RULE("parameter" << "_" << "parameters"), RULE("parameter") };
 
         z["parameter"]          = RULES("name", "literal", "reference");
-        z["_parameter"]         = RULE("_" << "parameter");
-
         z["literal"]            = RULES("literal1", "literal2");
- 
-        //
-        // terminal rules
-        //
+
+        /*
+
+           z["name"]               = RULE("token" << "-token" << q::star);
+           z["-token"]             = RULE("-" << "token");
+           z["signature"]          = RULE("name_" << q::star << "name" << "." << "->" << "." << "name");
+           z["name_"]              = RULE("name" << "_");
+           z["funcbody"]           = RULE("expr.,." << q::star << "expr");
+           z["expr.,."]            = RULE("expr" << "." << "," << ".");
+           z["expr"]               = RULE("call.|." << q::star << "call");
+           z["call"]               = RULE("name" << "_parameter" << q::star);
+           z["call.|."]            = RULE("call" << "." << "|" << ".");
+           z["_parameter"]         = RULE("_" << "parameter");
+
+         */
 
         rule::default_type = rule_type::terminal;
 
         //
+        // terminal rules
+        //
 
         z["."]          = RULE("\\s*");
         z["_"]          = RULE("\\s+");
-        
-        //
 
         z["tail"]       = RULE("[^\\n]*$");
         z["symbol"]     = RULE("[[:alpha:]][[:alnum:]]*");
@@ -131,30 +136,24 @@ void define_p_grammar(grammar& z) {
         z["number"]     = RULE("(0|[1-9]\\d*)\\b");
 
         //
-
-        ESCAPED(z,"\\");
-        ESCAPED(z,"/");
-
-        ESCAPED(z,"{");
-        ESCAPED(z,"}");
-
-        ESCAPED(z,"[");
-        ESCAPED(z,"]");
-
-        ESCAPED(z,"|");
-
+        // simple terminal rules
         //
 
-        LITERAL(z,"<");
-        LITERAL(z,">");
+        const std::list<std::string> escapes = { "\\", "/", "{", "}", "[", "]", "|" };
 
-        LITERAL(z,"<-");
-        LITERAL(z,":");
-        LITERAL(z,"~");
-        LITERAL(z,"-");
-        LITERAL(z,",");
-        LITERAL(z,"@");
+        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", "~", "-", ",", "@" };
+
+        for(auto escape : escapes)
+                ESCAPED(z, escape);
+
+        for(auto literal : literals)
+                LITERAL(z, literal);
 }
+
+#undef RULE
+#undef RULES
+#undef LITERAL
+#undef ESCAPED
 
 int grammar_rule_width(const grammar& g) {
 
@@ -204,6 +203,8 @@ std::string rule_list_string(const std::list<rule>& rs) {
 }
 
 void parse_grammar(grammar& g, FILE *fp) {
+        fclose(fp);
+        g.clear();
 }
 
 int main(int argc, char **argv) {
