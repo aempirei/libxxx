@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
 	rule b;
 	rule c;
 
-	a << rule_type::terminal << "suck-a-dick";
-	b << rule_type::recursive << "suck-a-dick" << "fuck-you" << q::plus;
+	a << rule::terminal << "suck-a-dick";
+	b << rule::recursive << "suck-a-dick" << "fuck-you" << q::plus << "dicks" << q::question << "fcks" << q::star << "nl";
 
 	std::cout << "B = " << std::endl;
 

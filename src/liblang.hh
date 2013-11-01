@@ -21,6 +21,10 @@ namespace lang {
 		typedef std::list<predicate> recursive_type;
 		typedef std::regex terminal_type;
 
+		static const rule_type terminal  = rule_type::terminal;
+		static const rule_type recursive = rule_type::recursive;
+		static const rule_type undefined = rule_type::undefined;
+
 		rule_type type;
 
 		terminal_type terminal_value;
@@ -40,14 +44,13 @@ namespace lang {
 		rule& operator<<(const quantifier&);
 	};
 
-	using rule_type = rule::rule_type;
-
 	using grammar = std::map<symbol,std::list<rule>>;
 
 	struct q {
 		static const quantifier star;
 		static const quantifier plus;
+		static const quantifier zero;
 		static const quantifier question;
-		static const quantifier singleton;
+		static const quantifier one;
 	};
 }

@@ -24,18 +24,20 @@ namespace lang {
 
 	const quantifier q::star      = quantifier(0,INT_MAX);
 	const quantifier q::plus      = quantifier(1,INT_MAX);
+
+	const quantifier q::zero      = quantifier(0,0);
 	const quantifier q::question  = quantifier(0,1);
-	const quantifier q::singleton = quantifier(1,1);
+	const quantifier q::one       = quantifier(1,1);
 
-	rule::rule() : type(rule_type::undefined) {
+	rule::rule() : type(rule::undefined) {
 		// nothing
 	}
 
-	rule::rule(const terminal_type& x) : type(rule_type::terminal), terminal_value(x) {
+	rule::rule(const terminal_type& x) : type(rule::terminal), terminal_value(x) {
 		// nothing
 	}
 
-	rule::rule(const recursive_type& x) : type(rule_type::recursive), recursive_value(x) {
+	rule::rule(const recursive_type& x) : type(rule::recursive), recursive_value(x) {
 		// nothing
 	}
 
@@ -61,8 +63,8 @@ namespace lang {
 
 	rule& rule::operator<<(const terminal_type& x) {
 
-		if(type != rule_type::terminal)
-			reset_type(rule_type::terminal);
+		if(type != rule::terminal)
+			reset_type(rule::terminal);
 
 		terminal_value = x;
 
@@ -71,8 +73,8 @@ namespace lang {
 
 	rule& rule::operator<<(const recursive_type::value_type& x) {
 
-		if(type != rule_type::recursive)
-			reset_type(rule_type::recursive);
+		if(type != rule::recursive)
+			reset_type(rule::recursive);
 
 		recursive_value.push_back(x);
 
@@ -82,14 +84,14 @@ namespace lang {
 	rule& rule::operator<<(const symbol& x) {
 
 		switch(type) {
-			case rule_type::undefined:
+			case rule::undefined:
 				throw std::runtime_error("rule type is undefined");
 				break;
-			case rule_type::terminal:
+			case rule::terminal:
 				terminal_value.assign(x);
 				break;
-			case rule_type::recursive:
-				recursive_value.push_back(recursive_type::value_type(x, q::singleton));
+			case rule::recursive:
+				recursive_value.push_back(recursive_type::value_type(x, q::one));
 				break;
 			default:
 				throw std::runtime_error("rule type is unknown");
@@ -101,7 +103,7 @@ namespace lang {
 
 	rule& rule::operator<<(const quantifier& x) {
 
-		if(type != rule_type::recursive)
+		if(type != rule::recursive)
 			throw std::runtime_error("rule type is not recursive");
 
 		if(recursive_value.empty())
