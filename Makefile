@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -Isrc
-CXXFLAGS = -Wall -W -pedantic -std=gnu++11 -O2
+CXXFLAGS = -Wall -W -pedantic -std=gnu++11 -O1
 LIBFLAGS = -Llib -llang -lpthread
 TARGETS = lib/liblang.a bin/demo
 

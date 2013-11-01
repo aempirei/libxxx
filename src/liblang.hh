@@ -33,11 +33,14 @@ namespace lang {
 
 		void reset_type(rule_type);
 
+		rule& operator<<(rule_type);
 		rule& operator<<(const terminal_type&);
 		rule& operator<<(const recursive_type::value_type&);
 		rule& operator<<(const symbol&);
 		rule& operator<<(const quantifier&);
 	};
+
+	using rule_type = rule::rule_type;
 
 	using grammar = std::map<symbol,std::list<rule>>;
 

@@ -8,39 +8,60 @@
 #include <list>
 #include <iostream>
 #include <thread>
+#include <sstream>
 
 #include <unistd.h>
 
 #include <liblang.hh>
 
-template <typename F> static void each_line(FILE *fp, F fn) {
-
-	char line[1024];
-
-	while(fgets(line, sizeof(line) - 1, fp) != NULL) {
-		char *p = strpbrk(line, "\r\n");
-		if(p != NULL)
-			*p = '\0';
-		fn(line);
-	}
-}
-
+using namespace lang;
 
 static void usage(const char *arg0) {
 	fprintf(stderr, "\nusage: %s [options] < input\n\n", arg0);
 }
 
+std::string qstring(const quantifier& x) {
+
+	std::stringstream ss;
+
+	ss << '[';
+
+	if(x.first == x.second) {
+		ss << x.first;
+	} else {
+		if(x.first != 0)
+			ss << x.first;
+		ss << "...";
+		if(x.second != INT_MAX)
+			ss << x.second;
+	}
+
+	ss << ']';
+
+	return ss.str();
+}
+
 int main(int argc, char **argv) {
 
-	if(argc < 2) {
+	if(argc < 1) {
 		usage(*argv);
 		return -1;
 	}
 
-	setvbuf(stderr, NULL, _IONBF, 0);
+	rule a;
+	rule b;
+	rule c;
 
-	std::cout << "argument count: " << argc << std::endl;
-	std::cout << "argument 1: " << argv[1] << std::endl;
+	a << rule_type::terminal << "suck-a-dick";
+	b << rule_type::recursive << "suck-a-dick" << "fuck-you" << q::plus;
+
+	std::cout << "B = " << std::endl;
+
+	for(auto x : b.recursive_value) {
+		std::cout << '\t' << x.first << ' ' << qstring(x.second) << std::endl;
+	}
+
+	c << "suck-a-dick";
 
 	return 0;
 }

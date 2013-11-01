@@ -27,15 +27,15 @@ namespace lang {
 	const quantifier q::question  = quantifier(0,1);
 	const quantifier q::singleton = quantifier(1,1);
 
-	rule::rule() : type(rule::rule_type::undefined) {
+	rule::rule() : type(rule_type::undefined) {
 		// nothing
 	}
 
-	rule::rule(const terminal_type& x) : type(rule::rule_type::terminal), terminal_value(x) {
+	rule::rule(const terminal_type& x) : type(rule_type::terminal), terminal_value(x) {
 		// nothing
 	}
 
-	rule::rule(const recursive_type& x) : type(rule::rule_type::recursive), recursive_value(x) {
+	rule::rule(const recursive_type& x) : type(rule_type::recursive), recursive_value(x) {
 		// nothing
 	}
 
@@ -49,6 +49,14 @@ namespace lang {
 		type = t;
 		recursive_value.clear();
 		terminal_value.assign("");
+	}
+
+	rule& rule::operator<<(rule_type t) {
+
+		if(type != t)
+			reset_type(t);
+
+		return *this;
 	}
 
 	rule& rule::operator<<(const terminal_type& x) {
