@@ -36,6 +36,7 @@ namespace lang {
 		rule& operator<<(const terminal_type&);
 		rule& operator<<(const recursive_type::value_type&);
 		rule& operator<<(const symbol&);
+		rule& operator<<(const quantifier&);
 	};
 
 	using grammar = std::map<symbol,std::list<rule>>;

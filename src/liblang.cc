@@ -90,4 +90,17 @@ namespace lang {
 
 		return *this;
 	}
+
+	rule& rule::operator<<(const quantifier& x) {
+
+		if(type != rule_type::recursive)
+			throw std::runtime_error("rule type is not recursive");
+
+		if(recursive_value.empty())
+			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+
+		recursive_value.back().second = x;
+
+		return *this;
+	}
 }
