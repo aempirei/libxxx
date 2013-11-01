@@ -16,7 +16,7 @@ namespace lang {
 
 	struct rule {
 
-		enum class rule_type { terminal, recursive };
+		enum class rule_type { undefined, terminal, recursive };
 
 		typedef std::list<predicate> recursive_type;
 		typedef std::regex terminal_type;
@@ -31,9 +31,11 @@ namespace lang {
 		rule(const recursive_type&);
 		rule(const rule&);
 
+		void reset_type(rule_type);
+
 		rule& operator<<(const terminal_type&);
 		rule& operator<<(const recursive_type::value_type&);
-		rule& operator<<(const recursive_type::value_type::first_type&);
+		rule& operator<<(const symbol&);
 	};
 
 	using grammar = std::map<symbol,std::list<rule>>;
