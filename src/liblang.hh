@@ -3,10 +3,12 @@
 #include <set>
 #include <map>
 #include <string>
-#include <regex>
+#include <boost/regex.hpp>
 #include <climits>
 
 namespace lang {
+
+	using regex = boost::regex;
 
 	using quantifier = std::pair<int,int>;
 
@@ -19,7 +21,7 @@ namespace lang {
 		enum class rule_type { undefined, terminal, recursive };
 
 		typedef std::list<predicate> recursive_type;
-		typedef std::regex terminal_type;
+		typedef regex terminal_type;
 
 		static const rule_type terminal  = rule_type::terminal;
 		static const rule_type recursive = rule_type::recursive;
@@ -31,6 +33,7 @@ namespace lang {
 		recursive_type recursive_value;
 
 		rule();
+		rule(rule_type);
 		rule(const terminal_type&);
 		rule(const recursive_type&);
 		rule(const rule&);

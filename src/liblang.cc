@@ -29,15 +29,21 @@ namespace lang {
 	const quantifier q::question  = quantifier(0,1);
 	const quantifier q::one       = quantifier(1,1);
 
-	rule::rule() : type(rule::undefined) {
+	rule::rule(rule_type t) {
+		reset_type(t);
+	}
+
+	rule::rule() : rule(rule::undefined) {
 		// nothing
 	}
 
-	rule::rule(const terminal_type& x) : type(rule::terminal), terminal_value(x) {
+	rule::rule(const terminal_type& x) : rule(rule::terminal) {
+		terminal_value = x;
 		// nothing
 	}
 
-	rule::rule(const recursive_type& x) : type(rule::recursive), recursive_value(x) {
+	rule::rule(const recursive_type& x) : rule(rule::recursive) {
+		recursive_value = x;
 		// nothing
 	}
 
@@ -50,7 +56,7 @@ namespace lang {
 	void rule::reset_type(rule_type t) {
 		type = t;
 		recursive_value.clear();
-		terminal_value.assign("");
+		// terminal_value.assign("");
 	}
 
 	rule& rule::operator<<(rule_type t) {
@@ -88,7 +94,7 @@ namespace lang {
 				throw std::runtime_error("rule type is undefined");
 				break;
 			case rule::terminal:
-				terminal_value.assign(x);
+				terminal_value.assign(x.c_str());//, regex::extended);
 				break;
 			case rule::recursive:
 				recursive_value.push_back(recursive_type::value_type(x, q::one));
