@@ -1,0 +1,47 @@
+P := statement*
+
+statement := typedef / funcdef / funcdecl / comment
+
+. =~ /\A\s*/
+_ =~ /\A\s+/
+
+tail =~ /\A[^\n]*$/
+
+comment := . "#" tail
+
+typedef := . name . "~" . signature .
+funcdef := . name . "<-" . funcbody .
+funcdecl := . name . ":" . signature .
+
+name := ( token "-" ) * token
+
+token := symbol / abstraction
+
+symbol := [[:alpha:]][[:alnum:]]*
+
+abstraction := abstraction1 / abstraction2 / abstraction3 / abstraction4 / abstraction5
+
+abstraction1 := "[" name "]"
+abstraction2 := "{" name "}"
+abstraction3 := "<" name ">"
+abstraction4 := "/" name "/"
+abstraction5 := "\" name "\"
+
+signature := ( name _ ) * name . "->" . name
+
+funcbody := ( expr . "," . ) * expr
+expr := ( call . "|" . ) * call
+
+call := name ( _ parameter ) *
+
+parameter := name / literal / reference
+
+literal := literal1 / literal2
+
+literal1 =~ /\A"([^"]|\\"|\\\\)*"/
+literal2 =~ /\A\(([^)]*|\\\\|\\\))*\)/
+
+
+reference =~ "@" number ?
+
+number =~ /\A(0|[1-9]\d*)/
