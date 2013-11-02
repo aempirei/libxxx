@@ -103,21 +103,6 @@ void define_p_grammar(grammar& z) {
         z["parameter"]          = RULES("name", "literal", "reference");
         z["literal"]            = RULES("literal1", "literal2");
 
-        /*
-
-           z["name"]               = RULE("token" << "-token" << q::star);
-           z["-token"]             = RULE("-" << "token");
-           z["signature"]          = RULE("name_" << q::star << "name" << "." << "->" << "." << "name");
-           z["name_"]              = RULE("name" << "_");
-           z["funcbody"]           = RULE("expr.,." << q::star << "expr");
-           z["expr.,."]            = RULE("expr" << "." << "," << ".");
-           z["expr"]               = RULE("call.|." << q::star << "call");
-           z["call"]               = RULE("name" << "_parameter" << q::star);
-           z["call.|."]            = RULE("call" << "." << "|" << ".");
-           z["_parameter"]         = RULE("_" << "parameter");
-
-         */
-
         rule::default_type = rule_type::terminal;
 
         //
@@ -201,6 +186,12 @@ std::string rule_list_string(const std::list<rule>& rs) {
 
         return ss.str();
 }
+
+struct parser {
+
+
+
+};
 
 void parse_grammar(grammar& g, FILE *fp) {
         fclose(fp);

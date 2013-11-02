@@ -10,6 +10,7 @@
 namespace lang {
 
 	using regex = boost::regex;
+        using match = boost::cmatch;
 
 	using quantifier = std::pair<int,int>;
 
@@ -55,6 +56,12 @@ namespace lang {
 	using rule_type = rule::rule_type;
 
 	using grammar = std::map<std::string,std::list<rule>>;
+
+        struct ast {
+                std::string rulename;
+                match terminal_matches;
+                std::list<ast> children;
+        };
 
 	struct q {
 		static const quantifier star;
