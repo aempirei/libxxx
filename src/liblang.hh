@@ -16,9 +16,9 @@ namespace lang {
 
 	using predicate = std::pair<std::string,quantifier>;
 
-	struct rule {
+	enum class rule_type { undefined, terminal, recursive, literal };
 
-		enum class rule_type { undefined, terminal, recursive, literal };
+	struct rule {
 
 		typedef std::list<predicate>    recursive_type;
 		typedef regex                   terminal_type;
@@ -53,12 +53,11 @@ namespace lang {
 		static std::list<rule> singletons(const std::list<std::string>&);
 	};
 
-	using rule_type = rule::rule_type;
-
 	using grammar = std::map<std::string,std::list<rule>>;
 
         struct ast {
                 std::string rulename;
+                rule_type type;
                 match terminal_matches;
                 std::list<ast> children;
         };

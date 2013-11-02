@@ -164,12 +164,12 @@ std::string rule_list_string(const std::list<rule>& rs) {
 
                 auto& y = *iter;
 
-                if(y.type == rule::rule_type::recursive) {
+                if(y.type == rule_type::recursive) {
 
                         for(auto z : y.recursive_value)
                                 ss << ' ' << z.first << qstring(z.second);
 
-                } else if(y.type == rule::rule_type::terminal) {
+                } else if(y.type == rule_type::terminal) {
 
                         ss << ' ' << yel << '/' << brown << y.terminal_value.str() << yel << '/' << none;
 
