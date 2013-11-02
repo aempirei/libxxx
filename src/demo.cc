@@ -69,13 +69,13 @@ void define_p_grammar(grammar& z) {
         // recursive rules
         //
 
-        z["document"]           = RULE("statement" << q::star);
+        z["document"]           = RULE("statement" << q::star << "." << "eof");
 
         z["statement"]          = RULES("typedef", "funcdef", "funcdecl", "comment");
 
-        z["typedef"]            = RULE("." << "name" << "." << "~" << "." << "signature" << ".");
-        z["funcdef"]            = RULE("." << "name" << "." << "<-" << "." << "funcbody" << ".");
-        z["funcdecl"]           = RULE("." << "name" << "." << ":" << "." << "signature" << ".");
+        z["typedef"]            = RULE("." << "name" << "." << "~" << "." << "signature");
+        z["funcdef"]            = RULE("." << "name" << "." << "<-" << "." << "funcbody");
+        z["funcdecl"]           = RULE("." << "name" << "." << ":" << "." << "signature");
 
         z["comment"]            = RULE("." << "hash" << "tail");
 
@@ -111,6 +111,8 @@ void define_p_grammar(grammar& z) {
 
         z["."]          = RULE("\\s*");
         z["_"]          = RULE("\\s+");
+
+        z["eof"]        = RULE("\\Z");
 
         z["tail"]       = RULE("[^\\n]*$");
         z["symbol"]     = RULE("[[:alpha:]][[:alnum:]]*");
