@@ -188,14 +188,80 @@ std::string rule_list_string(const std::list<rule>& rs) {
 }
 
 struct parser {
-
-
-
+        static void parse(const grammar&, FILE*);
+        static void parse(const grammar&, std::string);
+        static void parse_recursive(const grammar&, std::string, std::string, ast&);
 };
 
-void parse_grammar(grammar& g, FILE *fp) {
-        fclose(fp);
-        g.clear();
+void parser::parse(const grammar& g, FILE *fp) {
+
+        std::string s;
+        char buf[1024];
+
+        while(!feof(fp)) {
+                int n = fread(buf, 1, sizeof(buf), fp);
+                assert(n != -1);
+                s.append(buf, n);
+        }
+
+        parse(g, s);
+}
+
+void parser::parse(const grammar& g, std::string s) {
+
+        std::cerr << "parsing via grammar with " << g.size() << " rules and input with " << s.length() << " bytes." << std::endl;
+
+        ast q;
+
+        parse_recursive(g, "document", s, q);
+}
+
+void parser::parse_recursive(const grammar& g, std::string rulename, std::string s, ast& q) {
+
+        auto iter = g.find(rulename);
+
+        assert(iter != g.end());
+
+        auto& rules = iter->second;
+
+        auto& rule = rules.front();
+
+        boost::cmatch matches;
+
+        q.rulename = rulename;
+
+        switch(rule.type) {
+
+                case rule_type::undefined:
+
+                        throw std::runtime_error("rule type is undefined");
+                        break;
+
+                case rule_type::terminal:
+
+                        boost::regex_search(s.c_str(),  matches, rule.terminal_value);
+
+                        q.type = rule.type;
+                        q.terminal_matches = matches;
+                        
+                        break;
+
+                case rule_type::recursive:
+
+                        // FIXME
+                        puts("REV");
+
+                        break;
+
+                default:
+
+                        throw std::runtime_error("rule type is unknown");
+                        break;
+        }
+
+        std::cout << "q-rule:" << q.rulename << std::endl;
+        std::cout << "string:" << s << std::endl;
+
 }
 
 int main(int argc, char **argv) {
@@ -216,7 +282,7 @@ int main(int argc, char **argv) {
         for(auto x : plang)
                 std::cout << std::setw(width) << x.first << " \33[1;30m:=\33[0m" << rule_list_string(x.second);
 
-        parse_grammar(plang, stdin);
+        parser::parse(plang, stdin);
 
         return 0;
 }
