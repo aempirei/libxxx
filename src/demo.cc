@@ -226,43 +226,53 @@ void parser::parse_recursive(const grammar& g, std::string rulename, std::string
 
         auto& rules = iter->second;
 
-        auto& rule = rules.front();
+        std::cerr << "q-rule:" << q.rulename << std::endl;
 
-        boost::cmatch matches;
+        for(const auto& rule : rules) {
 
-        q.rulename = rulename;
+                boost::cmatch matches;
 
-        switch(rule.type) {
+                q.rulename = rulename;
 
-                case rule_type::undefined:
+                switch(rule.type) {
 
-                        throw std::runtime_error("rule type is undefined");
-                        break;
+                        case rule_type::undefined:
 
-                case rule_type::terminal:
+                                throw std::runtime_error("rule type is undefined");
+                                break;
 
-                        boost::regex_search(s.c_str(),  matches, rule.terminal_value);
+                        case rule_type::terminal:
 
-                        q.type = rule.type;
-                        q.terminal_matches = matches;
-                        
-                        break;
+                                boost::regex_search(s.c_str(),  matches, rule.terminal_value);
 
-                case rule_type::recursive:
+                                q.type = rule.type;
+                                q.terminal_matches = matches;
 
-                        // FIXME
-                        puts("REV");
+                                break;
 
-                        break;
+                        case rule_type::recursive:
 
-                default:
+                                std::cerr << "rule predicate count = " << rule.recursive_value.size() << std::endl;
 
-                        throw std::runtime_error("rule type is unknown");
-                        break;
+                                // for each predicate
+                                        // check predicate quantifier
+                                        // match predicate until quantifier is satisfied
+                                        // if predicate fails match, continue for() loop for next predicate
+
+                                // if a rule was matched
+                                        // assign ast entries
+                                        // short circuit out of for() loop and return
+
+                                break;
+
+                        default:
+
+                                throw std::runtime_error("rule type is unknown");
+                                break;
+                }
         }
 
-        std::cout << "q-rule:" << q.rulename << std::endl;
-        std::cout << "string:" << s << std::endl;
+        // std::cerr << "string:" << s << std::endl;
 
 }
 
