@@ -22,7 +22,40 @@ static void usage(const char *arg0) {
         fprintf(stderr, "\nusage: %s string regex [options] < input\n\n", arg0);
 }
 
-std::string qstring(const quantifier& x) {
+std::string ast_string(const ast& q) {
+
+        std::stringstream ss;
+
+        ss << q.rulename;
+
+        switch(q.type) {
+
+                case rule_type::undefined:
+                        ss << "(UNDEFINED)";
+                        break;
+
+                case rule_type::terminal:
+                        ss << q.terminal_matches[0];
+                        break;
+
+                case rule_type::recursive:
+
+                        for(const auto& qq : q.children) {
+                                auto s = ast_string(qq);
+                                ss << ' ' << s;
+                        }
+
+                default:
+                        ss << "(UNKNOWN)";
+                        break;
+        }
+
+        ss << std::endl;
+
+        return ss.str();
+}
+
+std::string q_string(const quantifier& x) {
 
         if(x == q::one) {
 
@@ -77,7 +110,7 @@ void define_p_grammar(grammar& z) {
         z["funcdef"]            = RULE("name" << "." << "<-" << "." << "funcbody" << ".");
         z["funcdecl"]           = RULE("name" << "." << ":" << "." << "signature" << ".");
 
-        z["comment"]            = RULE("." << "hash" << "tail");
+        z["comment"]            = RULE("." << "#" << "tail");
 
         z["name"]               = { RULE("token" << "-" << "name"), RULE("token") };
 
@@ -128,7 +161,7 @@ void define_p_grammar(grammar& z) {
 
         const std::list<std::string> escapes = { "\\", "/", "{", "}", "[", "]", "|" };
 
-        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", "~", "-", ",", "@" };
+        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", "~", "-", ",", "@", "#" };
 
         for(auto escape : escapes)
                 ESCAPED(z, escape);
@@ -169,7 +202,7 @@ std::string rule_list_string(const std::list<rule>& rs) {
                 if(y.type == rule_type::recursive) {
 
                         for(auto z : y.recursive_value)
-                                ss << ' ' << z.first << qstring(z.second);
+                                ss << ' ' << z.first << q_string(z.second);
 
                 } else if(y.type == rule_type::terminal) {
 
@@ -274,7 +307,7 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
 
                                 for(const auto& predicate : rule.recursive_value) {
 
-                                        std::cerr << '\t' << "predicate: " << predicate.first << qstring(predicate.second);
+                                        std::cerr << '\t' << "predicate: " << predicate.first << q_string(predicate.second);
 
                                         int i;
 
@@ -300,8 +333,10 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
                                         std::cerr << " -- match success" << std::endl;
                                 }
 
-                                if(success)
+                                if(success) {
+                                        std::cout << "AST:" << std::endl << ast_string(q) << std::endl;
                                         exit(0);
+                                }
 
                                 break;
 
