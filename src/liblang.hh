@@ -60,6 +60,7 @@ namespace lang {
                 rule_type type;
                 match terminal_matches;
                 std::list<ast> children;
+                ssize_t offset;
         };
 
 	struct q {

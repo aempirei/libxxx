@@ -69,13 +69,13 @@ void define_p_grammar(grammar& z) {
         // recursive rules
         //
 
-        z["document"]           = RULE("statement" << q::star << "." << "eof");
+        z["document"]           = RULE("." << "statement" << q::star << "eof");
 
         z["statement"]          = RULES("typedef", "funcdef", "funcdecl", "comment");
 
-        z["typedef"]            = RULE("." << "name" << "." << "~" << "." << "signature");
-        z["funcdef"]            = RULE("." << "name" << "." << "<-" << "." << "funcbody");
-        z["funcdecl"]           = RULE("." << "name" << "." << ":" << "." << "signature");
+        z["typedef"]            = RULE("name" << "." << "~" << "." << "signature" << ".");
+        z["funcdef"]            = RULE("name" << "." << "<-" << "." << "funcbody" << ".");
+        z["funcdecl"]           = RULE("name" << "." << ":" << "." << "signature" << ".");
 
         z["comment"]            = RULE("." << "hash" << "tail");
 
@@ -192,7 +192,7 @@ std::string rule_list_string(const std::list<rule>& rs) {
 struct parser {
         static void parse(const grammar&, FILE*);
         static void parse(const grammar&, std::string);
-        static void parse_recursive(const grammar&, std::string, std::string, ast&);
+        static ssize_t parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t offset = 0);
 };
 
 void parser::parse(const grammar& g, FILE *fp) {
@@ -218,7 +218,7 @@ void parser::parse(const grammar& g, std::string s) {
         parse_recursive(g, "document", s, q);
 }
 
-void parser::parse_recursive(const grammar& g, std::string rulename, std::string s, ast& q) {
+ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const std::string& s, ast& q, ssize_t offset) {
 
         auto iter = g.find(rulename);
 
@@ -226,13 +226,20 @@ void parser::parse_recursive(const grammar& g, std::string rulename, std::string
 
         auto& rules = iter->second;
 
-        std::cerr << "q-rule:" << q.rulename << std::endl;
+        std::cerr << "q-rule:" << q.rulename << " @ " << offset << std::endl;
+
+        q.offset = offset;
+        q.rulename = rulename;
 
         for(const auto& rule : rules) {
 
                 boost::cmatch matches;
 
-                q.rulename = rulename;
+                q.children.clear();
+                q.type = rule.type;
+
+                bool success = true;
+                ssize_t current = offset;
 
                 switch(rule.type) {
 
@@ -243,25 +250,53 @@ void parser::parse_recursive(const grammar& g, std::string rulename, std::string
 
                         case rule_type::terminal:
 
-                                boost::regex_search(s.c_str(),  matches, rule.terminal_value);
+                                std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
 
-                                q.type = rule.type;
+                                if(!boost::regex_search(s.c_str() + offset, matches, rule.terminal_value)) {
+                                        success = false;
+                                        std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
+                                        break;
+                                }
+
+                                std::cerr << " -- match success: " << '"' << matches[0] << '"' << std::endl;
+
                                 q.terminal_matches = matches;
+                                current += matches[0].length();
 
                                 break;
 
                         case rule_type::recursive:
 
-                                std::cerr << "rule predicate count = " << rule.recursive_value.size() << std::endl;
+                                for(const auto& predicate : rule.recursive_value) {
 
-                                // for each predicate
-                                        // check predicate quantifier
-                                        // match predicate until quantifier is satisfied
-                                        // if predicate fails match, continue for() loop for next predicate
+                                        std::cerr << '\t' << "predicate: " << predicate.first << qstring(predicate.second);
 
-                                // if a rule was matched
-                                        // assign ast entries
-                                        // short circuit out of for() loop and return
+                                        int i;
+
+                                        for(i = 0; i <= predicate.second.second; i++) {
+
+                                                ast qq;
+
+                                                ssize_t next = parse_recursive(g, predicate.first, s, qq, current);
+                                                if(next == -1)
+                                                        break;
+
+                                                current = next;
+
+                                                q.children.push_back(qq);
+                                        }
+
+                                        if(i < predicate.second.first) {
+                                                success = false;
+                                                std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
+                                                break;
+                                        }
+
+                                        std::cerr << " -- match success" << std::endl;
+                                }
+
+                                if(success)
+                                        exit(0);
 
                                 break;
 
@@ -270,10 +305,12 @@ void parser::parse_recursive(const grammar& g, std::string rulename, std::string
                                 throw std::runtime_error("rule type is unknown");
                                 break;
                 }
+
+                if(success)
+                        return current;
         }
 
-        // std::cerr << "string:" << s << std::endl;
-
+        return -1;
 }
 
 int main(int argc, char **argv) {
