@@ -61,7 +61,7 @@ namespace lang {
                 match terminal_matches;
                 std::string string;
                 std::list<ast> children;
-                ssize_t offset;
+                ssize_t offset = -1;
         };
 
 	struct q {

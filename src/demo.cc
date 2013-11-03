@@ -111,9 +111,9 @@ void define_p_grammar(grammar& z) {
 
         z["document"]           = RULE("statement" << q::star << "eof");
 
-        z["command"]            = RULES("comment", "typedef", "funcdef", "funcdecl");
-        
         z["statement"]          = RULE("." << "command" << "eol");
+
+        z["command"]            = RULES("comment", "typedef", "funcdef", "funcdecl");
 
         z["comment"]            = RULE("#" << "line");
 
@@ -154,8 +154,8 @@ void define_p_grammar(grammar& z) {
         z["."]          = RULE("[\\s]*");
         z["_"]          = RULE("[\\s]+");
 
-        z["eol"]        = RULE("[\\s]*$");
-        z["eof"]        = RULE("\\Z");
+        z["eol"]        = RULE("[\\s]*($|\\Z)");
+        z["eof"]        = RULE("[\\s]*\\Z");
 
         z["line"]       = RULE("[^\\n]*$");
         z["symbol"]     = RULE("[[:alpha:]][[:alnum:]]*");
@@ -235,7 +235,7 @@ std::string rule_list_string(const std::list<rule>& rs) {
 struct parser {
         static ast& parse(const grammar&, FILE*, ast&);
         static ast& parse(const grammar&, std::string, ast&);
-        static ssize_t parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t offset = 0);
+        static std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t offset = 0);
 };
 
 ast& parser::parse(const grammar& g, FILE *fp, ast& q) {
@@ -254,11 +254,16 @@ ast& parser::parse(const grammar& g, FILE *fp, ast& q) {
 
 ast& parser::parse(const grammar& g, std::string s, ast& q) {
 
-        parse_recursive(g, "document", s, q);
+        std::pair<ssize_t,ssize_t> nn = parse_recursive(g, "document", s, q);
+
+        if(nn.first == -1) {
+                std::cerr << "unmatched portion of document beginning at offset " << nn.second << std::endl;
+                std::cerr << "\33[1m" << s.substr(nn.second, std::string::npos) << "\33[0m";
+        }
         return q;
 }
 
-ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const std::string& s, ast& q, ssize_t offset) {
+std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string rulename, const std::string& s, ast& q, ssize_t offset) {
 
         const auto iter = g.find(rulename);
 
@@ -275,16 +280,18 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
         q.offset = offset;
         q.rulename = rulename;
 
+        ssize_t current = offset;
+
         for(const auto& rule : rules) {
+
+                bool success = true;
 
                 boost::cmatch matches;
 
+                current = offset;
+
                 q.children.clear();
-
                 q.type = rule.type;
-
-                bool success = true;
-                ssize_t current = offset;
 
                 switch(rule.type) {
 
@@ -324,11 +331,11 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
 
                                                 ast qq;
 
-                                                ssize_t next = parse_recursive(g, predicate.first, s, qq, current);
-                                                if(next == -1)
+                                                auto next = parse_recursive(g, predicate.first, s, qq, current);
+                                                if(next.first == -1)
                                                         break;
 
-                                                current = next;
+                                                current = next.second;
 
                                                 q.children.push_back(qq);
                                         }
@@ -352,10 +359,10 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
                 }
 
                 if(success)
-                        return current;
+                        return std::pair<ssize_t,ssize_t>(offset,current);
         }
 
-        return -1;
+        return std::pair<ssize_t,ssize_t>(-1,current);
 }
 
 int main(int argc, char **argv) {
@@ -368,7 +375,7 @@ int main(int argc, char **argv) {
         grammar plang;
         ast past;
 
-        std::locale::global(std::locale("en_US.UTF-8"));
+        // std::locale::global(std::locale("en_US.UTF-8"));
 
         define_p_grammar(plang);
 
