@@ -222,7 +222,12 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
 
         auto iter = g.find(rulename);
 
-        assert(iter != g.end());
+        if(iter == g.end()) {
+                std::stringstream ss;
+                ss << "rule not found -- " << rulename;
+                throw std::runtime_error(ss.str());
+        }
+        
 
         auto& rules = iter->second;
 
