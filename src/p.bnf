@@ -9,7 +9,9 @@ tail =~ /\A[^\n]*$/
 
 comment := . "#" tail
 
-typedef := . name . "~" . signature .
+type := name / signature
+
+typedef := . name . "~" . type .
 funcdef := . name . "<-" . funcbody .
 funcdecl := . name . ":" . signature .
 

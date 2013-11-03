@@ -117,13 +117,16 @@ void define_p_grammar(grammar& z) {
 
         z["comment"]            = RULE("#" << "line");
 
-        z["typedef"]            = RULE("name" << "." << "~" << "." << "signature");
+        z["typedef"]            = RULE("name" << "." << "~" << "." << "type");
         z["funcdef"]            = RULE("name" << "." << "<-" << "." << "funcbody");
-        z["funcdecl"]           = RULE("name" << "." << ":" << "." << "signature");
+        z["funcdecl"]           = RULE("name" << "." << ":" << "." << "type");
+
+        z["type"]               = RULES("signature", "name");
 
         z["name"]               = { RULE("token" << "-" << "name"), RULE("token") };
 
-        z["token"]              = RULES("symbol", "abstraction");
+        z["token"]              = RULES("abstraction","symbol");
+
         z["abstraction"]        = RULES("abstraction1", "abstraction2", "abstraction3", "abstraction4", "abstraction5");
 
         z["abstraction1"]       = RULE("[" << "name" << "]");
@@ -151,7 +154,7 @@ void define_p_grammar(grammar& z) {
         // terminal rules
         //
 
-        z["."]          = RULE("[\\s]*");
+        z["."]          = RULE("[\\s\\n]*");
         z["_"]          = RULE("[\\s]+");
 
         z["eol"]        = RULE("[\\s]*($|\\Z)");
@@ -169,9 +172,9 @@ void define_p_grammar(grammar& z) {
         // simple terminal rules
         //
 
-        const std::list<std::string> escapes = { "\\", "/", "{", "}", "[", "]", "|" };
+        const std::list<std::string> escapes = { "\\", "/", "{", "}", "[", "]", "|", "~" };
 
-        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", "~", "-", ",", "@", "#" };
+        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", ",", "@", "#", "-" };
 
         for(auto escape : escapes)
                 ESCAPED(z, escape);
