@@ -16,7 +16,7 @@ namespace lang {
 
 	using predicate = std::pair<std::string,quantifier>;
 
-	enum class rule_type { undefined, terminal, recursive, literal };
+	enum class rule_type { undefined, terminal, recursive, literal, error };
 
 	struct rule {
 
@@ -57,8 +57,9 @@ namespace lang {
 
         struct ast {
                 std::string rulename;
-                rule_type type;
+                rule_type type = rule_type::undefined;
                 match terminal_matches;
+                std::string string;
                 std::list<ast> children;
                 ssize_t offset;
         };

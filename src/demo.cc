@@ -22,35 +22,42 @@ static void usage(const char *arg0) {
         fprintf(stderr, "\nusage: %s string regex [options] < input\n\n", arg0);
 }
 
-std::string ast_string(const ast& q) {
+std::string ast_string(const ast& q, int depth=0) {
 
         std::stringstream ss;
 
-        ss << q.rulename;
+        ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.rulename;
 
         switch(q.type) {
 
                 case rule_type::undefined:
-                        ss << "(UNDEFINED)";
+
+                        ss << " := (UNDEFINED)" << std::endl;
                         break;
 
                 case rule_type::terminal:
-                        ss << q.terminal_matches[0];
+
+                        ss << " =~ " << '"' << q.string << '"' << std::endl;
+                        // ss << " =~ " << '"' << q.terminal_matches[0].str() << '"' << std::endl;
                         break;
 
                 case rule_type::recursive:
 
-                        for(const auto& qq : q.children) {
-                                auto s = ast_string(qq);
-                                ss << ' ' << s;
-                        }
+                        ss << std::endl;
+
+                        for(const auto& qq : q.children)
+                                ss << ast_string(qq, depth + 2);
+                        break;
+
+                case rule_type::literal:
+
+                        ss << " := (LITERAL)";
+                        break;
 
                 default:
-                        ss << "(UNKNOWN)";
+                        ss << " := (UNKNOWN)";
                         break;
         }
-
-        ss << std::endl;
 
         return ss.str();
 }
@@ -102,15 +109,17 @@ void define_p_grammar(grammar& z) {
         // recursive rules
         //
 
-        z["document"]           = RULE("." << "statement" << q::star << "eof");
+        z["document"]           = RULE("statement" << q::star << "eof");
 
-        z["statement"]          = RULES("typedef", "funcdef", "funcdecl", "comment");
+        z["command"]            = RULES("comment", "typedef", "funcdef", "funcdecl");
+        
+        z["statement"]          = RULE("." << "command" << "eol");
 
-        z["typedef"]            = RULE("name" << "." << "~" << "." << "signature" << ".");
-        z["funcdef"]            = RULE("name" << "." << "<-" << "." << "funcbody" << ".");
-        z["funcdecl"]           = RULE("name" << "." << ":" << "." << "signature" << ".");
+        z["comment"]            = RULE("#" << "line");
 
-        z["comment"]            = RULE("." << "#" << "tail");
+        z["typedef"]            = RULE("name" << "." << "~" << "." << "signature");
+        z["funcdef"]            = RULE("name" << "." << "<-" << "." << "funcbody");
+        z["funcdecl"]           = RULE("name" << "." << ":" << "." << "signature");
 
         z["name"]               = { RULE("token" << "-" << "name"), RULE("token") };
 
@@ -142,12 +151,13 @@ void define_p_grammar(grammar& z) {
         // terminal rules
         //
 
-        z["."]          = RULE("\\s*");
-        z["_"]          = RULE("\\s+");
+        z["."]          = RULE("[\\s]*");
+        z["_"]          = RULE("[\\s]+");
 
+        z["eol"]        = RULE("[\\s]*$");
         z["eof"]        = RULE("\\Z");
 
-        z["tail"]       = RULE("[^\\n]*$");
+        z["line"]       = RULE("[^\\n]*$");
         z["symbol"]     = RULE("[[:alpha:]][[:alnum:]]*");
 
         z["literal1"]   = RULE("\"(\\\\\\\\|\\\\\"|[^\"])*\"");
@@ -223,12 +233,12 @@ std::string rule_list_string(const std::list<rule>& rs) {
 }
 
 struct parser {
-        static void parse(const grammar&, FILE*);
-        static void parse(const grammar&, std::string);
+        static ast& parse(const grammar&, FILE*, ast&);
+        static ast& parse(const grammar&, std::string, ast&);
         static ssize_t parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t offset = 0);
 };
 
-void parser::parse(const grammar& g, FILE *fp) {
+ast& parser::parse(const grammar& g, FILE *fp, ast& q) {
 
         std::string s;
         char buf[1024];
@@ -239,32 +249,28 @@ void parser::parse(const grammar& g, FILE *fp) {
                 s.append(buf, n);
         }
 
-        parse(g, s);
+        return parse(g, s, q);
 }
 
-void parser::parse(const grammar& g, std::string s) {
-
-        std::cerr << "parsing via grammar with " << g.size() << " rules and input with " << s.length() << " bytes." << std::endl;
-
-        ast q;
+ast& parser::parse(const grammar& g, std::string s, ast& q) {
 
         parse_recursive(g, "document", s, q);
+        return q;
 }
 
 ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const std::string& s, ast& q, ssize_t offset) {
 
-        auto iter = g.find(rulename);
+        const auto iter = g.find(rulename);
 
         if(iter == g.end()) {
                 std::stringstream ss;
                 ss << "rule not found -- " << rulename;
                 throw std::runtime_error(ss.str());
         }
-        
 
-        auto& rules = iter->second;
+        const auto& rules = iter->second;
 
-        std::cerr << "q-rule:" << q.rulename << " @ " << offset << std::endl;
+        // std::cerr << "q-rule:" << q.rulename << " @ " << offset << std::endl;
 
         q.offset = offset;
         q.rulename = rulename;
@@ -274,6 +280,7 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
                 boost::cmatch matches;
 
                 q.children.clear();
+
                 q.type = rule.type;
 
                 bool success = true;
@@ -288,18 +295,20 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
 
                         case rule_type::terminal:
 
-                                std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
+                                // std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
 
-                                if(!boost::regex_search(s.c_str() + offset, matches, rule.terminal_value)) {
+                                if(!boost::regex_search(s.substr(offset, std::string::npos).c_str(), matches, rule.terminal_value)) {
                                         success = false;
-                                        std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
+                                        //std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
                                         break;
                                 }
 
-                                std::cerr << " -- match success: " << '"' << matches[0] << '"' << std::endl;
+                                std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
+                                std::cerr << " -- match success: " << '"' << matches[0].str() << '"' << std::endl;
 
                                 q.terminal_matches = matches;
-                                current += matches[0].length();
+                                q.string = matches[0].str();
+                                current += matches[0].str().length();
 
                                 break;
 
@@ -307,11 +316,11 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
 
                                 for(const auto& predicate : rule.recursive_value) {
 
-                                        std::cerr << '\t' << "predicate: " << predicate.first << q_string(predicate.second);
+                                        // std::cerr << '\t' << "predicate: " << predicate.first << q_string(predicate.second);
 
                                         int i;
 
-                                        for(i = 0; i <= predicate.second.second; i++) {
+                                        for(i = 0; i < predicate.second.second; i++) {
 
                                                 ast qq;
 
@@ -326,16 +335,12 @@ ssize_t parser::parse_recursive(const grammar& g, std::string rulename, const st
 
                                         if(i < predicate.second.first) {
                                                 success = false;
-                                                std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
+                                                // std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
                                                 break;
                                         }
 
+                                        std::cerr << '\t' << "predicate: " << predicate.first << q_string(predicate.second);
                                         std::cerr << " -- match success" << std::endl;
-                                }
-
-                                if(success) {
-                                        std::cout << "AST:" << std::endl << ast_string(q) << std::endl;
-                                        exit(0);
                                 }
 
                                 break;
@@ -361,6 +366,7 @@ int main(int argc, char **argv) {
         }
 
         grammar plang;
+        ast past;
 
         std::locale::global(std::locale("en_US.UTF-8"));
 
@@ -371,7 +377,9 @@ int main(int argc, char **argv) {
         for(auto x : plang)
                 std::cout << std::setw(width) << x.first << " \33[1;30m:=\33[0m" << rule_list_string(x.second);
 
-        parser::parse(plang, stdin);
+        parser::parse(plang, stdin, past);
+
+        std::cout << ast_string(past);
 
         return 0;
 }
