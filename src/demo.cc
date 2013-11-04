@@ -137,13 +137,14 @@ void define_p_grammar(grammar& z) {
         z["signature"]          = RULE("fullname" << "." << "->" << "." << "name");
         z["reference"]          = RULE("@" << "number" << q::question);
 
-        z["func"]           = { RULE("expr" << "." << "," << "." << "func"), RULE("expr") };
+        z["func"]               = { RULE("expr" << "." << "," << "." << "func"), RULE("expr") };
         z["expr"]               = { RULE("call" << "." << "|" << "." << "expr"), RULE("call") };
         z["call"]               = { RULE("name" << "_" << "parameters"), RULE("name") };
         z["parameters"]         = { RULE("parameter" << "_" << "parameters"), RULE("parameter") };
 
-        z["parameter"]          = RULES("name", "literal", "reference", "number");
+        z["parameter"]          = RULES("name", "literal", "reference", "integer");
         z["literal"]            = RULES("literal1", "literal2");
+        z["integer"]            = RULES("number","hex","oct","dec","bin");
 
         rule::default_type = rule_type::terminal;
 
@@ -166,7 +167,12 @@ void define_p_grammar(grammar& z) {
         z["literal1"]   = RULE("\"(\\\\\\\\|\\\\\"|[^\"])*\"");
         z["literal2"]   = RULE("\\((\\\\\\\\|\\\\\\)|[^)])*\\)");
 
-        z["number"]     = RULE("(0|[1-9]\\d*)");
+        z["number"]     = RULE("[-+]?(0|[1-9]\\d*)\\b");
+
+        z["hex"]        = RULE("0[xX][[:xdigit:]]+\\b");
+        z["oct"]        = RULE("0[oO][0-7]+\\b");
+        z["dec"]        = RULE("0[dD]\\d+\\b");
+        z["bin"]        = RULE("0[bB][01]+\\b");
 
         //
         // simple terminal rules
@@ -305,18 +311,12 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
 
                         case rule_type::terminal:
 
-                                // std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
-
                                 ms = s.substr(offset, std::string::npos);
 
                                 if(!boost::regex_search(ms, matches, rule.terminal_value)) {
                                         success = false;
-                                        //std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
                                         break;
                                 }
-
-                                std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value << '/';
-                                std::cerr << " -- match success: " << '"' << matches[0] << '"' << std::endl;
 
                                 q.string = matches[0].str();
                                 q.terminal_matches = matches;
@@ -327,8 +327,6 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
                         case rule_type::recursive:
 
                                 for(const auto& predicate : rule.recursive_value) {
-
-                                        // std::cerr << '\t' << "predicate: " << predicate.first << q_string(predicate.second);
 
                                         int i;
 
@@ -347,12 +345,8 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
 
                                         if(i < predicate.second.first) {
                                                 success = false;
-                                                // std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
                                                 break;
                                         }
-
-                                        std::cerr << '\t' << "predicate: " << predicate.first << q_string(predicate.second);
-                                        std::cerr << " -- match success" << std::endl;
                                 }
 
                                 break;
