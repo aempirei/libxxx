@@ -48,11 +48,6 @@ std::string ast_string(const ast& q, int depth=0) {
                                 ss << ast_string(qq, depth + 2);
                         break;
 
-                case rule_type::literal:
-
-                        ss << " := (LITERAL)";
-                        break;
-
                 default:
                         ss << " := (UNKNOWN)";
                         break;

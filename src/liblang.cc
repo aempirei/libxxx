@@ -53,6 +53,7 @@ namespace lang {
 	void rule::reset_type(rule_type t) {
 		type = t;
 		recursive_value.clear();
+                modifier = rule_modifier::push;
 	}
 
 	rule& rule::operator<<(rule_type t) {
