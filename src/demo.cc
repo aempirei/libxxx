@@ -114,7 +114,6 @@ void define_p_grammar(grammar& z) {
 
         z["command"]            = RULES("comment", "typedef", "funcdef", "funcdecl");
 
-        z["comment"]            = RULE("#" << "line");
         z["typedef"]            = RULE("name" << "." << "~" << "." << "type");
         z["funcdef"]            = RULE("name" << "." << "<-" << "." << "func");
         z["funcdecl"]           = RULE("name" << "." << ":" << "." << "type");
@@ -143,7 +142,7 @@ void define_p_grammar(grammar& z) {
         z["call"]               = { RULE("name" << "_" << "parameters"), RULE("name") };
         z["parameters"]         = { RULE("parameter" << "_" << "parameters"), RULE("parameter") };
 
-        z["parameter"]          = RULES("name", /*"literal",*/ "reference", "number");
+        z["parameter"]          = RULES("name", "literal", "reference", "number");
         z["literal"]            = RULES("literal1", "literal2");
 
         rule::default_type = rule_type::terminal;
@@ -157,10 +156,11 @@ void define_p_grammar(grammar& z) {
 
         z["*"]          = RULE("[\\s\\n]*");
 
-        z["eol"]        = RULE("[\\s]*($|\\Z)");
-        z["eof"]        = RULE("[\\s]*\\Z");
+        z["eol"]        = RULE("[\\s]*($|\\z)");
 
-        z["line"]       = RULE("[^\\n]*($|\\Z)");
+        z["eof"]        = RULE("\\z");
+
+        z["comment"]    = RULE("#[^\\n]*");
         z["symbol"]     = RULE("[[:alpha:]][[:alnum:]]*");
 
         z["literal1"]   = RULE("\"(\\\\\\\\|\\\\\"|[^\"])*\"");
@@ -278,12 +278,12 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
 
         const auto& rules = iter->second;
 
-        // std::cerr << "q-rule:" << q.rulename << " @ " << offset << std::endl;
+        ssize_t current = offset;
+
+        std::string ms;
 
         q.offset = offset;
         q.rulename = rulename;
-
-        ssize_t current = offset;
 
         for(const auto& rule : rules) {
 
@@ -307,18 +307,20 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
 
                                 // std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
 
-                                if(!boost::regex_search(s.substr(offset, std::string::npos), matches, rule.terminal_value)) {
+                                ms = s.substr(offset, std::string::npos);
+
+                                if(!boost::regex_search(ms, matches, rule.terminal_value)) {
                                         success = false;
                                         //std::cerr << " -- match failure: quantifier constraints not met" << std::endl;
                                         break;
                                 }
 
-                                std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value.str() << '/' << ' ';
+                                std::cerr << '\t' << "predicate: " << '/' << rule.terminal_value << '/';
                                 std::cerr << " -- match success: " << '"' << matches[0] << '"' << std::endl;
 
+                                q.string = matches[0].str();
                                 q.terminal_matches = matches;
-                                q.string = matches[0];
-                                current += matches[0].length();
+                                current += q.string.length();
 
                                 break;
 

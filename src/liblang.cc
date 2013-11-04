@@ -53,7 +53,6 @@ namespace lang {
 	void rule::reset_type(rule_type t) {
 		type = t;
 		recursive_value.clear();
-		terminal_value.assign("");
 	}
 
 	rule& rule::operator<<(rule_type t) {
@@ -95,7 +94,7 @@ namespace lang {
 
 			case rule_type::terminal:
 
-				terminal_value.assign(("\\A" + x).c_str(), regex::perl);
+				terminal_value.assign("\\A" + x);
 				break;
 
 			case rule_type::recursive:
