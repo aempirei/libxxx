@@ -112,31 +112,31 @@ void define_p_grammar(grammar& z) {
 
         z["command"]            = RULES("comment", "typedef", "funcdef", "funcdecl");
 
-        z["typedef"]            = RULE("name" << DISCARD(".") << "~" << DISCARD(".") << "type");
-        z["funcdef"]            = RULE("name" << DISCARD(".") << "<-" << DISCARD(".") << "func");
-        z["funcdecl"]           = RULE("name" << DISCARD(".") << ":" << DISCARD(".") << "type");
+        z["typedef"]            = RULE("name" << DISCARD(".") << DISCARD("~") << DISCARD(".") << "type");
+        z["funcdef"]            = RULE("name" << DISCARD(".") << DISCARD("<-") << DISCARD(".") << "func");
+        z["funcdecl"]           = RULE("name" << DISCARD(".") << DISCARD(":") << DISCARD(".") << "type");
 
         z["type"]               = RULES("signature", "name");
 
-        z["name"]               = { RULE("token" << "-" << LIFT("name")), RULE("token") };
+        z["name"]               = { RULE("token" << DISCARD("-") << LIFT("name")), RULE("token") };
 
         z["token"]              = RULES("abstraction","symbol");
 
-        z["abstraction"]        = RULES("abstraction1", "abstraction2", "abstraction3", "abstraction4", "abstraction5");
+        z["abstraction"]        = RULES("[X]", "{X}", "<X>", "/X/", "\\X\\");
 
-        z["abstraction1"]       = RULE("[" << "name" << "]");
-        z["abstraction2"]       = RULE("{" << "name" << "}");
-        z["abstraction3"]       = RULE("<" << "name" << ">");
-        z["abstraction4"]       = RULE("/" << "name" << "/");
-        z["abstraction5"]       = RULE("\\" << "name" << "\\");
+        z["[X]"]       = RULE(DISCARD("[") << "name" << DISCARD("]"));
+        z["{X}"]       = RULE(DISCARD("{") << "name" << DISCARD("}"));
+        z["<X>"]       = RULE(DISCARD("<") << "name" << DISCARD(">"));
+        z["/X/"]       = RULE(DISCARD("/") << "name" << DISCARD("/"));
+        z["\\X\\"]       = RULE(DISCARD("\\") << "name" << DISCARD("\\"));
 
         z["fullname"]           = { RULE("name" << DISCARD("_") << LIFT("fullname")), RULE("name") };
 
-        z["signature"]          = RULE("fullname" << DISCARD(".") << "->" << DISCARD(".") << "name");
-        z["reference"]          = RULE("@" << "number" << q::question);
+        z["signature"]          = RULE("fullname" << DISCARD(".") << DISCARD("->") << DISCARD(".") << "name");
+        z["reference"]          = RULE(DISCARD("@") << "number" << q::question);
 
-        z["func"]               = { RULE("expr" << DISCARD(".") << "," << DISCARD(".") << LIFT("func")), RULE("expr") };
-        z["expr"]               = { RULE("call" << DISCARD(".") << "|" << DISCARD(".") << LIFT("expr")), RULE("call") };
+        z["func"]               = { RULE("expr" << DISCARD(".") << DISCARD(",") << DISCARD(".") << LIFT("func")), RULE("expr") };
+        z["expr"]               = { RULE("call" << DISCARD(".") << DISCARD("|") << DISCARD(".") << LIFT("expr")), RULE("call") };
         z["call"]               = { RULE("name" << DISCARD("_") << "parameters"), RULE("name") };
         z["parameters"]         = { RULE("parameter" << DISCARD("_") << LIFT("parameters")), RULE("parameter") };
 
@@ -336,18 +336,26 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
                                                 ast qq;
 
                                                 auto next = parse_recursive(g, predicate.first, s, qq, current);
+
                                                 if(next.first == -1)
                                                         break;
 
                                                 current = next.second;
 
                                                 if(predicate.modifier == predicate_modifier::push) {
+
                                                         q.children.push_back(qq);
+
                                                 } else if(predicate.modifier == predicate_modifier::lift) {
-                                                        q.children.push_back(qq);
+
+                                                        if(qq.type != rule_type::recursive)
+                                                                throw new std::runtime_error("attempting to lift non-recursive ast node");
+
+                                                        for(const auto& qqq : qq.children)
+                                                                q.children.push_back(qqq);
+
                                                 } else if(predicate.modifier == predicate_modifier::discard) {
                                                         // discard
-                                                        std::cerr << "discarding " << predicate.first << std::endl;
                                                 }
                                         }
 
