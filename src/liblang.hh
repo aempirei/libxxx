@@ -10,7 +10,7 @@
 namespace lang {
 
 	using regex = boost::regex;
-        using match = boost::cmatch;
+        using match = boost::smatch;
 
 	using quantifier = std::pair<int,int>;
 
