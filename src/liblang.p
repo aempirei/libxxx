@@ -1,7 +1,7 @@
-# N ~ Natural
-# Q ~ Rational
-# B ~ Boolean
-# A ~ ASCII
+N ~ Natural
+Q ~ Rational
+B ~ Boolean
+A ~ ASCII
 
 [<T>] ~ N -> T
 {<T>} ~ T -> B
