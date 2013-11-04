@@ -1,8 +1,11 @@
 libxxx - A C++ Formal Language Parsing Expression Grammar Library
 
-Copyright(c) 2013 by Christopher Abad | 20 GOTO 10
+Christopher Abad | 20 GOTO 10
 
 email: aempirei@gmail.com aempirei@256.bz
 http://www.256.bz/ http://www.twentygoto10.com/
 aim: ambientempire
 
+fuck you. read demo.cc. it'll make sense if it makes sense, otherwise it won't
+if it doesn't.  you can run demo on examples/source.demo or you can try demo -h,
+which won't help much. good luck.
