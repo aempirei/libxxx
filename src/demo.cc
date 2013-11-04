@@ -135,11 +135,11 @@ void define_p_grammar(grammar& z) {
 
         z["abstraction"]        = RULES("[X]", "{X}", "<X>", "/X/", "\\X\\");
 
-        z["[X]"]       = RULE(DISCARD("[") << "name" << DISCARD("]"));
-        z["{X}"]       = RULE(DISCARD("{") << "name" << DISCARD("}"));
-        z["<X>"]       = RULE(DISCARD("<") << "name" << DISCARD(">"));
-        z["/X/"]       = RULE(DISCARD("/") << "name" << DISCARD("/"));
-        z["\\X\\"]       = RULE(DISCARD("\\") << "name" << DISCARD("\\"));
+        z["[X]"]                = RULE(DISCARD("[") << "name" << DISCARD("]"));
+        z["{X}"]                = RULE(DISCARD("{") << "name" << DISCARD("}"));
+        z["<X>"]                = RULE(DISCARD("<") << "name" << DISCARD(">"));
+        z["/X/"]                = RULE(DISCARD("/") << "name" << DISCARD("/"));
+        z["\\X\\"]              = RULE(DISCARD("\\") << "name" << DISCARD("\\"));
 
         z["fullname"]           = { RULE("name" << DISCARD("_") << LIFT("fullname")), RULE("name") };
 
