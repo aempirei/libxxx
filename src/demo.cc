@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <climits>
 #include <cassert>
+#include <cstdarg>
 
 #include <list>
 #include <iostream>
@@ -18,11 +19,7 @@
 
 using namespace xxx;
 
-static void usage(const char *arg0) {
-        fprintf(stderr, "\nusage: %s string regex [options] < input\n\n", arg0);
-}
-
-std::string ast_string(const ast& q, int depth=0, bool basic=false) {
+static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 
         std::stringstream ss;
 
@@ -67,7 +64,7 @@ std::string ast_string(const ast& q, int depth=0, bool basic=false) {
         return ss.str();
 }
 
-std::string q_string(const quantifier& x) {
+static std::string q_string(const quantifier& x) {
 
         if(x == q::one) {
 
@@ -109,7 +106,7 @@ std::string q_string(const quantifier& x) {
 #define PUSH(X)         X << predicate_modifier::push
 #define LIFT(X)         X << predicate_modifier::lift
 
-void define_p_grammar(grammar& z) {
+static void define_p_grammar(grammar& z) {
 
         rule::default_type = rule_type::recursive;
 
@@ -206,7 +203,7 @@ void define_p_grammar(grammar& z) {
 #undef LIFT
 #undef PUSH
 
-int grammar_rule_width(const grammar& g) {
+static int grammar_rule_width(const grammar& g) {
 
         std::string ms;
 
@@ -217,7 +214,7 @@ int grammar_rule_width(const grammar& g) {
         return (int)ms.length();
 }
 
-std::string rule_list_string(const std::list<rule>& rs) {
+static std::string rule_list_string(const std::list<rule>& rs) {
 
         std::stringstream ss;
 
@@ -253,28 +250,80 @@ std::string rule_list_string(const std::list<rule>& rs) {
         return ss.str();
 }
 
+static void usage(const char *arg0) {
+
+        const int w = 18;
+
+        std::cerr << std::endl << "usage: " << arg0 << " [-{gh}] [-p filename]" << std::endl << std::endl;
+
+        std::cerr << '\t' << std::left << std::setw(w) << "-g" << "print grammar specification" << std::endl;
+        std::cerr << '\t' << std::left << std::setw(w) << "-h" << "print help" << std::endl;
+        std::cerr << '\t' << std::left << std::setw(w) << "-p filename" << "parse file" << std::endl;
+
+        std::cerr << std::endl;
+}
+
 int main(int argc, char **argv) {
 
-        if(argc < 1) {
+        bool do_grammar = false;
+        bool do_parse = false;
+
+        const char *filename = NULL;
+
+        int opt;
+
+        if(argc == 1) {
                 usage(*argv);
                 return -1;
         }
 
+        while ((opt = getopt(argc, argv, "hgp:")) != -1) {
+                switch (opt) {
+                        case 'g':
+                                do_grammar = true;
+                                break;
+                        case 'p':
+                                do_parse = true;
+                                filename = optarg;
+                                break;
+                        case 'h':
+                        case '?':
+                        default:
+                                usage(*argv);
+                                return -1;
+                }
+        }
+
         grammar g;
-        ast past;
+        ast q;
 
         // std::locale::global(std::locale("en_US.UTF-8"));
 
         define_p_grammar(g);
 
-        int width = grammar_rule_width(g);
+        if(do_grammar) {
 
-        for(auto x : g)
-                std::cout << std::setw(width) << x.first << " \33[1;30m:=\33[0m" << rule_list_string(x.second);
+                int width = grammar_rule_width(g);
 
-        parse(g, stdin, past);
+                for(auto x : g)
+                        std::cout << std::setw(width) << x.first << ' ' << "\33[1;30m" << ":=" << "\33[0m" << rule_list_string(x.second);
+        }
 
-        std::cout << ast_string(past);
+        if(do_parse) {
+
+                FILE *fp = fopen(filename, "r");
+
+                if(!fp) {
+                        perror("fopen()");
+                        return -1;
+                }
+
+                parse(g, fp, q);
+
+                fclose(fp);
+
+                std::cout << ast_string(q);
+        }
 
         return 0;
 }
