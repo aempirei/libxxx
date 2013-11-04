@@ -7,7 +7,7 @@
 #include <list>
 #include <climits>
 
-namespace lang {
+namespace xxx {
 
 	using regex = boost::regex;
         using match = boost::smatch;

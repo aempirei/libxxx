@@ -1,8 +1,8 @@
 CXX = g++
 CPPFLAGS = -Isrc
 CXXFLAGS = -Wall -W -pedantic -std=gnu++11 -O2
-LIBFLAGS = -Llib -llang -lpthread -lboost_regex
-TARGETS = lib/liblang.a bin/demo
+LIBFLAGS = -Llib -lxxx -lpthread -lboost_regex
+TARGETS = lib/libxxx.a bin/demo
 
 .PHONY : all wipe clean $(TARGETS)
 
@@ -16,14 +16,14 @@ clean :
 	rm -f src/*~ src/*.o $(TARGETS)
 	rm -rf bin lib
 
-src/liblang.o: src/liblang.cc src/liblang.hh
+src/libxxx.o: src/libxxx.cc src/libxxx.hh
 
-src/demo.o: src/demo.cc src/liblang.hh
+src/demo.o: src/demo.cc src/libxxx.hh
 
-lib/liblang.a: src/liblang.o
+lib/libxxx.a: src/libxxx.o
 	if [ ! -d lib ]; then mkdir -vp lib; fi
 	ar crfv $@ $^ 
 
-bin/demo: lib/liblang.a src/demo.o
+bin/demo: lib/libxxx.a src/demo.o
 	if [ ! -d bin ]; then mkdir -vp bin; fi
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBFLAGS)

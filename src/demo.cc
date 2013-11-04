@@ -14,9 +14,9 @@
 
 #include <unistd.h>
 
-#include <liblang.hh>
+#include <libxxx.hh>
 
-using namespace lang;
+using namespace xxx;
 
 static void usage(const char *arg0) {
         fprintf(stderr, "\nusage: %s string regex [options] < input\n\n", arg0);
@@ -398,19 +398,19 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        grammar plang;
+        grammar g;
         ast past;
 
         // std::locale::global(std::locale("en_US.UTF-8"));
 
-        define_p_grammar(plang);
+        define_p_grammar(g);
 
-        int width = grammar_rule_width(plang);
+        int width = grammar_rule_width(g);
 
-        for(auto x : plang)
+        for(auto x : g)
                 std::cout << std::setw(width) << x.first << " \33[1;30m:=\33[0m" << rule_list_string(x.second);
 
-        parser::parse(plang, stdin, past);
+        parser::parse(g, stdin, past);
 
         std::cout << ast_string(past);
 

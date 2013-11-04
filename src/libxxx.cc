@@ -9,9 +9,9 @@
 
 #include <stdexcept>
 
-#include <liblang.hh>
+#include <lib666.hh>
 
-namespace lang {
+namespace 666 {
 
 	const quantifier q::star      = quantifier(0,INT_MAX);
 	const quantifier q::plus      = quantifier(1,INT_MAX);
