@@ -32,6 +32,6 @@ lib/libxxx.a: src/xxx.o
 	if [ ! -d lib ]; then mkdir -vp lib; fi
 	ar crfv $@ $^ 
 
-bin/demo: lib/libxxx.a src/demo.o
+bin/demo: src/demo.o lib/libxxx.a
 	if [ ! -d bin ]; then mkdir -vp bin; fi
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
