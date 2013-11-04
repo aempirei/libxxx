@@ -22,11 +22,16 @@ static void usage(const char *arg0) {
         fprintf(stderr, "\nusage: %s string regex [options] < input\n\n", arg0);
 }
 
-std::string ast_string(const ast& q, int depth=0) {
+std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 
         std::stringstream ss;
 
-        ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.rulename;
+        if(basic) {
+                ss << q.rulename;
+        } else {
+
+                ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.rulename;
+        }
 
         switch(q.type) {
 
@@ -42,10 +47,16 @@ std::string ast_string(const ast& q, int depth=0) {
 
                 case rule_type::recursive:
 
-                        ss << std::endl;
+                        if(q.children.size() == 1) {
+                                ss << ' ' << ast_string(q.children.back(), depth + 2, true);
+                        } else {
 
-                        for(const auto& qq : q.children)
-                                ss << ast_string(qq, depth + 2);
+                                ss << std::endl;
+
+                                for(const auto& qq : q.children)
+                                        ss << ast_string(qq, depth + 2);
+                        }
+
                         break;
 
                 default:
