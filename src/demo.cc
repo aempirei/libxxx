@@ -94,6 +94,9 @@ std::string q_string(const quantifier& x) {
 #define RULES(...)      rule::singletons({ __VA_ARGS__ })
 #define LITERAL(X,Y)    X[Y] = RULE(Y)
 #define ESCAPED(X,Y)    X[Y] = RULE("\\" + Y)
+#define DISCARD(X)      X << rule_modifier::discard
+#define PUSH(X)         X << rule_modifier::push
+#define LIFT(X)         X << rule_modifier::lift
 
 void define_p_grammar(grammar& z) {
 
@@ -103,19 +106,19 @@ void define_p_grammar(grammar& z) {
         // recursive rules
         //
 
-        z["document"]           = RULE("statement" << q::star << "eof");
+        z["document"]           = RULE("statement" << q::star << DISCARD("eof"));
 
-        z["statement"]          = RULE("*" << "command" << "eol");
+        z["statement"]          = RULE(DISCARD("*") << "command" << DISCARD("eol"));
 
         z["command"]            = RULES("comment", "typedef", "funcdef", "funcdecl");
 
-        z["typedef"]            = RULE("name" << "." << "~" << "." << "type");
-        z["funcdef"]            = RULE("name" << "." << "<-" << "." << "func");
-        z["funcdecl"]           = RULE("name" << "." << ":" << "." << "type");
+        z["typedef"]            = RULE("name" << DISCARD(".") << "~" << DISCARD(".") << "type");
+        z["funcdef"]            = RULE("name" << DISCARD(".") << "<-" << DISCARD(".") << "func");
+        z["funcdecl"]           = RULE("name" << DISCARD(".") << ":" << DISCARD(".") << "type");
 
         z["type"]               = RULES("signature", "name");
 
-        z["name"]               = { RULE("token" << "-" << "name"), RULE("token") };
+        z["name"]               = { RULE("token" << "-" << LIFT("name")), RULE("token") };
 
         z["token"]              = RULES("abstraction","symbol");
 
@@ -127,15 +130,15 @@ void define_p_grammar(grammar& z) {
         z["abstraction4"]       = RULE("/" << "name" << "/");
         z["abstraction5"]       = RULE("\\" << "name" << "\\");
 
-        z["fullname"]           = { RULE("name" << "_" << "fullname"), RULE("name") };
+        z["fullname"]           = { RULE("name" << DISCARD("_") << LIFT("fullname")), RULE("name") };
 
-        z["signature"]          = RULE("fullname" << "." << "->" << "." << "name");
+        z["signature"]          = RULE("fullname" << DISCARD(".") << "->" << DISCARD(".") << "name");
         z["reference"]          = RULE("@" << "number" << q::question);
 
-        z["func"]               = { RULE("expr" << "." << "," << "." << "func"), RULE("expr") };
-        z["expr"]               = { RULE("call" << "." << "|" << "." << "expr"), RULE("call") };
-        z["call"]               = { RULE("name" << "_" << "parameters"), RULE("name") };
-        z["parameters"]         = { RULE("parameter" << "_" << "parameters"), RULE("parameter") };
+        z["func"]               = { RULE("expr" << DISCARD(".") << "," << DISCARD(".") << LIFT("func")), RULE("expr") };
+        z["expr"]               = { RULE("call" << DISCARD(".") << "|" << DISCARD(".") << LIFT("expr")), RULE("call") };
+        z["call"]               = { RULE("name" << DISCARD("_") << "parameters"), RULE("name") };
+        z["parameters"]         = { RULE("parameter" << DISCARD("_") << LIFT("parameters")), RULE("parameter") };
 
         z["parameter"]          = RULES("name", "literal", "reference", "integer");
         z["literal"]            = RULES("literal1", "literal2");
@@ -188,6 +191,9 @@ void define_p_grammar(grammar& z) {
 #undef RULES
 #undef LITERAL
 #undef ESCAPED
+#undef DISCARD
+#undef LIFT
+#undef PUSH
 
 int grammar_rule_width(const grammar& g) {
 
