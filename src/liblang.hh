@@ -44,11 +44,12 @@ namespace lang {
 		void reset_type(rule_type);
 
 		rule& operator<<(rule_type);
+		rule& operator<<(rule_modifier);
+
 		rule& operator<<(const terminal_type&);
 		rule& operator<<(const recursive_type::value_type&);
 		rule& operator<<(const std::string&);
 		rule& operator<<(const quantifier&);
-		rule& operator<<(const rule_modifier&);
 
 		static rule recursive(const std::string&);
                 static rule terminal(const std::string&);

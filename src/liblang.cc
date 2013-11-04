@@ -112,6 +112,11 @@ namespace lang {
 		return *this;
 	}
 
+        rule& rule::operator<<(rule_modifier m) {
+                modifier = m;
+                return *this;
+        }
+
 	rule& rule::operator<<(const quantifier& x) {
 
 		if(type != rule_type::recursive)
