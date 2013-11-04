@@ -14,11 +14,15 @@ namespace lang {
 
 	using quantifier = std::pair<int,int>;
 
-	using predicate = std::pair<std::string,quantifier>;
-
 	enum class rule_type { undefined, terminal, recursive, error };
 
-        enum class rule_modifier { push, discard, lift };
+        enum class predicate_modifier { push, discard, lift };
+
+        struct predicate {
+                std::string first;
+                quantifier second;
+                predicate_modifier modifier = predicate_modifier::push;
+        };
 
 	struct rule {
 
@@ -28,8 +32,6 @@ namespace lang {
                 static rule_type default_type;
 
 		rule_type type;
-
-                rule_modifier modifier;
 
 		terminal_type   terminal_value;
 		recursive_type  recursive_value;
@@ -44,7 +46,7 @@ namespace lang {
 		void reset_type(rule_type);
 
 		rule& operator<<(rule_type);
-		rule& operator<<(rule_modifier);
+		rule& operator<<(predicate_modifier);
 
 		rule& operator<<(const terminal_type&);
 		rule& operator<<(const recursive_type::value_type&);

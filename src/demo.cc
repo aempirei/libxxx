@@ -94,9 +94,9 @@ std::string q_string(const quantifier& x) {
 #define RULES(...)      rule::singletons({ __VA_ARGS__ })
 #define LITERAL(X,Y)    X[Y] = RULE(Y)
 #define ESCAPED(X,Y)    X[Y] = RULE("\\" + Y)
-#define DISCARD(X)      X << rule_modifier::discard
-#define PUSH(X)         X << rule_modifier::push
-#define LIFT(X)         X << rule_modifier::lift
+#define DISCARD(X)      X << predicate_modifier::discard
+#define PUSH(X)         X << predicate_modifier::push
+#define LIFT(X)         X << predicate_modifier::lift
 
 void define_p_grammar(grammar& z) {
 
@@ -341,7 +341,14 @@ std::pair<ssize_t,ssize_t> parser::parse_recursive(const grammar& g, std::string
 
                                                 current = next.second;
 
-                                                q.children.push_back(qq);
+                                                if(predicate.modifier == predicate_modifier::push) {
+                                                        q.children.push_back(qq);
+                                                } else if(predicate.modifier == predicate_modifier::lift) {
+                                                        q.children.push_back(qq);
+                                                } else if(predicate.modifier == predicate_modifier::discard) {
+                                                        // discard
+                                                        std::cerr << "discarding " << predicate.first << std::endl;
+                                                }
                                         }
 
                                         if(i < predicate.second.first) {

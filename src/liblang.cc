@@ -53,7 +53,6 @@ namespace lang {
 	void rule::reset_type(rule_type t) {
 		type = t;
 		recursive_value.clear();
-                modifier = rule_modifier::push;
 	}
 
 	rule& rule::operator<<(rule_type t) {
@@ -86,6 +85,8 @@ namespace lang {
 
 	rule& rule::operator<<(const std::string& x) {
 
+                predicate p;
+
 		switch(type) {
 
 			case rule_type::undefined:
@@ -100,7 +101,10 @@ namespace lang {
 
 			case rule_type::recursive:
 
-				recursive_value.push_back(recursive_type::value_type(x, q::one));
+                                p.first = x;
+                                p.second = q::one;
+
+				recursive_value.push_back(p);
 				break;
 
 			default:
@@ -112,8 +116,16 @@ namespace lang {
 		return *this;
 	}
 
-        rule& rule::operator<<(rule_modifier m) {
-                modifier = m;
+        rule& rule::operator<<(predicate_modifier m) {
+
+		if(type != rule_type::recursive)
+			throw std::runtime_error("rule type is not recursive");
+
+		if(recursive_value.empty())
+			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+
+		recursive_value.back().modifier = m;
+
                 return *this;
         }
 
