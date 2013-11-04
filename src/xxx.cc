@@ -9,7 +9,7 @@
 
 #include <stdexcept>
 
-#include <libxxx.hh>
+#include <xxx.hh>
 
 namespace xxx {
 
