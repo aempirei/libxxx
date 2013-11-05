@@ -20,6 +20,7 @@ func            := expr !. !comma !. ^func / expr
 expr            := call !. !pipe !. ^expr / call
 call            := name !_ parameters / name
 parameters      := parameter !_ ^parameters / parameter
+parameter       := name / literal / reference / integer
 literal         := literal1 / literal2
 integer         := number / hex / oct / dec / bin
 

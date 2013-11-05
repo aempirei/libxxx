@@ -22,7 +22,8 @@ install:
 	install -m 644 src/xxx.hh $(INSTALL_PATH)/include
 
 test: $(TARGETS)
-	./bin/demo < examples/source.demo
+	./bin/demo -p examples/source.demo
+	./bin/xxxparse -g examples/source.peg < examples/source.demo
 
 src/libxxx.o: src/xxx.cc src/xxx.hh
 

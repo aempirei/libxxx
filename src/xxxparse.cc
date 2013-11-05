@@ -71,7 +71,83 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 #define LITERAL(X,Y)    X[Y] = P(Y)
 #define ESCAPED(X,Y)    X[Y] = P("\\" + Y)
 
-static void define_peg_grammar(grammar& z) {
+static void load_dynamic_grammar(grammar& g, const ast& a) {
+
+        if(a.rulename == "document") {
+                for(const auto& b : a.children) {
+
+                        const auto& name = b.children[0].string;
+
+                        if(b.rulename == "terminal") {
+
+                                auto reg = b.children[1].string.substr(1,std::string::npos);
+
+                                reg.pop_back();
+
+                                // std::cerr << "loaded terminal rule: " << name << " ~= /" << reg << '/' << std::endl;
+
+                                g[name] = { rule(rule_type::terminal) << reg };
+
+                        } else {
+
+                                g[name] = {};
+
+                                // ordered
+
+                                for(const auto& c : b.children[1].children) {
+
+                                // predicates
+
+                                        rule r(rule_type::recursive);
+
+                                        for(const auto& d : c.children) {
+
+                                                // predicate
+
+                                                predicate p;
+
+                                                auto iter = d.children.begin();
+
+                                                if(iter->rulename == "modifier") {
+                                                        if(iter->string == "^") {
+                                                                p.modifier = predicate_modifier::lift;
+                                                        } else if(iter->string == "!") {
+                                                                p.modifier = predicate_modifier::discard;
+                                                        }
+
+                                                        iter++;
+                                                } else {
+                                                        p.modifier = predicate_modifier::push;
+                                                }
+
+                                                if(iter->rulename == "name") {
+                                                        p.first = iter->string;
+                                                        iter++;
+                                                }
+
+                                                if(iter != d.children.end() && iter->rulename == "quantifier") {
+                                                        if(iter->string == "*") {
+                                                                p.second = q::star;
+                                                        } else if(iter->string == "+") {
+                                                                p.second = q::plus;
+                                                        } else if(iter->string == "?") {
+                                                                p.second = q::question;
+                                                        }
+                                                } else {
+                                                        p.second = q::one;
+                                                }
+
+                                                r << p;
+                                        }
+
+                                        g[name].push_back(r);
+                                }
+                        }
+                }
+        }
+}
+
+static void define_peg_grammar(grammar& g) {
 
         rule::default_type = rule_type::recursive;
 
@@ -79,20 +155,20 @@ static void define_peg_grammar(grammar& z) {
         // recursive rules
         //
 
-        z["document"]   = P("line" << q::star << D("eof"));
+        g["document"]   = P(L("rule") << q::star << D("eof"));
 
-        z["line"]       = P(D("ws") << "rule" << D("eol"));
+        g["rule"]       = P(D("ws") << L("rule'") << D("eol"));
 
-        z["rule"]       = PS("recursive", "terminal");
+        g["rule'"]      = PS("recursive", "terminal");
 
-        z["terminal"]   = P("name" << D("_") << D("~=") << D("_") << "regex");
-        z["recursive"]  = P("name" << D("_") << D(":=") << D("_") << "ordered");
+        g["terminal"]   = P("name" << D("_") << D("~=") << D("_") << "regex");
+        g["recursive"]  = P("name" << D("_") << D(":=") << D("_") << "ordered");
 
-        z["ordered"]    = { P("predicates" << D("_") << D("/") << D("_") << L("ordered")), P("predicates") };
+        g["ordered"]    = { P("predicates" << D("_") << D("/") << D("_") << L("ordered")), P("predicates") };
 
-        z["predicates"] = { P("predicate" << D("_") << L("predicates")), P("predicate") };
+        g["predicates"] = { P("predicate" << D("_") << L("predicates")), P("predicate") };
 
-        z["predicate"]  = P("modifier" << q::question << "name" << "quantifier" << q::question);
+        g["predicate"]  = P("modifier" << q::question << "name" << "quantifier" << q::question);
 
         //
 
@@ -102,14 +178,14 @@ static void define_peg_grammar(grammar& z) {
         // terminal rules
         //
 
-        z["_"]          = P("[ \\t]+");
-        z["name"]       = P("[-.\\w]+");
-        z["ws"]         = P("\\s*");
-        z["eol"]        = P("\\s*($|\\z)");
-        z["eof"]        = P("\\z");
-        z["modifier"]   = PS("!", "^");
-        z["quantifier"] = PS("*", "?", "+");
-        z["regex"]      = P("\\/(\\/|[^\\/\\n])*\\/");
+        g["_"]          = P("[ \\t]+");
+        g["name"]       = P("[-.\\w]+");
+        g["ws"]         = P("\\s*");
+        g["eol"]        = P("\\s*($|\\z)");
+        g["eof"]        = P("\\z");
+        g["modifier"]   = P("[!^]");
+        g["quantifier"] = P("[*?+]");
+        g["regex"]      = P("/(\\/|[^\\/\\n])*/");
 
         //
         // simple terminal rules
@@ -120,10 +196,10 @@ static void define_peg_grammar(grammar& z) {
         const std::list<std::string> literals = { ":=", "!" };
 
         for(auto escape : escapes)
-                ESCAPED(z, escape);
+                ESCAPED(g, escape);
 
         for(auto literal : literals)
-                LITERAL(z, literal);
+                LITERAL(g, literal);
 }
 
 #undef P
@@ -137,10 +213,10 @@ static void usage(const char *arg0) {
 
         const int w = 18;
 
-        std::cerr << std::endl << "usage: " << arg0 << " [-{h}] [-p filename]" << std::endl << std::endl;
+        std::cerr << std::endl << "usage: " << arg0 << " [-{h}] [-g filename]" << std::endl << std::endl;
 
         std::cerr << '\t' << std::left << std::setw(w) << "-h" << "print help" << std::endl;
-        std::cerr << '\t' << std::left << std::setw(w) << "-p filename" << "parse file" << std::endl;
+        std::cerr << '\t' << std::left << std::setw(w) << "-g filename" << "grammar file" << std::endl;
 
         std::cerr << std::endl;
 }
@@ -158,9 +234,9 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        while ((opt = getopt(argc, argv, "hp:")) != -1) {
+        while ((opt = getopt(argc, argv, "hg:")) != -1) {
                 switch (opt) {
-                        case 'p':
+                        case 'g':
                                 do_parse = true;
                                 filename = optarg;
                                 break;
@@ -173,11 +249,14 @@ int main(int argc, char **argv) {
         }
 
         grammar g;
-        ast q;
+        ast a;
 
         define_peg_grammar(g);
 
         if(do_parse) {
+
+                grammar h;
+                ast b;
 
                 FILE *fp = fopen(filename, "r");
 
@@ -186,11 +265,17 @@ int main(int argc, char **argv) {
                         return -1;
                 }
 
-                parse(g, fp, q);
+                parse(g, fp, a);
 
                 fclose(fp);
 
-                std::cout << ast_string(q);
+                std::cout << ast_string(a);
+                
+                load_dynamic_grammar(h, a);
+
+                parse(h, stdin, b);
+
+                std::cout << ast_string(b);
         }
 
         return 0;

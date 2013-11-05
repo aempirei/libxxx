@@ -1,11 +1,13 @@
 #pragma once
 
-#include <set>
-#include <map>
-#include <string>
-#include <boost/regex.hpp>
-#include <list>
 #include <climits>
+
+#include <map>
+#include <list>
+#include <vector>
+#include <string>
+
+#include <boost/regex.hpp>
 
 namespace xxx {
 
@@ -49,9 +51,9 @@ namespace xxx {
 		rule& operator<<(predicate_modifier);
 
 		rule& operator<<(const terminal_type&);
-		rule& operator<<(const recursive_type::value_type&);
 		rule& operator<<(const std::string&);
 		rule& operator<<(const quantifier&);
+		rule& operator<<(const predicate&);
 
 		static rule recursive(const std::string&);
                 static rule terminal(const std::string&);
@@ -66,7 +68,7 @@ namespace xxx {
                 rule_type type = rule_type::undefined;
                 match terminal_matches;
                 std::string string;
-                std::list<ast> children;
+                std::vector<ast> children;
                 ssize_t offset = -1;
         };
 
