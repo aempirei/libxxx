@@ -70,8 +70,8 @@ namespace xxx {
                 ssize_t offset = -1;
         };
 
-        ast& parse(const grammar&, FILE*, ast&);
-        ast& parse(const grammar&, std::string, ast&);
+        ast& parse(const grammar&, FILE *, ast&);
+        ast& parse(const grammar&, const std::string&, ast&);
 
 	struct q {
 		static const quantifier star;

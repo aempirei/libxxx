@@ -185,7 +185,7 @@ namespace xxx {
                 return parse(g, s, q);
         }
 
-        ast& parse(const grammar& g, std::string s, ast& q) {
+        ast& parse(const grammar& g, const std::string& s, ast& q) {
 
                 std::pair<ssize_t,ssize_t> ab = parse_recursive(g, "document", s, q);
 

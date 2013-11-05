@@ -2,7 +2,7 @@ CXX = g++
 CPPFLAGS = -Isrc
 CXXFLAGS = -Wall -W -pedantic -std=gnu++11 -O2
 LIBFLAGS = -Llib -lxxx -lboost_regex
-TARGETS = lib/libxxx.a bin/demo
+TARGETS = lib/libxxx.a bin/demo bin/xxxparse
 INSTALL_PATH = /usr/local
 
 .PHONY: all wipe clean $(TARGETS)
@@ -33,5 +33,9 @@ lib/libxxx.a: src/xxx.o
 	ar crfv $@ $^ 
 
 bin/demo: src/demo.o lib/libxxx.a
+	if [ ! -d bin ]; then mkdir -vp bin; fi
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
+
+bin/xxxparse: src/xxxparse.o lib/libxxx.a
 	if [ ! -d bin ]; then mkdir -vp bin; fi
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
