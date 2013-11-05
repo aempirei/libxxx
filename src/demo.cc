@@ -158,12 +158,12 @@ static void define_p_grammar(grammar& z) {
         // terminal rules
         //
 
-        z["."]          = RULE("[\\s]*");
-        z["_"]          = RULE("[\\s]+");
+        z["."]          = RULE("[ \\t]*");
+        z["_"]          = RULE("[ \\t]+");
 
-        z["*"]          = RULE("[\\s\\n]*");
+        z["*"]          = RULE("\\s*");
 
-        z["eol"]        = RULE("[\\s]*($|\\z)");
+        z["eol"]        = RULE("\\s*($|\\z)");
 
         z["eof"]        = RULE("\\z");
 
@@ -186,7 +186,7 @@ static void define_p_grammar(grammar& z) {
 
         const std::list<std::string> escapes = { "\\", "/", "{", "}", "[", "]", "|", "~" };
 
-        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", ",", "@", "#", "-" };
+        const std::list<std::string> literals = { "<", ">", "<-", "->", ":", ",", "@", "-" };
 
         for(auto escape : escapes)
                 ESCAPED(z, escape);

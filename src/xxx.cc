@@ -106,7 +106,7 @@ namespace xxx {
 
 			case rule_type::terminal:
 
-				terminal_value.assign("\\A" + x);
+				terminal_value.assign("\\A" + x, boost::regex::perl);
 				break;
 
 			case rule_type::recursive:
