@@ -79,7 +79,7 @@ static void define_peg_grammar(grammar& z) {
         // recursive rules
         //
 
-        z["document"]   = P("line" << q::star);// << D("eof"));
+        z["document"]   = P("line" << q::star << D("eof"));
 
         z["line"]       = P(D("ws") << "rule" << D("eol"));
 
