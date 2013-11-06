@@ -11,56 +11,51 @@
 
 namespace xxx {
 
-	using regex = boost::regex;
-        using match = boost::smatch;
+	template<typename T> using range = std::pair<T,T>;
 
-        template<typename T> using range = std::pair<T,T>;
+	//
+	// predicate
+	//
 
-        //
-        // predicate
-        //
+	using predicate_quantifier = range<size_t>;
 
-	using predicate_quantifier = range<int>;
+	enum class predicate_modifier { push, discard, lift, peek };
 
-        enum class predicate_modifier { push = 0, discard, lift, peek };
+	struct predicate {
 
-        struct predicate {
+		std::string name;
+		predicate_quantifier quantifier;
+		predicate_modifier modifier;
 
-                std::string name;
-                predicate_quantifier quantifier;
-                predicate_modifier modifier;
+		predicate();
 
-                predicate();
+		std::string str();
+	};
 
-                std::string str();
-        };
+	//
+	// rule
+	//
 
-        //
-        // rule
-        //
-
-	enum class rule_type { undefined = 0, terminal, recursive };
+	enum class rule_type { undefined, terminal, recursive };
 
 	struct rule {
 
-		typedef std::list<predicate>    recursive_type;
-		typedef regex                   terminal_type;
+		typedef std::list<predicate> recursive_type;
+		typedef boost::regex terminal_type;
 
-                //
-
-                static rule_type default_type;
+		static rule_type default_type;
 
 		rule_type type;
 
-		terminal_type   terminal_value;
-		recursive_type  recursive_value;
+		terminal_type terminal;
+		recursive_type recursive;
 
 		rule();
 		rule(rule_type);
 		rule(const rule&);
 		rule(const terminal_type&);
 		rule(const recursive_type&);
-                rule(const std::string&);
+		rule(const std::string&);
 
 		rule& operator<<(const rule_type);
 		rule& operator<<(const predicate_modifier);
@@ -72,54 +67,52 @@ namespace xxx {
 
 		void retype(rule_type);
 
-                std::string str();
+		std::string str();
 
 		static std::list<rule> singletons(const std::list<std::string>&);
 	};
 
-        //
-        // grammar
-        //
+	//
+	// grammar
+	//
 
 	using grammar = std::map<std::string,std::list<rule>>;
 
-        //
-        // ast
-        //
+	//
+	// ast
+	//
 
-        struct ast {
+	struct ast {
 
-                std::string name;
+		std::string name;
 
-                rule_type type;
+		rule_type type;
 
-                match terminal_matches;
+		std::vector<std::string> matches;
 
-                std::string string;
+		std::vector<ast> children;
 
-                std::vector<ast> children;
+		ssize_t offset;
 
-                ssize_t offset;
+		ast();
+		ast(const grammar&, FILE *);
+		ast(const grammar&, const std::string&);
 
-                ast();
-                ast(const grammar&, FILE *);
-                ast(const grammar&, const std::string&);
+		void parse(const grammar&, FILE *);
+		void parse(const grammar&, const std::string&);
 
-                void parse(const grammar&, FILE *);
-                void parse(const grammar&, const std::string&);
+		std::string str();
+	};
 
-                std::string str();
-        };
+	//
+	// q
+	//
 
-        //
-        // q
-        //
-
-        namespace q {
-                extern const predicate_quantifier star;
-                extern const predicate_quantifier plus;
-                extern const predicate_quantifier zero;
-                extern const predicate_quantifier question;
-                extern const predicate_quantifier one;
-        }
+	namespace q {
+		extern const predicate_quantifier star;
+		extern const predicate_quantifier plus;
+		extern const predicate_quantifier zero;
+		extern const predicate_quantifier question;
+		extern const predicate_quantifier one;
+	}
 }

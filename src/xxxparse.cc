@@ -39,7 +39,7 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 
                 case rule_type::terminal:
 
-                        ss << " =~ " << '"' << q.string << '"' << std::endl;
+                        ss << " =~ " << '"' << q.matches[0] << '"' << std::endl;
                         break;
 
                 case rule_type::recursive:
@@ -76,15 +76,13 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
         if(a.name == "document") {
                 for(const auto& b : a.children) {
 
-                        const auto& name = b.children[0].string;
+                        const auto& name = b.children[0].matches[0];
 
                         if(b.name == "terminal") {
 
-                                std::string reg = b.children[1].string.substr(1,std::string::npos);
+                                std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
 
                                 reg.pop_back();
-
-                                // std::cerr << "loaded terminal rule: " << name << " ~= /" << reg << '/' << std::endl;
 
                                 g[name] = { rule(rule_type::terminal) << reg };
 
@@ -109,9 +107,9 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
                                                 auto iter = d.children.begin();
 
                                                 if(iter->name == "modifier") {
-                                                        if(iter->string == "^") {
+                                                        if(iter->matches[0] == "^") {
                                                                 p.modifier = predicate_modifier::lift;
-                                                        } else if(iter->string == "!") {
+                                                        } else if(iter->matches[0] == "!") {
                                                                 p.modifier = predicate_modifier::discard;
                                                         }
 
@@ -121,16 +119,16 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
                                                 }
 
                                                 if(iter->name == "name") {
-                                                        p.name = iter->string;
+                                                        p.name = iter->matches[0];
                                                         iter++;
                                                 }
 
                                                 if(iter != d.children.end() && iter->name == "quantifier") {
-                                                        if(iter->string == "*") {
+                                                        if(iter->matches[0] == "*") {
                                                                 p.quantifier = q::star;
-                                                        } else if(iter->string == "+") {
+                                                        } else if(iter->matches[0] == "+") {
                                                                 p.quantifier = q::plus;
-                                                        } else if(iter->string == "?") {
+                                                        } else if(iter->matches[0] == "?") {
                                                                 p.quantifier = q::question;
                                                         }
                                                 } else {

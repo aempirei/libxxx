@@ -78,8 +78,6 @@ namespace xxx {
 
                 ssize_t current = offset;
 
-                std::string ms;
-
                 q.offset = offset;
                 q.name = name;
 
@@ -87,7 +85,8 @@ namespace xxx {
 
                         bool success = true;
 
-                        match matches;
+                        boost::smatch matches;
+                        std::string ms;
 
                         current = offset;
 
@@ -100,24 +99,27 @@ namespace xxx {
 
                                         ms = s.substr(offset, std::string::npos);
 
-                                        if(!boost::regex_search(ms, matches, rule.terminal_value)) {
+                                        if(!boost::regex_search(ms, matches, rule.terminal)) {
                                                 success = false;
                                                 break;
                                         }
 
-                                        q.terminal_matches = matches;
-                                        q.string = q.terminal_matches[0];
-                                        current += q.string.length();
+					q.matches.resize(matches.size());
+
+                                        for(size_t n = 0; n < matches.size(); n++)
+						q.matches[n] = matches[n];
+
+                                        current += q.matches[0].size();
 
                                         break;
 
                                 case rule_type::recursive:
 
-                                        for(const auto& predicate : rule.recursive_value) {
+                                        for(const auto& predicate : rule.recursive) {
 
-                                                int i;
+                                                size_t n;
 
-                                                for(i = 0; i < predicate.quantifier.second; i++) {
+                                                for(n = 0; n < predicate.quantifier.second; n++) {
 
                                                         ast qq;
 
@@ -145,7 +147,7 @@ namespace xxx {
                                                         }
                                                 }
 
-                                                if(i < predicate.quantifier.first) {
+                                                if(n < predicate.quantifier.first) {
                                                         success = false;
                                                         break;
                                                 }

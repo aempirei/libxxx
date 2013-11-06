@@ -24,11 +24,11 @@ namespace xxx {
         }
 
         rule::rule(const terminal_type& x) : rule(rule_type::terminal) {
-                terminal_value = x;
+                terminal = x;
         }
 
         rule::rule(const recursive_type& x) : rule(rule_type::recursive) {
-                recursive_value = x;
+                recursive = x;
         }
 
         rule::rule(const rule& x) {
@@ -52,7 +52,7 @@ namespace xxx {
                 if(type != rule_type::terminal)
                         retype(rule_type::terminal);
 
-                terminal_value = x;
+                terminal = x;
 
                 return *this;
         }
@@ -62,7 +62,7 @@ namespace xxx {
                 if(type != rule_type::recursive)
                         retype(rule_type::recursive);
 
-                recursive_value.push_back(x);
+                recursive.push_back(x);
 
                 return *this;
         }
@@ -80,7 +80,7 @@ namespace xxx {
 
                         case rule_type::terminal:
 
-                                terminal_value.assign("\\A" + x, boost::regex::perl);
+                                terminal.assign("\\A" + x, boost::regex::perl);
                                 break;
 
                         case rule_type::recursive:
@@ -88,7 +88,7 @@ namespace xxx {
                                 p.name = x;
                                 p.quantifier = q::one;
 
-                                recursive_value.push_back(p);
+                                recursive.push_back(p);
                                 break;
 
                         default:
@@ -105,10 +105,10 @@ namespace xxx {
                 if(type != rule_type::recursive)
                         throw std::runtime_error("rule type is not recursive");
 
-                if(recursive_value.empty())
+                if(recursive.empty())
                         throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-                recursive_value.back().modifier = m;
+                recursive.back().modifier = m;
 
                 return *this;
         }
@@ -118,17 +118,17 @@ namespace xxx {
                 if(type != rule_type::recursive)
                         throw std::runtime_error("rule type is not recursive");
 
-                if(recursive_value.empty())
+                if(recursive.empty())
                         throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-                recursive_value.back().quantifier = x;
+                recursive.back().quantifier = x;
 
                 return *this;
         }
 
         void rule::retype(rule_type t) {
                 type = t;
-                recursive_value.clear();
+                recursive.clear();
         }
 
         std::string str() {
