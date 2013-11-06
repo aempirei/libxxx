@@ -24,10 +24,10 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
         std::stringstream ss;
 
         if(basic) {
-                ss << q.rulename;
+                ss << q.name;
         } else {
 
-                ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.rulename;
+                ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.name;
         }
 
         switch(q.type) {
@@ -64,7 +64,7 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
         return ss.str();
 }
 
-static std::string q_string(const quantifier& x) {
+static std::string q_string(const predicate_quantifier& x) {
 
         if(x == q::one) {
 
@@ -230,7 +230,7 @@ static std::string rule_list_string(const std::list<rule>& rs) {
                 if(y.type == rule_type::recursive) {
 
                         for(auto z : y.recursive_value)
-                                ss << ' ' << z.first << q_string(z.second);
+                                ss << ' ' << z.name << q_string(z.quantifier);
 
                 } else if(y.type == rule_type::terminal) {
 
@@ -295,7 +295,6 @@ int main(int argc, char **argv) {
         }
 
         grammar g;
-        ast q;
 
         // std::locale::global(std::locale("en_US.UTF-8"));
 
@@ -318,7 +317,7 @@ int main(int argc, char **argv) {
                         return -1;
                 }
 
-                parse(g, fp, q);
+                ast q(g, fp);
 
                 fclose(fp);
 

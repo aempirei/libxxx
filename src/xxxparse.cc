@@ -24,10 +24,10 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
         std::stringstream ss;
 
         if(basic) {
-                ss << q.rulename;
+                ss << q.name;
         } else {
 
-                ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.rulename;
+                ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.name;
         }
 
         switch(q.type) {
@@ -73,14 +73,14 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 
 static void load_dynamic_grammar(grammar& g, const ast& a) {
 
-        if(a.rulename == "document") {
+        if(a.name == "document") {
                 for(const auto& b : a.children) {
 
                         const auto& name = b.children[0].string;
 
-                        if(b.rulename == "terminal") {
+                        if(b.name == "terminal") {
 
-                                auto reg = b.children[1].string.substr(1,std::string::npos);
+                                std::string reg = b.children[1].string.substr(1,std::string::npos);
 
                                 reg.pop_back();
 
@@ -108,7 +108,7 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
 
                                                 auto iter = d.children.begin();
 
-                                                if(iter->rulename == "modifier") {
+                                                if(iter->name == "modifier") {
                                                         if(iter->string == "^") {
                                                                 p.modifier = predicate_modifier::lift;
                                                         } else if(iter->string == "!") {
@@ -120,21 +120,21 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
                                                         p.modifier = predicate_modifier::push;
                                                 }
 
-                                                if(iter->rulename == "name") {
-                                                        p.first = iter->string;
+                                                if(iter->name == "name") {
+                                                        p.name = iter->string;
                                                         iter++;
                                                 }
 
-                                                if(iter != d.children.end() && iter->rulename == "quantifier") {
+                                                if(iter != d.children.end() && iter->name == "quantifier") {
                                                         if(iter->string == "*") {
-                                                                p.second = q::star;
+                                                                p.quantifier = q::star;
                                                         } else if(iter->string == "+") {
-                                                                p.second = q::plus;
+                                                                p.quantifier = q::plus;
                                                         } else if(iter->string == "?") {
-                                                                p.second = q::question;
+                                                                p.quantifier = q::question;
                                                         }
                                                 } else {
-                                                        p.second = q::one;
+                                                        p.quantifier = q::one;
                                                 }
 
                                                 r << p;
@@ -249,14 +249,12 @@ int main(int argc, char **argv) {
         }
 
         grammar g;
-        ast a;
 
         define_peg_grammar(g);
 
         if(do_parse) {
 
                 grammar h;
-                ast b;
 
                 FILE *fp = fopen(filename, "r");
 
@@ -265,7 +263,7 @@ int main(int argc, char **argv) {
                         return -1;
                 }
 
-                parse(g, fp, a);
+                ast a(g, fp);
 
                 fclose(fp);
 
@@ -273,7 +271,7 @@ int main(int argc, char **argv) {
                 
                 load_dynamic_grammar(h, a);
 
-                parse(h, stdin, b);
+                ast b(h, stdin);
 
                 std::cout << ast_string(b);
         }

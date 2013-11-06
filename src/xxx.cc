@@ -33,7 +33,7 @@ namespace xxx {
         rule_type rule::default_type = rule_type::undefined;
 
 	rule::rule(rule_type t) {
-		reset_type(t);
+		retype(t);
 	}
 
 	rule::rule() : rule(default_type) {
@@ -60,7 +60,7 @@ namespace xxx {
                 operator<<(x);
         }
 	
-	void rule::reset_type(rule_type t) {
+	void rule::retype(rule_type t) {
 		type = t;
 		recursive_value.clear();
 	}
@@ -68,7 +68,7 @@ namespace xxx {
 	rule& rule::operator<<(rule_type t) {
 
 		if(type != t)
-			reset_type(t);
+			retype(t);
 
 		return *this;
 	}
@@ -76,17 +76,17 @@ namespace xxx {
 	rule& rule::operator<<(const terminal_type& x) {
 
 		if(type != rule_type::terminal)
-			reset_type(rule_type::terminal);
+			retype(rule_type::terminal);
 
 		terminal_value = x;
 
 		return *this;
 	}
 
-	rule& rule::operator<<(const recursive_type::value_type& x) {
+	rule& rule::operator<<(const predicate& x) {
 
 		if(type != rule_type::recursive)
-			reset_type(rule_type::recursive);
+			retype(rule_type::recursive);
 
 		recursive_value.push_back(x);
 
@@ -196,13 +196,13 @@ namespace xxx {
                 return q;
         }
 
-        std::pair<ssize_t,ssize_t> parse_recursive(const grammar& g, std::string rulename, const std::string& s, ast& q, ssize_t offset) {
+        std::pair<ssize_t,ssize_t> parse_recursive(const grammar& g, std::string name, const std::string& s, ast& q, ssize_t offset) {
 
-                const auto iter = g.find(rulename);
+                const auto iter = g.find(name);
 
                 if(iter == g.end()) {
                         std::stringstream ss;
-                        ss << "rule not found -- " << rulename;
+                        ss << "rule not found -- " << name;
                         throw std::runtime_error(ss.str());
                 }
 
@@ -213,7 +213,7 @@ namespace xxx {
                 std::string ms;
 
                 q.offset = offset;
-                q.rulename = rulename;
+                q.name = name;
 
                 for(const auto& rule : rules) {
 

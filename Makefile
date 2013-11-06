@@ -4,17 +4,15 @@ CXXFLAGS = -Wall -W -pedantic -std=gnu++11 -O2
 LIBFLAGS = -Llib -lxxx -lboost_regex
 TARGETS = lib/libxxx.a bin/demo bin/xxxparse
 INSTALL_PATH = /usr/local
+SOURCES = src/xxx-ast.cc src/xxx-rule.cc src/xxx-predicate.cc src/xxx-grammar.cc src/xxx-q.cc
+OBJECTS = src/xxx-ast.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o src/xxx-q.o
 
-.PHONY: all wipe clean $(TARGETS)
+.PHONY: all wipe clean install test library
 
-all: lib bin $(TARGETS)
-
-lib:
-
-bin:
+all: $(TARGETS)
 
 clean:
-	rm -f src/*~ src/*.o $(TARGETS)
+	rm -f src/*.o $(TARGETS)
 	rm -rf bin lib
 
 install:
@@ -25,11 +23,9 @@ test: $(TARGETS)
 	./bin/demo -p examples/source.demo
 	./bin/xxxparse -g examples/source.peg < examples/source.demo
 
-src/libxxx.o: src/xxx.cc src/xxx.hh
+library: lib/libxxx.a
 
-src/demo.o: src/demo.cc src/xxx.hh
-
-lib/libxxx.a: src/xxx.o
+lib/libxxx.a: $(OBJECTS)
 	if [ ! -d lib ]; then mkdir -vp lib; fi
 	ar crfv $@ $^ 
 
