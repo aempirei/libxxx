@@ -202,21 +202,25 @@ static void define_peg_grammar(grammar& g) {
 #undef LITERAL
 #undef ESCAPED
 
+#define FLAG '\t' << std::left << std::setw(18)
+
 static void usage(const char *arg0) {
 
-        const int w = 18;
+        std::cerr << std::endl << "usage: " << arg0 << " [-{hp}] [-g filename]" << std::endl << std::endl;
 
-        std::cerr << std::endl << "usage: " << arg0 << " [-{h}] [-g filename]" << std::endl << std::endl;
-
-        std::cerr << '\t' << std::left << std::setw(w) << "-h" << "print help" << std::endl;
-        std::cerr << '\t' << std::left << std::setw(w) << "-g filename" << "grammar file" << std::endl;
+        std::cerr << FLAG << "-h" << "print help" << std::endl;
+        std::cerr << FLAG << "-p" << "print grammar" << std::endl;
+        std::cerr << FLAG << "-a" << "print ast" << std::endl;
+        std::cerr << FLAG << "-g filename" << "grammar specification" << std::endl;
 
         std::cerr << std::endl;
 }
 
 int main(int argc, char **argv) {
 
-        bool do_parse = false;
+        bool do_print_grammar = false;
+	bool do_load_grammar = false;
+	bool do_print_ast = false;
 
         const char *filename = NULL;
 
@@ -227,12 +231,18 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        while ((opt = getopt(argc, argv, "hg:")) != -1) {
+        while ((opt = getopt(argc, argv, "hpag:")) != -1) {
                 switch (opt) {
                         case 'g':
-                                do_parse = true;
-                                filename = optarg;
-                                break;
+				do_load_grammar = true;
+				filename = optarg;
+				break;
+			case 'a':
+				do_print_ast = true;
+				break;
+			case 'p':
+				do_print_grammar = true;
+				break;
                         case 'h':
                         case '?':
                         default:
@@ -245,7 +255,11 @@ int main(int argc, char **argv) {
 
         define_peg_grammar(g);
 
-        if(do_parse) {
+	if(do_print_grammar) {
+		std::cout << grammar_str(g) << std::endl;
+	}
+
+        if(do_load_grammar) {
 
                 grammar h;
 
@@ -260,13 +274,18 @@ int main(int argc, char **argv) {
 
                 fclose(fp);
 
-                std::cout << ast_string(a);
+		if(do_print_ast)
+			std::cout << ast_string(a) << std::endl;
                 
                 load_dynamic_grammar(h, a);
 
+		if(do_print_grammar)
+			std::cout << grammar_str(h) << std::endl;
+
                 ast b(h, stdin);
 
-                std::cout << ast_string(b);
+		if(do_print_ast)
+			std::cout << ast_string(b) << std::endl;
         }
 
         return 0;

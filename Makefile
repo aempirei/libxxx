@@ -20,8 +20,7 @@ install:
 	install -m 644 src/xxx.hh $(INSTALL_PATH)/include
 
 test: $(TARGETS)
-	./bin/demo -p examples/source.demo
-	./bin/xxxparse -g examples/source.peg < examples/source.demo
+	./bin/xxxparse -apg ./examples/demo.xxx < ./examples/example.demo
 
 library: lib/libxxx.a
 
