@@ -36,8 +36,11 @@ namespace xxx {
 
                         int n = fread(buf, 1, sizeof(buf), fp);
 
-                        if(n != sizeof(buf) && ferror(fp))
-                                throw new std::runtime_error(std::string("fread():") + strerror(errno));
+                        if(n != sizeof(buf) && ferror(fp)) {
+				std::string s("fread(): ");
+				s += strerror(errno);
+                                throw new std::runtime_error(s);
+			}
 
                         s.append(buf, n);
                 }

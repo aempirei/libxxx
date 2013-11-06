@@ -79,6 +79,8 @@ namespace xxx {
 
 	using grammar = std::map<std::string,std::list<rule>>;
 
+	std::string grammar_str(const grammar&);
+
 	//
 	// ast
 	//

@@ -161,34 +161,6 @@ static void define_p_grammar(grammar& g) {
                 LITERAL(g, literal);
 }
 
-static int grammar_rule_width(const grammar& g) {
-
-        std::string ms;
-
-        for(const auto& x : g)
-                if(x.first.size() > ms.size())
-                        ms = x.first;
-
-        return (int)ms.size();
-}
-
-static std::string rule_list_string(const std::list<rule>& rs) {
-
-        std::stringstream ss;
-
-	for(auto iter = rs.begin(); iter != rs.end(); iter++) {
-
-		ss << iter->str();
-
-		if(next(iter) != rs.end())
-			ss << " / ";
-	}
-
-	ss << std::endl;
-
-        return ss.str();
-}
-
 #define FLAG '\t' << std::left << std::setw(18)
 
 static void usage(const char *arg0) {
@@ -240,25 +212,16 @@ int main(int argc, char **argv) {
         define_p_grammar(g);
 
         if(do_grammar) {
-
-                int width = grammar_rule_width(g);
-
-                for(auto x : g) {
-                        std::cout << std::setw(width) << x.first;
-			if(x.second.front().type == rule_type::terminal)  {
-				std::cout << " ~= ";
-			} else {
-				std::cout << " := ";
-			}
-			std::cout << rule_list_string(x.second);
-		}
+		std::cout << grammar_str(g);
         }
 
         if(do_parse) {
 
                 FILE *fp = fopen(filename, "r");
-                if(fp == NULL)
-			throw new std::runtime_error(std::string("fopen() failed--") + strerror(errno));
+                if(fp == NULL) {
+			perror("fopen()");
+			return -1;
+		}
 
                 ast q(g, fp);
 
