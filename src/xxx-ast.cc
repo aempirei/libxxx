@@ -54,14 +54,10 @@ namespace xxx {
                         std::stringstream ss;
                         ss << "ast::parse failed at offset " << ab.second;
 
-                        std::cerr << "\33[1m" << s.substr(ab.second, std::string::npos) << "\33[0m";
+                        std::cerr  << s.substr(ab.second, std::string::npos);
 
                         throw std::runtime_error(ss.str());
                 }
-        }
-
-        std::string ast::str() const {
-                return "<AST>";
         }
 
         range<ssize_t> parse_recursive(const grammar& g, std::string name, const std::string& s, ast& q, ssize_t offset) {

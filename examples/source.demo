@@ -27,4 +27,4 @@ P ~ String
 
 # resolve : /P/ -> /P/
 resolve : /P/-Endomorphism
-resolve <- pairs @ | intersect | count | preimage -1 , number 0o777 | times 0xABAD | times 0o777 | times 0B0101
+resolve <- nop , sum -1 0d666 0xABAD 0o777 0B111 , pairs @ | intersect | count | preimage -1
