@@ -60,7 +60,7 @@ namespace xxx {
                 }
         }
 
-        std::string ast::str() {
+        std::string ast::str() const {
                 return "<AST>";
         }
 

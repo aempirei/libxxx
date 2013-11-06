@@ -13,7 +13,7 @@
 
 namespace xxx {
 
-        rule_type rule::default_type = rule_type::undefined;
+        rule_type rule::default_type = rule_type::recursive;
 
         rule::rule(rule_type t) {
                 retype(t);
@@ -69,70 +69,74 @@ namespace xxx {
 
         rule& rule::operator<<(const std::string& x) {
 
-                predicate p;
+		if(type == rule_type::terminal) {
 
-                switch(type) {
+			terminal.assign("\\A" + x, boost::regex::perl);
 
-                        case rule_type::undefined:
+		} else if(type == rule_type::recursive) {
 
-                                throw std::runtime_error("rule type is undefined");
-                                break;
+			recursive.push_back(predicate(x));
 
-                        case rule_type::terminal:
+		} else {
 
-                                terminal.assign("\\A" + x, boost::regex::perl);
-                                break;
+			throw std::runtime_error("unknown rule type found in rule::operator<<");
+		}
 
-                        case rule_type::recursive:
+		return *this;
+	}
 
-                                p.name = x;
-                                p.quantifier = q::one;
+	rule& rule::operator<<(predicate_modifier m) {
 
-                                recursive.push_back(p);
-                                break;
+		if(type != rule_type::recursive)
+			throw std::runtime_error("rule type is not recursive");
 
-                        default:
+		if(recursive.empty())
+			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-                                throw std::runtime_error("rule type is unknown");
-                                break;
-                }
+		recursive.back().modifier = m;
 
-                return *this;
-        }
+		return *this;
+	}
 
-        rule& rule::operator<<(predicate_modifier m) {
+	rule& rule::operator<<(const predicate_quantifier& x) {
 
-                if(type != rule_type::recursive)
-                        throw std::runtime_error("rule type is not recursive");
+		if(type != rule_type::recursive)
+			throw std::runtime_error("rule type is not recursive");
 
-                if(recursive.empty())
-                        throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+		if(recursive.empty())
+			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-                recursive.back().modifier = m;
+		recursive.back().quantifier = x;
 
-                return *this;
-        }
+		return *this;
+	}
 
-        rule& rule::operator<<(const predicate_quantifier& x) {
+	void rule::retype(rule_type t) {
+		type = t;
+		recursive.clear();
+	}
 
-                if(type != rule_type::recursive)
-                        throw std::runtime_error("rule type is not recursive");
+	std::string rule::str() const {
 
-                if(recursive.empty())
-                        throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+		if(type == rule_type::recursive) {
 
-                recursive.back().quantifier = x;
+			std::string s;
 
-                return *this;
-        }
+			for(auto iter = recursive.begin(); iter != recursive.end(); iter++) {
+				s += iter->str();
+				if(next(iter) != recursive.end())
+					s += ' ';
+			}
 
-        void rule::retype(rule_type t) {
-                type = t;
-                recursive.clear();
-        }
+			return s;
 
-        std::string str() {
-                return "<RULE>";
+		} else if(type == rule_type::terminal) {
+
+			return '/' + terminal.str() + '/';
+
+		}
+
+		throw new std::runtime_error("uknown rule type found during rule to string conversion");
         }
 
         std::list<rule> rule::singletons(const std::list<std::string>& xs) {

@@ -11,11 +11,11 @@
 
 namespace xxx {
 
-	template<typename T> using range = std::pair<T,T>;
-
 	//
 	// predicate
 	//
+
+	template<typename T> using range = std::pair<T,T>;
 
 	using predicate_quantifier = range<size_t>;
 
@@ -28,15 +28,16 @@ namespace xxx {
 		predicate_modifier modifier;
 
 		predicate();
+		predicate(const std::string&);
 
-		std::string str();
+		std::string str() const;
 	};
 
 	//
 	// rule
 	//
 
-	enum class rule_type { undefined, terminal, recursive };
+	enum class rule_type { terminal, recursive };
 
 	struct rule {
 
@@ -67,7 +68,7 @@ namespace xxx {
 
 		void retype(rule_type);
 
-		std::string str();
+		std::string str() const;
 
 		static std::list<rule> singletons(const std::list<std::string>&);
 	};
@@ -101,7 +102,7 @@ namespace xxx {
 		void parse(const grammar&, FILE *);
 		void parse(const grammar&, const std::string&);
 
-		std::string str();
+		std::string str() const;
 	};
 
 	//
@@ -111,7 +112,6 @@ namespace xxx {
 	namespace q {
 		extern const predicate_quantifier star;
 		extern const predicate_quantifier plus;
-		extern const predicate_quantifier zero;
 		extern const predicate_quantifier question;
 		extern const predicate_quantifier one;
 	}

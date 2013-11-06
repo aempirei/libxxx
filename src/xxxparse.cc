@@ -32,11 +32,6 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 
         switch(q.type) {
 
-                case rule_type::undefined:
-
-                        ss << " := (UNDEFINED)" << std::endl;
-                        break;
-
                 case rule_type::terminal:
 
                         ss << " =~ " << '"' << q.matches[0] << '"' << std::endl;

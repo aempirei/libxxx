@@ -32,11 +32,6 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 
         switch(q.type) {
 
-                case rule_type::undefined:
-
-                        ss << " := (UNDEFINED)" << std::endl;
-                        break;
-
                 case rule_type::terminal:
 
                         ss << " =~ " << '"' << q.matches[0] << '"' << std::endl;
@@ -55,10 +50,6 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
                         }
 
                         break;
-
-                default:
-                        ss << " := (UNKNOWN)";
-                        break;
         }
 
         return ss.str();
@@ -71,40 +62,6 @@ static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
 #define COLOR4	ANSI(0;33)
 #define COLOR5	ANSI(1;31)
 #define COLOR6	ANSI(0;31)
-
-static std::string q_string(const predicate_quantifier& x) {
-
-        if(x == q::one) {
-
-                return "";
-
-        } else if(x == q::question) {
-
-		return COLOR1 "?" ANSI(0);
-
-        } else if(x == q::star) {
-
-		return COLOR1 "*" ANSI(0);
-
-        } else if(x == q::plus) {
-
-		return COLOR1 "+" ANSI(0);
-        }
-
-        std::stringstream ss;
-
-	ss << COLOR1 "{" COLOR2 << x.first;
-
-        if(x.first != x.second) {
-		ss << COLOR1 "," COLOR2;
-                if(x.second != INT_MAX)
-                        ss << x.second;
-        }
-
-	ss << COLOR1 "}" ANSI(0);
-
-        return ss.str();
-}
 
 #define RULE(X)         { rule() << X }
 #define RULES(...)      rule::singletons({ __VA_ARGS__ })
@@ -219,29 +176,15 @@ static std::string rule_list_string(const std::list<rule>& rs) {
 
         std::stringstream ss;
 
-        for(auto iter = rs.begin(); iter != rs.end(); iter++) {
+	for(auto iter = rs.begin(); iter != rs.end(); iter++) {
 
-                auto& y = *iter;
+		ss << iter->str();
 
-                if(y.type == rule_type::recursive) {
+		if(next(iter) != rs.end())
+			ss << " / ";
+	}
 
-                        for(auto z : y.recursive)
-                                ss << ' ' << z.name << q_string(z.quantifier);
-
-                } else if(y.type == rule_type::terminal) {
-
-                        ss << " " COLOR3 "/" COLOR4 << y.terminal.str() << COLOR3 "/" ANSI(0);
-
-                } else {
-
-                        ss << " UNDEFINED" << std::endl;
-                }
-
-                if(next(iter) == rs.end())
-                        ss << std::endl;
-                else
-			ss << " " COLOR5 "/" ANSI(0);
-        }
+	ss << std::endl;
 
         return ss.str();
 }
@@ -300,8 +243,15 @@ int main(int argc, char **argv) {
 
                 int width = grammar_rule_width(g);
 
-                for(auto x : g)
-                        std::cout << std::setw(width) << x.first << " " COLOR6 ":=" ANSI(0) << rule_list_string(x.second);
+                for(auto x : g) {
+                        std::cout << std::setw(width) << x.first;
+			if(x.second.front().type == rule_type::terminal)  {
+				std::cout << " ~= ";
+			} else {
+				std::cout << " := ";
+			}
+			std::cout << rule_list_string(x.second);
+		}
         }
 
         if(do_parse) {
