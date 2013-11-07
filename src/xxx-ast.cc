@@ -4,7 +4,7 @@ namespace xxx {
 
 	static range<ssize_t> parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t);
 	static std::string ast_str_recursive(const ast&, int, bool);
-	static std::string ast_xml_recursive(const ast&, int);
+	static std::string ast_xml_recursive(const ast&, int, int, int);
 
 	ast::ast() {
 	}
@@ -15,6 +15,28 @@ namespace xxx {
 
 	ast::ast(const grammar& g, const std::string& s) {
 		parse(g, s);
+	}
+
+	template<class T, class F> static size_t sum(int sum0, const T& xs, F f) {
+
+		if(xs.empty())
+			return 1;
+
+		size_t sum = sum0;
+
+		for(const auto& x : xs)
+			sum += f(x);
+		
+		return sum;
+
+	}
+
+	size_t ast::node_count() const {
+		return sum(1, children, [](const ast& x) -> size_t { return x.node_count(); });
+	}
+
+	size_t ast::leaf_count() const {
+		return sum(0, children, [](const ast& x) -> size_t { return x.node_count(); });
 	}
 
 	void ast::parse(const grammar& g, FILE *fp) {
@@ -157,7 +179,7 @@ namespace xxx {
 		return range<ssize_t>(-1,current);
 	}
 
-	static std::string ast_str_recursive(const ast& q, int depth=0, bool basic=false) {
+	static std::string ast_str_recursive(const ast& q, int depth=0, bool basic = false) {
 
 		std::stringstream ss;
 
@@ -192,7 +214,7 @@ namespace xxx {
 		return ast_str_recursive(*this);
 	}
 
-	static std::string ast_xml_recursive(const ast& q, int depth=0) {
+	static std::string ast_xml_recursive(const ast& q, int df = 0, int dm = 1, int dl = 0) {
 
 		std::stringstream ss;
 
@@ -200,20 +222,40 @@ namespace xxx {
 
 			case rule_type::terminal:
 
-				ss << std::string(depth, ' ') << '<' << q.name << '>';
+				ss << std::string(df, ' ') << '<' << q.name << '>';
 				ss << q.matches[0];
-				ss << "</" << q.name << '>' << std::endl;
+				ss << "</" << q.name << '>';
 
 				break;
 
 			case rule_type::recursive:
 
-				ss << std::string(depth, ' ') << '<' << q.name << '>' << std::endl;
+				if(q.children.empty()) {
 
-				for(const auto& qq : q.children)
-					ss << ast_xml_recursive(qq, depth + 1);
+					ss << std::string(df, ' ') << '<' << q.name << " />";
 
-				ss << std::string(depth, ' ') << "</" << q.name << '>' << std::endl;
+				} else if(q.leaf_count() == 1) {
+
+					ss << std::string(df, ' ') << '<' << q.name << '>';
+					ss << ast_xml_recursive(q.children.back());
+					ss << "</" << q.name << '>';
+
+				} else if(q.children.size() == 1) {
+
+					ss << std::string(df, ' ') << '<' << q.name << '>';
+					ss << ast_xml_recursive(q.children.back(), 0, dm, dl);
+					ss << "</" << q.name << '>';
+
+				} else {
+
+					ss << std::string(df, ' ') << '<' << q.name << '>' << std::endl;
+
+					for(const auto& qq : q.children) {
+						ss << ast_xml_recursive(qq, dm, dm + 1, dl + 1) << std::endl;
+					}
+
+					ss << std::string(dl, ' ') << "</" << q.name << '>';
+				}
 
 				break;
 		}
@@ -223,7 +265,9 @@ namespace xxx {
 
 
 	std::string ast::xml() const {
-		return ast_xml_recursive(*this);
+		const std::string xml_header = "<?xml version=\"1.0\"?>\n";
+
+		return xml_header + ast_xml_recursive(*this);
 	}
 
 

@@ -105,6 +105,9 @@ namespace xxx {
 		void parse(const grammar&, FILE *);
 		void parse(const grammar&, const std::string&);
 
+		size_t node_count() const;
+		size_t leaf_count() const;
+
 		std::string str() const;
 		std::string xml() const;
 	};
