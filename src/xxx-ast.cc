@@ -224,15 +224,39 @@ namespace xxx {
 
 	static std::string ast_xml_recursive(const ast& q, int df = 0, int dm = 1, int dl = 0) {
 
+
+		const std::string xmlns = "xmlns:xxx=\"http://www.256.bz/xmlns/xxx\"";
+
 		std::stringstream ss;
+
+		std::string content;
+		std::string tag = q.name;
+
+		if(!tag.empty()) {
+			if(isdigit(tag[0])) {
+				tag = "_" + tag;
+			} else if(tag[0] == '-' || tag[0] == '.') {
+				tag = "xxx" + tag;
+			}
+		}
+
+		ss << std::string(df, ' ') << '<' << tag;
+		if(tag == "document")
+			ss << ' ' << xmlns;
 
 		switch(q.type) {
 
 			case rule_type::terminal:
 
-				ss << std::string(df, ' ') << '<' << q.name << '>';
-				ss << q.matches[0];
-				ss << "</" << q.name << '>';
+				content = q.matches[0];
+
+				content = boost::regex_replace(content, boost::regex("&"), "&amp;");
+				content = boost::regex_replace(content, boost::regex("<"), "&lt;");
+				content = boost::regex_replace(content, boost::regex(">"), "&gt;");
+				content = boost::regex_replace(content, boost::regex("\""), "&quot;");
+				content = boost::regex_replace(content, boost::regex("'"), "&apos;");
+
+				ss << '>' << content << "</" << tag << '>';
 
 				break;
 
@@ -240,29 +264,32 @@ namespace xxx {
 
 				if(q.children.empty()) {
 
-					ss << std::string(df, ' ') << '<' << q.name << " />";
-
-				} else if(q.leaf_count() == 1) {
-
-					ss << std::string(df, ' ') << '<' << q.name << '>';
-					ss << ast_xml_recursive(q.children.back());
-					ss << "</" << q.name << '>';
-
-				} else if(q.children.size() == 1) {
-
-					ss << std::string(df, ' ') << '<' << q.name << '>';
-					ss << ast_xml_recursive(q.children.back(), 0, dm, dl);
-					ss << "</" << q.name << '>';
+					ss << " />";
 
 				} else {
 
-					ss << std::string(df, ' ') << '<' << q.name << '>' << std::endl;
+					ss << '>';
 
-					for(const auto& qq : q.children) {
-						ss << ast_xml_recursive(qq, dm, dm + 1, dl + 1) << std::endl;
+					if(q.leaf_count() == 1) {
+
+						ss << ast_xml_recursive(q.children.back());
+						ss << "</" << tag << '>';
+
+					} else if(q.children.size() == 1) {
+
+						ss << ast_xml_recursive(q.children.back(), 0, dm, dl);
+						ss << "</" << tag << '>';
+
+					} else {
+
+						ss << std::endl;
+
+						for(const auto& qq : q.children) {
+							ss << ast_xml_recursive(qq, dm, dm + 1, dl + 1) << std::endl;
+						}
+
+						ss << std::string(dl, ' ') << "</" << tag << '>';
 					}
-
-					ss << std::string(dl, ' ') << "</" << q.name << '>';
 				}
 
 				break;
@@ -277,6 +304,4 @@ namespace xxx {
 
 		return xml_header + ast_xml_recursive(*this);
 	}
-
-
 }

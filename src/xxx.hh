@@ -1,7 +1,5 @@
 #pragma once
 
-#include <climits>
-
 #include <map>
 #include <list>
 #include <vector>
@@ -9,6 +7,10 @@
 #include <iomanip>
 
 #include <boost/regex.hpp>
+
+#include <climits>
+
+#include <ctype.h>
 
 namespace xxx {
 

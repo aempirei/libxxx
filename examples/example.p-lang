@@ -18,6 +18,8 @@ P ~ String
 
 # P ~ N -> A
 
+# <T> & "what" && 'that'
+
 <T>-Projection   ~ /T/ -> {T}
 <T>-Metric       ~ T T -> Q
 <T>-Relation     ~ T T -> B
