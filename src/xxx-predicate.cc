@@ -2,10 +2,10 @@
 
 namespace xxx {
 
-        predicate::predicate() : predicate("") {
+        predicate::predicate() {
         }
 
-	predicate::predicate(const std::string& s) : name(s), quantifier(q::one), modifier(predicate_modifier::push) {
+	predicate::predicate(const std::string& s) : name(s) {
 	}
 
         std::string predicate::str() const {

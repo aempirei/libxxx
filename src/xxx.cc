@@ -66,6 +66,8 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
                                                                 p.modifier = predicate_modifier::lift;
                                                         } else if(iter->matches[0] == "!") {
                                                                 p.modifier = predicate_modifier::discard;
+                                                        } else if(iter->matches[0] == ">") {
+                                                                p.modifier = predicate_modifier::peek;
                                                         }
 
                                                         iter++;
@@ -136,7 +138,7 @@ static void define_peg_grammar(grammar& g) {
         g["ws"]         = P("\\s*");
         g["eol"]        = P("\\s*($|\\z)");
         g["eof"]        = P("\\z");
-        g["modifier"]   = P("[!^]");
+        g["modifier"]   = P("[!^>]");
         g["quantifier"] = P("[*?+]");
         g["regex"]      = P("/(\\/|[^\\/\\n])*/");
 

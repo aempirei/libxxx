@@ -140,23 +140,31 @@ namespace xxx {
 							if(next.first == -1)
 								break;
 
-							current = next.second;
-
 							if(predicate.modifier == predicate_modifier::push) {
 
 								q.children.push_back(qq);
 
 							} else if(predicate.modifier == predicate_modifier::lift) {
 
-								if(qq.type != rule_type::recursive)
-									throw new std::runtime_error("attempting to lift non-recursive ast node");
+								if(qq.type != rule_type::recursive) {
+									throw new std::runtime_error(
+											"attempting to lift non-recursive ast node"
+											);
+								}
 
 								for(const auto& qqq : qq.children)
 									q.children.push_back(qqq);
 
+							} else if(predicate.modifier == predicate_modifier::peek) {
+
+								next.second = current;
+
 							} else if(predicate.modifier == predicate_modifier::discard) {
+
 								// discard
 							}
+
+							current = next.second;
 						}
 
 						if(n < predicate.quantifier.first) {

@@ -13,20 +13,34 @@
 namespace xxx {
 
 	//
-	// predicate
+	// q
 	//
 
 	template<typename T> using range = std::pair<T,T>;
 
 	using predicate_quantifier = range<size_t>;
 
+	namespace q {
+		extern const predicate_quantifier star;
+		extern const predicate_quantifier plus;
+		extern const predicate_quantifier question;
+		extern const predicate_quantifier one;
+	}
+
+	//
+	// predicate
+	//
+
 	enum class predicate_modifier { push, discard, lift, peek };
+
+	enum class predicate_transform { none, le, be, dec, hex, oct, bin, uint };
 
 	struct predicate {
 
 		std::string name;
-		predicate_quantifier quantifier;
-		predicate_modifier modifier;
+		predicate_quantifier quantifier = q::one;
+		predicate_transform transform = predicate_transform::none;
+		predicate_modifier modifier = predicate_modifier::push;
 
 		predicate();
 		predicate(const std::string&);
@@ -38,7 +52,7 @@ namespace xxx {
 	// rule
 	//
 
-	enum class rule_type { terminal, recursive };
+	enum class rule_type { recursive = 0, terminal };
 
 	struct rule {
 
@@ -111,15 +125,4 @@ namespace xxx {
 		std::string str() const;
 		std::string xml() const;
 	};
-
-	//
-	// q
-	//
-
-	namespace q {
-		extern const predicate_quantifier star;
-		extern const predicate_quantifier plus;
-		extern const predicate_quantifier question;
-		extern const predicate_quantifier one;
-	}
 }
