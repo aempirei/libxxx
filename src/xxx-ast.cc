@@ -4,6 +4,7 @@ namespace xxx {
 
 	static range<ssize_t> parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t);
 	static std::string ast_str_recursive(const ast&, int, bool);
+	static std::string ast_xml_recursive(const ast&, int);
 
 	ast::ast() {
 	}
@@ -189,6 +190,40 @@ namespace xxx {
 
 	std::string ast::str() const {
 		return ast_str_recursive(*this);
+	}
+
+	static std::string ast_xml_recursive(const ast& q, int depth=0) {
+
+		std::stringstream ss;
+
+		switch(q.type) {
+
+			case rule_type::terminal:
+
+				ss << std::string(depth, ' ') << '<' << q.name << '>';
+				ss << q.matches[0];
+				ss << "</" << q.name << '>' << std::endl;
+
+				break;
+
+			case rule_type::recursive:
+
+				ss << std::string(depth, ' ') << '<' << q.name << '>' << std::endl;
+
+				for(const auto& qq : q.children)
+					ss << ast_xml_recursive(qq, depth + 1);
+
+				ss << std::string(depth, ' ') << "</" << q.name << '>' << std::endl;
+
+				break;
+		}
+
+		return ss.str();
+	}
+
+
+	std::string ast::xml() const {
+		return ast_xml_recursive(*this);
 	}
 
 

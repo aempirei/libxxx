@@ -106,6 +106,7 @@ namespace xxx {
 		void parse(const grammar&, const std::string&);
 
 		std::string str() const;
+		std::string xml() const;
 	};
 
 	//

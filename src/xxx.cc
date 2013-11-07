@@ -166,11 +166,12 @@ static void define_peg_grammar(grammar& g) {
 
 static void usage(const char *arg0) {
 
-        std::cerr << std::endl << "usage: " << arg0 << " [-{hp}] [-g filename]" << std::endl << std::endl;
+        std::cerr << std::endl << "usage: " << arg0 << " [-{hpax}] [-g filename]" << std::endl << std::endl;
 
         std::cerr << FLAG << "-h" << "print help" << std::endl;
         std::cerr << FLAG << "-p" << "print grammar" << std::endl;
         std::cerr << FLAG << "-a" << "print ast" << std::endl;
+        std::cerr << FLAG << "-x" << "print xml" << std::endl;
         std::cerr << FLAG << "-g filename" << "grammar specification" << std::endl;
 
         std::cerr << std::endl;
@@ -178,6 +179,7 @@ static void usage(const char *arg0) {
 
 int main(int argc, char **argv) {
 
+        bool do_print_xml = false;
         bool do_print_grammar = false;
 	bool do_load_grammar = false;
 	bool do_print_ast = false;
@@ -191,7 +193,7 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        while ((opt = getopt(argc, argv, "hpag:")) != -1) {
+        while ((opt = getopt(argc, argv, "xhpag:")) != -1) {
                 switch (opt) {
                         case 'g':
 				do_load_grammar = true;
@@ -199,6 +201,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'a':
 				do_print_ast = true;
+				break;
+			case 'x':
+				do_print_xml = true;
 				break;
 			case 'p':
 				do_print_grammar = true;
@@ -246,6 +251,9 @@ int main(int argc, char **argv) {
 
 		if(do_print_ast)
 			std::cout << b.str() << std::endl;
+
+		if(do_print_xml)
+			std::cout << b.xml() << std::endl;
         }
 
         return 0;
