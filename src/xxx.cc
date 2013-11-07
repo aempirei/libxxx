@@ -19,46 +19,6 @@
 
 using namespace xxx;
 
-static std::string ast_string(const ast& q, int depth=0, bool basic=false) {
-
-        std::stringstream ss;
-
-        if(basic) {
-                ss << q.name;
-        } else {
-
-                ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.name;
-        }
-
-        switch(q.type) {
-
-                case rule_type::terminal:
-
-                        ss << " =~ " << '"' << q.matches[0] << '"' << std::endl;
-                        break;
-
-                case rule_type::recursive:
-
-                        if(q.children.size() == 1) {
-                                ss << ' ' << ast_string(q.children.back(), depth + 2, true);
-                        } else {
-
-                                ss << std::endl;
-
-                                for(const auto& qq : q.children)
-                                        ss << ast_string(qq, depth + 2);
-                        }
-
-                        break;
-
-                default:
-                        ss << " := (UNKNOWN)";
-                        break;
-        }
-
-        return ss.str();
-}
-
 #define P(X)            { rule() << X }
 #define PS(...)         rule::singletons({ __VA_ARGS__ })
 #define D(X)            X << predicate_modifier::discard
@@ -275,7 +235,7 @@ int main(int argc, char **argv) {
                 fclose(fp);
 
 		if(do_print_ast)
-			std::cout << ast_string(a) << std::endl;
+			std::cout << a.str() << std::endl;
                 
                 load_dynamic_grammar(h, a);
 
@@ -285,7 +245,7 @@ int main(int argc, char **argv) {
                 ast b(h, stdin);
 
 		if(do_print_ast)
-			std::cout << ast_string(b) << std::endl;
+			std::cout << b.str() << std::endl;
         }
 
         return 0;
