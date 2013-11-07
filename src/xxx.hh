@@ -33,13 +33,11 @@ namespace xxx {
 
 	enum class predicate_modifier { push, discard, lift, peek };
 
-	enum class predicate_transform { none, le, be, dec, hex, oct, bin, uint };
-
 	struct predicate {
 
 		std::string name;
+
 		predicate_quantifier quantifier = q::one;
-		predicate_transform transform = predicate_transform::none;
 		predicate_modifier modifier = predicate_modifier::push;
 
 		predicate();
@@ -52,7 +50,9 @@ namespace xxx {
 	// rule
 	//
 
-	enum class rule_type { recursive = 0, terminal };
+	enum class rule_type { recursive, terminal };
+
+	enum class rule_transform { none, le, be, dec, hex, oct, bin, uint };
 
 	struct rule {
 
@@ -65,6 +65,8 @@ namespace xxx {
 
 		terminal_type terminal;
 		recursive_type recursive;
+
+		rule_transform transform = rule_transform::none;
 
 		rule();
 		rule(rule_type);
