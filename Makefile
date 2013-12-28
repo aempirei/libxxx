@@ -7,7 +7,7 @@ INSTALL_PATH = /usr/local
 SOURCES = src/xxx-ast.cc src/xxx-rule.cc src/xxx-predicate.cc src/xxx-grammar.cc src/xxx-q.cc
 OBJECTS = src/xxx-ast.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o src/xxx-q.o
 
-.PHONY: all wipe clean install test library
+.PHONY: all clean install test library
 
 all: $(TARGETS)
 
