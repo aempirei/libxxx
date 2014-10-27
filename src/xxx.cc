@@ -154,9 +154,9 @@ static grammar define_peg_grammar() {
         // simple terminal rules
         //
 
-        const std::list<std::string> escapes = { "^", "*", "?", "+", "/", "~=" };
+        const std::list<std::string> escapes = { "/", "~=" };
 
-        const std::list<std::string> literals = { ":=", "!" };
+        const std::list<std::string> literals = { ":=" };
 
         for(const auto& escape : escapes)
                 ESCAPED(g, escape);

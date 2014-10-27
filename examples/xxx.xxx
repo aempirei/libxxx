@@ -1,0 +1,20 @@
+document	:= ^_rule* !eof
+_rule		:= !ws ^rule !eol
+rule		:= recursive / terminal
+recursive	:= name !_ !ceq !_ ordered
+terminal	:= name !_ !req !_ regex
+ordered		:= predicates !_ !fs !_ ^ordered / predicates
+predicates	:= predicate !_ ^predicates / predicate
+predicate	:= modifier? name quantifier?
+fs		~= /\//
+ceq		~= /:=/
+qm		~= /\?/
+_		~= /[ \t]+/
+eof		~= /\z/
+eol		~= /\s*($|\z)/
+modifier	~= /[!^>]/
+name		~= /[-.\w]+/
+quantifier	~= /[*?+]/
+regex		~= //(\/|[^\/\n])*//
+ws		~= /\s*/
+req		~= /\~=/
