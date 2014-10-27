@@ -304,4 +304,135 @@ namespace xxx {
 
 		return xml_header + ast_xml_recursive(*this);
 	}
+
+	std::string ast_code_recursive(const ast& a) {
+
+		std::stringstream ss;
+
+		ss << "xxx::grammar define_grammar() {" << std::endl;
+		ss << "using namespace xxx;" << std::endl;
+		ss << "grammar g;" << std::endl;
+		ss << "using R = rule;" << std::endl;
+		ss << "using M = predicate_modifier;" << std::endl;
+		ss << "const auto N = rule_type::recursive;" << std::endl;
+		ss << "const auto T = rule_type::terminal;" << std::endl;
+		if(a.name == "document") {
+			for(const auto& b : a.children) {
+
+				const auto& name = b.children[0].matches[0];
+
+				if(b.name == "terminal") {
+
+					std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
+
+					reg.pop_back();
+
+					std::string escreg;
+
+					for(size_t n = 0; n < reg.length(); n++) {
+						if(reg[n] == '\\' or reg[n] == '"')
+							escreg.push_back('\\');
+						escreg.push_back(reg[n]);
+					}
+
+					ss << "g[\"" << name << "\"] = { R(T) << \"" << escreg << "\" };" << std::endl;
+
+				} else {
+
+					ss << "g[\"" << name << "\"] = { ";
+
+					// ordered
+
+					bool single = (b.children[1].children.size() == 1);
+
+					for(const auto& c : b.children[1].children) {
+
+						// predicates
+
+						if(not single)
+							ss << std::endl;
+
+						ss << "{ R(N) ";
+
+						for(const auto& d : c.children) {
+
+							// predicate
+
+							auto iter = d.children.begin();
+
+							predicate p;
+
+							if(iter->name == "modifier") {
+								if(iter->matches[0] == "^") {
+									p.modifier = predicate_modifier::lift;
+								} else if(iter->matches[0] == "!") {
+									p.modifier = predicate_modifier::discard;
+								} else if(iter->matches[0] == ">") {
+									p.modifier = predicate_modifier::peek;
+								}
+
+								iter++;
+							} else {
+								p.modifier = predicate_modifier::push;
+							}
+
+							if(iter->name == "name") {
+								p.name = iter->matches[0];
+								iter++;
+							}
+
+							if(iter != d.children.end() && iter->name == "quantifier") {
+								if(iter->matches[0] == "*") {
+									p.quantifier = q::star;
+								} else if(iter->matches[0] == "+") {
+									p.quantifier = q::plus;
+								} else if(iter->matches[0] == "?") {
+									p.quantifier = q::question;
+								}
+							} else {
+								p.quantifier = q::one;
+							}
+
+							ss << "<< \"" << p.name << "\" ";
+
+							if(p.quantifier != q::one) {
+								ss << (
+									(p.quantifier == q::star) ? "<< q::star " :
+									(p.quantifier == q::plus) ? "<< q::plus " :
+									(p.quantifier == q::question) ? "<< q::question " : "");
+							}
+
+							if(p.modifier != predicate_modifier::push) {
+								ss << (
+									(p.modifier == predicate_modifier::lift) ? "<< M::lift " :
+									(p.modifier == predicate_modifier::discard) ? "<< M::discard " :
+									(p.modifier == predicate_modifier::peek) ? "<< M::peek" : "");
+							}
+						}
+
+						if(single)
+							ss << "} ";
+						else
+							ss << "},";
+					}
+
+					if(not single)
+						ss << std::endl;
+
+					ss << "};" << std::endl;
+				}
+			}
+		}
+
+		ss << "return g;" << std::endl;
+		ss << "}" << std::endl;
+
+		return ss.str();
+	}
+
+	std::string ast::code() const {
+		return ast_code_recursive(*this);
+	}
+
+
 }

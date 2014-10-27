@@ -184,6 +184,8 @@ static void usage(const char *arg0) {
         std::cerr << FLAG << "-p" << "print grammar" << std::endl;
         std::cerr << FLAG << "-a" << "print ast" << std::endl;
         std::cerr << FLAG << "-x" << "print xml" << std::endl;
+        std::cerr << FLAG << "-c" << "print code" << std::endl;
+        std::cerr << FLAG << "-i" << "parse stdin" << std::endl;
         std::cerr << FLAG << "-g filename" << "grammar specification" << std::endl;
 
         std::cerr << std::endl;
@@ -196,7 +198,7 @@ int main(int argc, char **argv) {
         bool do_print_grammar   = false;
         bool do_load_grammar    = false;
         bool do_print_ast       = false;
-	bool do_supress		= false;
+        bool do_parse_input     = false;
 
         const char *filename = NULL;
 
@@ -207,16 +209,16 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        while ((opt = getopt(argc, argv, "achpsxg:")) != -1) {
+        while ((opt = getopt(argc, argv, "achpsixg:")) != -1) {
 
                 switch (opt) {
 
-                        case 'g': do_load_grammar   = true; filename = optarg;  break;
-                        case 'a': do_print_ast      = true;                     break;
-                        case 'x': do_print_xml      = true;                     break;
-                        case 'p': do_print_grammar  = true;                     break;
-                        case 'c': do_print_code     = true;                     break;
-			case 's': do_supress        = true;			break;
+			case 'g': do_load_grammar   = true; filename = optarg;  break;
+			case 'a': do_print_ast      = true;                     break;
+			case 'x': do_print_xml      = true;                     break;
+			case 'p': do_print_grammar  = true;                     break;
+			case 'c': do_print_code     = true;                     break;
+			case 'i': do_parse_input    = true;			break;
 
                         case 'h':
                         case '?':
@@ -229,7 +231,7 @@ int main(int argc, char **argv) {
 
         grammar g = define_peg_grammar();
 
-        if(do_print_grammar and not do_supress) {
+        if(do_print_grammar and not do_parse_input) {
                 std::cout << grammar_str(g) << std::endl;
         }
 
@@ -245,29 +247,27 @@ int main(int argc, char **argv) {
 
                 fclose(fp);
 
-		if(not do_supress) {
-			if(do_print_ast)
-				std::cout << a.str() << std::endl;
+		if(do_print_ast and not do_parse_input)
+			std::cout << a.str() << std::endl;
 
-			if(do_print_code)
-				std::cout << a.code() << std::endl;
-		}
+		if(do_print_code)
+			std::cout << a.code() << std::endl;
 
                 grammar h = load_dynamic_grammar(a);
 
-                ast b(h, stdin);
+		if(do_parse_input) {
 
-                if(do_print_grammar)
-                        std::cout << grammar_str(h) << std::endl;
+			ast b(h, stdin);
 
-                if(do_print_ast)
-                        std::cout << b.str() << std::endl;
+			if(do_print_grammar)
+				std::cout << grammar_str(h) << std::endl;
 
-                if(do_print_xml)
-                        std::cout << b.xml() << std::endl;
+			if(do_print_ast)
+				std::cout << b.str() << std::endl;
 
-		if(do_print_code)
-			std::cout << b.code() << std::endl;
+			if(do_print_xml)
+				std::cout << b.xml() << std::endl;
+		}
         }
 
         return 0;
