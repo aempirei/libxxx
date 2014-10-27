@@ -121,7 +121,9 @@ namespace xxx {
 
 		} else if(type == rule_type::terminal) {
 
-			return '/' + terminal.str() + '/';
+			std::string s = terminal.str().substr(2,std::string::npos);
+
+			return '/' + s + '/';
 
 		}
 

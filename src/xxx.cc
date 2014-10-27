@@ -18,15 +18,9 @@ extern "C" {
 }
 
 #include <xxx.hh>
+#include <xxx-xxx.hh>
 
 using namespace xxx;
-
-#define P(X)            { rule() << X }
-#define PS(...)         rule::singletons({ __VA_ARGS__ })
-#define D(X)            X << predicate_modifier::discard
-#define L(X)            X << predicate_modifier::lift
-#define LITERAL(X,Y)    X[Y] = P(Y)
-#define ESCAPED(X,Y)    X[Y] = P("\\" + Y)
 
 static grammar load_dynamic_grammar(const ast& a) {
 
@@ -108,72 +102,6 @@ static grammar load_dynamic_grammar(const ast& a) {
         return g;
 }
 
-static grammar define_peg_grammar() {
-
-        grammar g;
-
-        rule::default_type = rule_type::recursive;
-
-        //
-        // recursive rules
-        //
-
-        g["document"]   = P(L("rule") << q::star << D("eof"));
-
-        g["rule"]       = P(D("ws") << L("rule'") << D("eol"));
-
-        g["rule'"]      = PS("recursive", "terminal");
-
-        g["terminal"]   = P("name" << D("_") << D("~=") << D("_") << "regex");
-        g["recursive"]  = P("name" << D("_") << D(":=") << D("_") << "ordered");
-
-        g["ordered"]    = { P("predicates" << D("_") << D("/") << D("_") << L("ordered")), P("predicates") };
-
-        g["predicates"] = { P("predicate" << D("_") << L("predicates")), P("predicate") };
-
-        g["predicate"]  = P("modifier" << q::question << "name" << "quantifier" << q::question);
-
-        //
-
-        rule::default_type = rule_type::terminal;
-
-        //
-        // terminal rules
-        //
-
-        g["_"]          = P("[ \\t]+");
-        g["name"]       = P("[-.\\w]+");
-        g["ws"]         = P("\\s*");
-        g["eol"]        = P("\\s*($|\\z)");
-        g["eof"]        = P("\\z");
-        g["modifier"]   = P("[!^>]");
-        g["quantifier"] = P("[*?+]");
-        g["regex"]      = P("/(\\/|[^\\/\\n])*/");
-
-        //
-        // simple terminal rules
-        //
-
-        const std::list<std::string> escapes = { "/", "~=" };
-
-        const std::list<std::string> literals = { ":=" };
-
-        for(const auto& escape : escapes)
-                ESCAPED(g, escape);
-
-        for(const auto& literal : literals)
-                LITERAL(g, literal);
-
-        return g;
-}
-
-#undef P
-#undef PS
-#undef D
-#undef L
-#undef LITERAL
-#undef ESCAPED
-
 #define FLAG '\t' << std::left << std::setw(18)
 
 static void usage(const char *arg0) {
@@ -229,10 +157,10 @@ int main(int argc, char **argv) {
                 }
         }
 
-        grammar g = define_peg_grammar();
+        grammar g = define_grammar();
 
         if(do_print_grammar and not do_parse_input) {
-                std::cout << grammar_str(g) << std::endl;
+                std::cout << grammar_str(g);
         }
 
         if(do_load_grammar) {
@@ -260,7 +188,7 @@ int main(int argc, char **argv) {
 			ast b(h, stdin);
 
 			if(do_print_grammar)
-				std::cout << grammar_str(h) << std::endl;
+				std::cout << grammar_str(h);
 
 			if(do_print_ast)
 				std::cout << b.str() << std::endl;

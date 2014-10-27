@@ -309,7 +309,7 @@ namespace xxx {
 
 		std::stringstream ss;
 
-		ss << "xxx::grammar define_grammar() {" << std::endl;
+		ss << "static xxx::grammar define_grammar() {" << std::endl;
 		ss << "using namespace xxx;" << std::endl;
 		ss << "grammar g;" << std::endl;
 		ss << "using R = rule;" << std::endl;
