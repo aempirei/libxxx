@@ -128,5 +128,6 @@ namespace xxx {
 
 		std::string str() const;
 		std::string xml() const;
+		std::string code() const;
 	};
 }

@@ -191,10 +191,12 @@ static void usage(const char *arg0) {
 
 int main(int argc, char **argv) {
 
+        bool do_print_code      = false;
         bool do_print_xml       = false;
         bool do_print_grammar   = false;
         bool do_load_grammar    = false;
         bool do_print_ast       = false;
+	bool do_supress		= false;
 
         const char *filename = NULL;
 
@@ -205,7 +207,7 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        while ((opt = getopt(argc, argv, "xhpag:")) != -1) {
+        while ((opt = getopt(argc, argv, "achpsxg:")) != -1) {
 
                 switch (opt) {
 
@@ -213,6 +215,8 @@ int main(int argc, char **argv) {
                         case 'a': do_print_ast      = true;                     break;
                         case 'x': do_print_xml      = true;                     break;
                         case 'p': do_print_grammar  = true;                     break;
+                        case 'c': do_print_code     = true;                     break;
+			case 's': do_supress        = true;			break;
 
                         case 'h':
                         case '?':
@@ -225,14 +229,13 @@ int main(int argc, char **argv) {
 
         grammar g = define_peg_grammar();
 
-        if(do_print_grammar) {
+        if(do_print_grammar and not do_supress) {
                 std::cout << grammar_str(g) << std::endl;
         }
 
         if(do_load_grammar) {
 
                 FILE *fp = fopen(filename, "r");
-
                 if(fp == nullptr) {
                         perror("fopen()");
                         return -1;
@@ -242,21 +245,29 @@ int main(int argc, char **argv) {
 
                 fclose(fp);
 
-                if(do_print_ast)
-                        std::cout << a.str() << std::endl;
+		if(not do_supress) {
+			if(do_print_ast)
+				std::cout << a.str() << std::endl;
+
+			if(do_print_code)
+				std::cout << a.code() << std::endl;
+		}
 
                 grammar h = load_dynamic_grammar(a);
 
+                ast b(h, stdin);
+
                 if(do_print_grammar)
                         std::cout << grammar_str(h) << std::endl;
-
-                ast b(h, stdin);
 
                 if(do_print_ast)
                         std::cout << b.str() << std::endl;
 
                 if(do_print_xml)
                         std::cout << b.xml() << std::endl;
+
+		if(do_print_code)
+			std::cout << b.code() << std::endl;
         }
 
         return 0;
