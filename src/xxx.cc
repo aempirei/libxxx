@@ -13,7 +13,9 @@
 #include <sstream>
 #include <algorithm>
 
+extern "C" {
 #include <unistd.h>
+}
 
 #include <xxx.hh>
 
@@ -26,7 +28,9 @@ using namespace xxx;
 #define LITERAL(X,Y)    X[Y] = P(Y)
 #define ESCAPED(X,Y)    X[Y] = P("\\" + Y)
 
-static void load_dynamic_grammar(grammar& g, const ast& a) {
+static grammar load_dynamic_grammar(const ast& a) {
+
+        grammar g;
 
         if(a.name == "document") {
                 for(const auto& b : a.children) {
@@ -100,6 +104,8 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
                         }
                 }
         }
+
+        return g;
 }
 
 static grammar define_peg_grammar() {
@@ -200,23 +206,18 @@ int main(int argc, char **argv) {
         }
 
         while ((opt = getopt(argc, argv, "xhpag:")) != -1) {
+
                 switch (opt) {
-                        case 'g':
-                                do_load_grammar = true;
-                                filename = optarg;
-                                break;
-                        case 'a':
-                                do_print_ast = true;
-                                break;
-                        case 'x':
-                                do_print_xml = true;
-                                break;
-                        case 'p':
-                                do_print_grammar = true;
-                                break;
+
+                        case 'g': do_load_grammar   = true; filename = optarg;  break;
+                        case 'a': do_print_ast      = true;                     break;
+                        case 'x': do_print_xml      = true;                     break;
+                        case 'p': do_print_grammar  = true;                     break;
+
                         case 'h':
                         case '?':
                         default:
+
                                 usage(*argv);
                                 return -1;
                 }
@@ -230,11 +231,9 @@ int main(int argc, char **argv) {
 
         if(do_load_grammar) {
 
-                grammar h;
-
                 FILE *fp = fopen(filename, "r");
 
-                if(!fp) {
+                if(fp == nullptr) {
                         perror("fopen()");
                         return -1;
                 }
@@ -246,7 +245,7 @@ int main(int argc, char **argv) {
                 if(do_print_ast)
                         std::cout << a.str() << std::endl;
 
-                load_dynamic_grammar(h, a);
+                grammar h = load_dynamic_grammar(a);
 
                 if(do_print_grammar)
                         std::cout << grammar_str(h) << std::endl;
