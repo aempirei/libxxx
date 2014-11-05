@@ -49,7 +49,7 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
 
                                 for(const auto& c : b.children[1].children) {
 
-                                // predicates
+                                        // predicates
 
                                         rule r(rule_type::recursive);
 
@@ -102,7 +102,9 @@ static void load_dynamic_grammar(grammar& g, const ast& a) {
         }
 }
 
-static void define_peg_grammar(grammar& g) {
+static grammar define_peg_grammar() {
+
+        grammar g;
 
         rule::default_type = rule_type::recursive;
 
@@ -150,11 +152,13 @@ static void define_peg_grammar(grammar& g) {
 
         const std::list<std::string> literals = { ":=", "!" };
 
-        for(auto escape : escapes)
+        for(const auto& escape : escapes)
                 ESCAPED(g, escape);
 
-        for(auto literal : literals)
+        for(const auto& literal : literals)
                 LITERAL(g, literal);
+
+        return g;
 }
 
 #undef P
@@ -181,10 +185,10 @@ static void usage(const char *arg0) {
 
 int main(int argc, char **argv) {
 
-        bool do_print_xml = false;
-        bool do_print_grammar = false;
-	bool do_load_grammar = false;
-	bool do_print_ast = false;
+        bool do_print_xml       = false;
+        bool do_print_grammar   = false;
+        bool do_load_grammar    = false;
+        bool do_print_ast       = false;
 
         const char *filename = NULL;
 
@@ -198,18 +202,18 @@ int main(int argc, char **argv) {
         while ((opt = getopt(argc, argv, "xhpag:")) != -1) {
                 switch (opt) {
                         case 'g':
-				do_load_grammar = true;
-				filename = optarg;
-				break;
-			case 'a':
-				do_print_ast = true;
-				break;
-			case 'x':
-				do_print_xml = true;
-				break;
-			case 'p':
-				do_print_grammar = true;
-				break;
+                                do_load_grammar = true;
+                                filename = optarg;
+                                break;
+                        case 'a':
+                                do_print_ast = true;
+                                break;
+                        case 'x':
+                                do_print_xml = true;
+                                break;
+                        case 'p':
+                                do_print_grammar = true;
+                                break;
                         case 'h':
                         case '?':
                         default:
@@ -218,13 +222,11 @@ int main(int argc, char **argv) {
                 }
         }
 
-        grammar g;
+        grammar g = define_peg_grammar();
 
-        define_peg_grammar(g);
-
-	if(do_print_grammar) {
-		std::cout << grammar_str(g) << std::endl;
-	}
+        if(do_print_grammar) {
+                std::cout << grammar_str(g) << std::endl;
+        }
 
         if(do_load_grammar) {
 
@@ -241,21 +243,21 @@ int main(int argc, char **argv) {
 
                 fclose(fp);
 
-		if(do_print_ast)
-			std::cout << a.str() << std::endl;
-                
+                if(do_print_ast)
+                        std::cout << a.str() << std::endl;
+
                 load_dynamic_grammar(h, a);
 
-		if(do_print_grammar)
-			std::cout << grammar_str(h) << std::endl;
+                if(do_print_grammar)
+                        std::cout << grammar_str(h) << std::endl;
 
                 ast b(h, stdin);
 
-		if(do_print_ast)
-			std::cout << b.str() << std::endl;
+                if(do_print_ast)
+                        std::cout << b.str() << std::endl;
 
-		if(do_print_xml)
-			std::cout << b.xml() << std::endl;
+                if(do_print_xml)
+                        std::cout << b.xml() << std::endl;
         }
 
         return 0;
