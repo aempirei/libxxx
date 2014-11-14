@@ -26,7 +26,7 @@ namespace xxx {
 
 		for(const auto& x : xs)
 			sum += f(x);
-		
+
 		return sum;
 
 	}
@@ -397,16 +397,16 @@ namespace xxx {
 
 							if(p.quantifier != q::one) {
 								ss << (
-									(p.quantifier == q::star) ? "<< q::star " :
-									(p.quantifier == q::plus) ? "<< q::plus " :
-									(p.quantifier == q::question) ? "<< q::question " : "");
+										(p.quantifier == q::star    ) ? "<< q::star "     :
+										(p.quantifier == q::plus    ) ? "<< q::plus "     :
+										(p.quantifier == q::question) ? "<< q::question " : "");
 							}
 
 							if(p.modifier != predicate_modifier::push) {
 								ss << (
-									(p.modifier == predicate_modifier::lift) ? "<< M::lift " :
-									(p.modifier == predicate_modifier::discard) ? "<< M::discard " :
-									(p.modifier == predicate_modifier::peek) ? "<< M::peek" : "");
+										(p.modifier == predicate_modifier::lift   ) ? "<< M::lift "    :
+										(p.modifier == predicate_modifier::discard) ? "<< M::discard " :
+										(p.modifier == predicate_modifier::peek   ) ? "<< M::peek "    : "");
 							}
 						}
 

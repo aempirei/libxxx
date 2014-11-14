@@ -2,61 +2,60 @@
 
 namespace xxx {
 
-        rule_type rule::default_type = rule_type::recursive;
+	rule_type rule::default_type = rule_type::recursive;
 
-        rule::rule(rule_type t) {
-                retype(t);
-        }
+	rule::rule(rule_type t) {
+		retype(t);
+	}
 
-        rule::rule() : rule(default_type) {
-                // nothing
-        }
+	rule::rule() : rule(default_type) {
+	}
 
-        rule::rule(const terminal_type& x) : rule(rule_type::terminal) {
-                terminal = x;
-        }
+	rule::rule(const terminal_type& x) : rule(rule_type::terminal) {
+		terminal = x;
+	}
 
-        rule::rule(const recursive_type& x) : rule(rule_type::recursive) {
-                recursive = x;
-        }
+	rule::rule(const recursive_type& x) : rule(rule_type::recursive) {
+		recursive = x;
+	}
 
-        rule::rule(const rule& x) {
-                *this = x;
-        }
+	rule::rule(const rule& x) {
+		*this = x;
+	}
 
-        rule::rule(const std::string& x) : rule() {
-                operator<<(x);
-        }
+	rule::rule(const std::string& x) : rule() {
+		operator<<(x);
+	}
 
-        rule& rule::operator<<(rule_type t) {
+	rule& rule::operator<<(rule_type t) {
 
-                if(type != t)
-                        retype(t);
+		if(type != t)
+			retype(t);
 
-                return *this;
-        }
+		return *this;
+	}
 
-        rule& rule::operator<<(const terminal_type& x) {
+	rule& rule::operator<<(const terminal_type& x) {
 
-                if(type != rule_type::terminal)
-                        retype(rule_type::terminal);
+		if(type != rule_type::terminal)
+			retype(rule_type::terminal);
 
-                terminal = x;
+		terminal = x;
 
-                return *this;
-        }
+		return *this;
+	}
 
-        rule& rule::operator<<(const predicate& x) {
+	rule& rule::operator<<(const predicate& x) {
 
-                if(type != rule_type::recursive)
-                        retype(rule_type::recursive);
+		if(type != rule_type::recursive)
+			retype(rule_type::recursive);
 
-                recursive.push_back(x);
+		recursive.push_back(x);
 
-                return *this;
-        }
+		return *this;
+	}
 
-        rule& rule::operator<<(const std::string& x) {
+	rule& rule::operator<<(const std::string& x) {
 
 		if(type == rule_type::terminal) {
 
@@ -128,13 +127,13 @@ namespace xxx {
 		}
 
 		throw new std::runtime_error("uknown rule type found during rule to string conversion");
-        }
+	}
 
-        std::list<rule> rule::singletons(const std::list<std::string>& xs) {
-                std::list<rule> y;
-                for(auto x : xs)
-                        y.push_back(rule(rule_type::recursive) << x);
-                return y;
-        }
+	std::list<rule> rule::singletons(const std::list<std::string>& xs) {
+		std::list<rule> y;
+		for(auto x : xs)
+			y.push_back(rule(rule_type::recursive) << x);
+		return y;
+	}
 
 }

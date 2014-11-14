@@ -24,156 +24,154 @@ using namespace xxx;
 
 static grammar load_dynamic_grammar(const ast& a) {
 
-        grammar g;
+	grammar g;
 
-        if(a.name == "document") {
-                for(const auto& b : a.children) {
+	if(a.name == "document") {
+		for(const auto& b : a.children) {
 
-                        const auto& name = b.children[0].matches[0];
+			const auto& name = b.children[0].matches[0];
 
-                        if(b.name == "terminal") {
+			if(b.name == "terminal") {
 
-                                std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
+				std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
 
-                                reg.pop_back();
+				reg.pop_back();
 
-                                g[name] = { rule(rule_type::terminal) << reg };
+				g[name] = { rule(rule_type::terminal) << reg };
 
-                        } else {
+			} else {
 
-                                g[name] = {};
+				g[name] = {};
 
-                                // ordered
+				// ordered
 
-                                for(const auto& c : b.children[1].children) {
+				for(const auto& c : b.children[1].children) {
 
-                                        // predicates
+					// predicates
 
-                                        rule r(rule_type::recursive);
+					rule r(rule_type::recursive);
 
-                                        for(const auto& d : c.children) {
+					for(const auto& d : c.children) {
 
-                                                // predicate
+						// predicate
 
-                                                predicate p;
+						predicate p;
 
-                                                auto iter = d.children.begin();
+						auto iter = d.children.begin();
 
-                                                if(iter->name == "modifier") {
-                                                        if(iter->matches[0] == "^") {
-                                                                p.modifier = predicate_modifier::lift;
-                                                        } else if(iter->matches[0] == "!") {
-                                                                p.modifier = predicate_modifier::discard;
-                                                        } else if(iter->matches[0] == ">") {
-                                                                p.modifier = predicate_modifier::peek;
-                                                        }
+						if(iter->name == "modifier") {
 
-                                                        iter++;
-                                                } else {
-                                                        p.modifier = predicate_modifier::push;
-                                                }
+							/**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
+							else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
+							else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek;
 
-                                                if(iter->name == "name") {
-                                                        p.name = iter->matches[0];
-                                                        iter++;
-                                                }
+							iter++;
 
-                                                if(iter != d.children.end() && iter->name == "quantifier") {
-                                                        if(iter->matches[0] == "*") {
-                                                                p.quantifier = q::star;
-                                                        } else if(iter->matches[0] == "+") {
-                                                                p.quantifier = q::plus;
-                                                        } else if(iter->matches[0] == "?") {
-                                                                p.quantifier = q::question;
-                                                        }
-                                                } else {
-                                                        p.quantifier = q::one;
-                                                }
+						} else {
+							p.modifier = predicate_modifier::push;
+						}
 
-                                                r << p;
-                                        }
+						if(iter->name == "name") {
+							p.name = iter->matches[0];
+							iter++;
+						}
 
-                                        g[name].push_back(r);
-                                }
-                        }
-                }
-        }
+						if(iter != d.children.end() && iter->name == "quantifier") {
 
-        return g;
+							/**/ if(iter->matches[0] == "*") p.quantifier = q::star;
+							else if(iter->matches[0] == "+") p.quantifier = q::plus;
+							else if(iter->matches[0] == "?") p.quantifier = q::question;
+
+						} else {
+							p.quantifier = q::one;
+						}
+
+						r << p;
+					}
+
+					g[name].push_back(r);
+				}
+			}
+		}
+	}
+
+	return g;
 }
 
 #define FLAG '\t' << std::left << std::setw(18)
 
 static void usage(const char *arg0) {
 
-        std::cerr << std::endl << "usage: " << arg0 << " [-{hpax}] [-g filename]" << std::endl << std::endl;
+	std::cerr << std::endl << "usage: " << arg0 << " [-{hpax}] [-g filename]" << std::endl << std::endl;
 
-        std::cerr << FLAG << "-h" << "print help" << std::endl;
-        std::cerr << FLAG << "-p" << "print grammar" << std::endl;
-        std::cerr << FLAG << "-a" << "print ast" << std::endl;
-        std::cerr << FLAG << "-x" << "print xml" << std::endl;
-        std::cerr << FLAG << "-c" << "print code" << std::endl;
-        std::cerr << FLAG << "-i" << "parse stdin" << std::endl;
-        std::cerr << FLAG << "-g filename" << "grammar specification" << std::endl;
+	std::cerr << FLAG << "-h" << "print help" << std::endl;
+	std::cerr << FLAG << "-p" << "print grammar" << std::endl;
+	std::cerr << FLAG << "-a" << "print ast" << std::endl;
+	std::cerr << FLAG << "-x" << "print xml" << std::endl;
+	std::cerr << FLAG << "-c" << "print code" << std::endl;
+	std::cerr << FLAG << "-i" << "parse stdin" << std::endl;
+	std::cerr << FLAG << "-g filename" << "grammar specification" << std::endl;
 
-        std::cerr << std::endl;
+	std::cerr << std::endl;
 }
+
+#undef FLAG
 
 int main(int argc, char **argv) {
 
-        bool do_print_code      = false;
-        bool do_print_xml       = false;
-        bool do_print_grammar   = false;
-        bool do_load_grammar    = false;
-        bool do_print_ast       = false;
-        bool do_parse_input     = false;
+	bool do_print_code		= false;
+	bool do_print_xml		= false;
+	bool do_print_grammar	= false;
+	bool do_load_grammar	= false;
+	bool do_print_ast		= false;
+	bool do_parse_input		= false;
 
-        const char *filename = NULL;
+	const char *filename = nullptr;
 
-        int opt;
+	int opt;
 
-        if(argc == 1) {
-                usage(*argv);
-                return -1;
-        }
+	if(argc == 1) {
+		usage(*argv);
+		return -1;
+	}
 
-        while ((opt = getopt(argc, argv, "achpsixg:")) != -1) {
+	while ((opt = getopt(argc, argv, "achpsixg:")) != -1) {
 
-                switch (opt) {
+		switch (opt) {
 
-			case 'g': do_load_grammar   = true; filename = optarg;  break;
-			case 'a': do_print_ast      = true;                     break;
-			case 'x': do_print_xml      = true;                     break;
-			case 'p': do_print_grammar  = true;                     break;
-			case 'c': do_print_code     = true;                     break;
-			case 'i': do_parse_input    = true;			break;
+			case 'g': do_load_grammar	= true; filename = optarg;	break;
+			case 'a': do_print_ast		= true;						break;
+			case 'x': do_print_xml		= true;						break;
+			case 'p': do_print_grammar	= true;						break;
+			case 'c': do_print_code		= true;						break;
+			case 'i': do_parse_input	= true;						break;
 
-                        case 'h':
-                        case '?':
-                        default:
+			case 'h':
+			case '?':
+			default:
 
-                                usage(*argv);
-                                return -1;
-                }
-        }
+					  usage(*argv);
+					  return -1;
+		}
+	}
 
-        grammar g = define_grammar();
+	grammar g = define_grammar();
 
-        if(do_print_grammar and not do_parse_input) {
-                std::cout << grammar_str(g);
-        }
+	if(do_print_grammar and not do_parse_input) {
+		std::cout << grammar_str(g);
+	}
 
-        if(do_load_grammar) {
+	if(do_load_grammar) {
 
-                FILE *fp = fopen(filename, "r");
-                if(fp == nullptr) {
-                        perror("fopen()");
-                        return -1;
-                }
+		FILE *fp = fopen(filename, "r");
+		if(fp == nullptr) {
+			perror("fopen()");
+			return -1;
+		}
 
-                ast a(g, fp);
+		ast a(g, fp);
 
-                fclose(fp);
+		fclose(fp);
 
 		if(do_print_ast and not do_parse_input)
 			std::cout << a.str() << std::endl;
@@ -181,7 +179,7 @@ int main(int argc, char **argv) {
 		if(do_print_code)
 			std::cout << a.code() << std::endl;
 
-                grammar h = load_dynamic_grammar(a);
+		grammar h = load_dynamic_grammar(a);
 
 		if(do_parse_input) {
 
@@ -196,7 +194,7 @@ int main(int argc, char **argv) {
 			if(do_print_xml)
 				std::cout << b.xml() << std::endl;
 		}
-        }
+	}
 
-        return 0;
+	return 0;
 }
