@@ -27,6 +27,7 @@ static grammar load_dynamic_grammar(const ast& a) {
 	grammar g;
 
 	if(a.name == "document") {
+
 		for(const auto& b : a.children) {
 
 			const auto& name = b.children[0].matches[0];

@@ -316,7 +316,9 @@ namespace xxx {
 		ss << "using M = predicate_modifier;" << std::endl;
 		ss << "const auto N = rule_type::recursive;" << std::endl;
 		ss << "const auto T = rule_type::terminal;" << std::endl;
+
 		if(a.name == "document") {
+
 			for(const auto& b : a.children) {
 
 				const auto& name = b.children[0].matches[0];
@@ -363,15 +365,13 @@ namespace xxx {
 							predicate p;
 
 							if(iter->name == "modifier") {
-								if(iter->matches[0] == "^") {
-									p.modifier = predicate_modifier::lift;
-								} else if(iter->matches[0] == "!") {
-									p.modifier = predicate_modifier::discard;
-								} else if(iter->matches[0] == ">") {
-									p.modifier = predicate_modifier::peek;
-								}
+
+								/**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
+								else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
+								else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek;
 
 								iter++;
+
 							} else {
 								p.modifier = predicate_modifier::push;
 							}
@@ -382,13 +382,11 @@ namespace xxx {
 							}
 
 							if(iter != d.children.end() && iter->name == "quantifier") {
-								if(iter->matches[0] == "*") {
-									p.quantifier = q::star;
-								} else if(iter->matches[0] == "+") {
-									p.quantifier = q::plus;
-								} else if(iter->matches[0] == "?") {
-									p.quantifier = q::question;
-								}
+
+								/**/ if(iter->matches[0] == "*") p.quantifier = q::star;
+								else if(iter->matches[0] == "+") p.quantifier = q::plus;
+								else if(iter->matches[0] == "?") p.quantifier = q::question;
+
 							} else {
 								p.quantifier = q::one;
 							}
