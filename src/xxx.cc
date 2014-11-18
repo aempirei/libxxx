@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 			std::cout << a.str() << std::endl;
 
 		if(do_print_code)
-			std::cout << a.code() << std::endl;
+			std::cout << a.code();
 
 		grammar h = load_dynamic_grammar(a);
 

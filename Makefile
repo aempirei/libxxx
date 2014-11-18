@@ -32,3 +32,6 @@ lib/libxxx.a: $(OBJECTS)
 bin/xxx: src/xxx.o lib/libxxx.a
 	if [ ! -d bin ]; then mkdir -vp bin; fi
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
+
+src/xxx-xxx.hh:  bin/xxx examples/xxx.xxx
+	xxx -g examples/xxx.xxx -c > src/xxx-xxx.hh

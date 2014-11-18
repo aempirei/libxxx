@@ -68,9 +68,15 @@ namespace xxx {
 		if(ab.first == -1) {
 
 			std::stringstream ss;
-			ss << "ast::parse failed at offset " << ab.second;
+			ss << "ast::parse failed at offset " << ab.second << " (";
 
-			std::cerr  << s.substr(ab.second, std::string::npos);
+			if(ab.second + 16 < (ssize_t)s.length()) {
+				ss << s.substr(ab.second, ab.second + 16) << "...";
+			} else {
+				ss << s.substr(ab.second, std::string::npos);
+			}
+
+			ss << ")";
 
 			throw std::runtime_error(ss.str());
 		}
@@ -310,12 +316,12 @@ namespace xxx {
 		std::stringstream ss;
 
 		ss << "static xxx::grammar define_grammar() {" << std::endl;
-		ss << "using namespace xxx;" << std::endl;
-		ss << "grammar g;" << std::endl;
-		ss << "using R = rule;" << std::endl;
-		ss << "using M = predicate_modifier;" << std::endl;
-		ss << "const auto N = rule_type::recursive;" << std::endl;
-		ss << "const auto T = rule_type::terminal;" << std::endl;
+		ss << "\tusing namespace xxx;" << std::endl;
+		ss << "\tgrammar g;" << std::endl;
+		ss << "\tusing R = rule;" << std::endl;
+		ss << "\tusing M = predicate_modifier;" << std::endl;
+		ss << "\tconst auto N = rule_type::recursive;" << std::endl;
+		ss << "\tconst auto T = rule_type::terminal;" << std::endl;
 
 		if(a.name == "document") {
 
@@ -337,11 +343,11 @@ namespace xxx {
 						escreg.push_back(reg[n]);
 					}
 
-					ss << "g[\"" << name << "\"] = { R(T) << \"" << escreg << "\" };" << std::endl;
+					ss << "\tg[\"" << name << "\"] = { R(T) << \"" << escreg << "\" };" << std::endl;
 
 				} else {
 
-					ss << "g[\"" << name << "\"] = { ";
+					ss << "\tg[\"" << name << "\"] = {";
 
 					// ordered
 
@@ -351,10 +357,12 @@ namespace xxx {
 
 						// predicates
 
-						if(not single)
-							ss << std::endl;
+						if(single)
+							ss << ' ';
+						else
+							ss << std::endl << '\t' << '\t';
 
-						ss << "{ R(N) ";
+						ss << "{ R(N)";
 
 						for(const auto& d : c.children) {
 
@@ -391,38 +399,38 @@ namespace xxx {
 								p.quantifier = q::one;
 							}
 
-							ss << "<< \"" << p.name << "\" ";
+							ss << " << \"" << p.name << '\"';
 
 							if(p.quantifier != q::one) {
 								ss << (
-										(p.quantifier == q::star    ) ? "<< q::star "     :
-										(p.quantifier == q::plus    ) ? "<< q::plus "     :
-										(p.quantifier == q::question) ? "<< q::question " : "");
+										(p.quantifier == q::star    ) ? " << q::star"     :
+										(p.quantifier == q::plus    ) ? " << q::plus"     :
+										(p.quantifier == q::question) ? " << q::question" : "");
 							}
 
 							if(p.modifier != predicate_modifier::push) {
 								ss << (
-										(p.modifier == predicate_modifier::lift   ) ? "<< M::lift "    :
-										(p.modifier == predicate_modifier::discard) ? "<< M::discard " :
-										(p.modifier == predicate_modifier::peek   ) ? "<< M::peek "    : "");
+										(p.modifier == predicate_modifier::lift   ) ? " << M::lift"    :
+										(p.modifier == predicate_modifier::discard) ? " << M::discard" :
+										(p.modifier == predicate_modifier::peek   ) ? " << M::peek"    : "");
 							}
 						}
 
 						if(single)
-							ss << "} ";
+							ss << " } ";
 						else
-							ss << "},";
+							ss << " },";
 					}
 
 					if(not single)
 						ss << std::endl;
 
-					ss << "};" << std::endl;
+					ss << "\t};" << std::endl;
 				}
 			}
 		}
 
-		ss << "return g;" << std::endl;
+		ss << "\treturn g;" << std::endl;
 		ss << "}" << std::endl;
 
 		return ss.str();
