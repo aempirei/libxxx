@@ -4,11 +4,65 @@ namespace xxx {
 
 	rule_type rule::default_type = rule_type::recursive;
 
-	rule::rule(rule_type t) {
-		retype(t);
+    void rule::retype(rule_type my_type) {
+        operator=(rule(my_type));
+    }
+
+	std::string rule::str() const {
+
+		if(type == rule_type::recursive) {
+
+                std::stringstream ss;
+
+                if(not recursive.empty()) {
+
+                    auto iter = recursive.begin();
+
+                    ss << iter->str();
+
+                    while(++iter != recursive.end())
+                        ss << ' ' << iter->str();
+                }
+
+                return ss.str();
+
+		} else if(type == rule_type::terminal) {
+
+			std::string s = terminal.str().substr(2,std::string::npos);
+
+			return '/' + s + '/';
+
+        } else {
+
+            throw new std::runtime_error("unexpected type found in rule::str()");
+
+        }
 	}
 
+	rules rule::singletons(const std::list<std::string>& xs) {
+
+        rules y;
+
+		for(auto x : xs)
+
+			y.push_back(rule(rule_type::recursive) << x);
+
+		return y;
+	}
+
+
+    //
+    // rule::rule
+    //
+
 	rule::rule() : rule(default_type) {
+	}
+
+	rule::rule(rule_type my_type) : type(my_type) {
+	}
+
+	rule::rule(const std::string& x) : rule() {
+		operator<<(x);
 	}
 
 	rule::rule(const terminal_type& x) : rule(rule_type::terminal) {
@@ -19,13 +73,9 @@ namespace xxx {
 		recursive = x;
 	}
 
-	rule::rule(const rule& x) {
-		*this = x;
-	}
-
-	rule::rule(const std::string& x) : rule() {
-		operator<<(x);
-	}
+    //
+    // rule::operator<<
+    //
 
 	rule& rule::operator<<(rule_type t) {
 
@@ -63,7 +113,7 @@ namespace xxx {
 
 		} else if(type == rule_type::recursive) {
 
-			recursive.push_back(predicate(x));
+            operator<<(predicate(x));
 
 		} else {
 
@@ -97,43 +147,6 @@ namespace xxx {
 		recursive.back().quantifier = x;
 
 		return *this;
-	}
-
-	void rule::retype(rule_type t) {
-		type = t;
-		recursive.clear();
-	}
-
-	std::string rule::str() const {
-
-		if(type == rule_type::recursive) {
-
-			std::string s;
-
-			for(auto iter = recursive.begin(); iter != recursive.end(); iter++) {
-				s += iter->str();
-				if(next(iter) != recursive.end())
-					s += ' ';
-			}
-
-			return s;
-
-		} else if(type == rule_type::terminal) {
-
-			std::string s = terminal.str().substr(2,std::string::npos);
-
-			return '/' + s + '/';
-
-		}
-
-		throw new std::runtime_error("uknown rule type found during rule to string conversion");
-	}
-
-	std::list<rule> rule::singletons(const std::list<std::string>& xs) {
-		std::list<rule> y;
-		for(auto x : xs)
-			y.push_back(rule(rule_type::recursive) << x);
-		return y;
 	}
 
 }

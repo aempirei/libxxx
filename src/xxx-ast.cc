@@ -45,7 +45,7 @@ namespace xxx {
 
 		char buf[512];
 
-		while(!feof(fp)) {
+		while(not feof(fp)) {
 
 			int n = fread(buf, 1, sizeof(buf), fp);
 

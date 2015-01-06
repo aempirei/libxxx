@@ -22,12 +22,14 @@ namespace xxx {
 
 		std::stringstream ss;
 
-		for(auto iter = rs.begin(); iter != rs.end(); iter++) {
+        if(not rs.empty()) {
 
-			ss << iter->str();
+            auto iter = rs.begin();
 
-			if(next(iter) != rs.end())
-				ss << " / ";
+            ss << iter->str();
+
+            while(++iter != rs.end())
+                ss << " / " << iter->str();
 		}
 
 		ss << std::endl;

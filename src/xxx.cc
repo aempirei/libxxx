@@ -103,15 +103,22 @@ static grammar load_dynamic_grammar(const ast& a) {
 
 static void usage(const char *arg0) {
 
+    auto usageline = [](char flag, const char *opt, const char *msg) {
+        std::cerr << '\t' << std::left << std::setw(18) << '-' << flag;
+        if(opt != nullptr) std::cerr << ' ' << opt;
+        if(msg != nullptr) std::cerr << ' ' << msg;
+        std::cerr << std::endl;
+    };
+
 	std::cerr << std::endl << "usage: " << arg0 << " [-{hpax}] [-g filename]" << std::endl << std::endl;
 
-	std::cerr << FLAG << "-h" << "print help" << std::endl;
-	std::cerr << FLAG << "-p" << "print grammar" << std::endl;
-	std::cerr << FLAG << "-a" << "print ast" << std::endl;
-	std::cerr << FLAG << "-x" << "print xml" << std::endl;
-	std::cerr << FLAG << "-c" << "print code" << std::endl;
-	std::cerr << FLAG << "-i" << "parse stdin" << std::endl;
-	std::cerr << FLAG << "-g filename" << "grammar specification" << std::endl;
+    usageline('h', nullptr   , "show this help"       );
+    usageline('p', nullptr   , "display grammar"      );
+    usageline('a', nullptr   , "display ast"          );
+    usageline('x', nullptr   , "display xml"          );
+    usageline('c', nullptr   , "display code"         );
+    usageline('i', nullptr   , "parse stdin"          );
+    usageline('g', "filename", "grammar specification");
 
 	std::cerr << std::endl;
 }
@@ -158,9 +165,8 @@ int main(int argc, char **argv) {
 
 	grammar g = define_grammar();
 
-	if(do_print_grammar and not do_parse_input) {
+	if(do_print_grammar and not do_parse_input)
 		std::cout << grammar_str(g);
-	}
 
 	if(do_load_grammar) {
 

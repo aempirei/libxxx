@@ -6,6 +6,8 @@
 #include <string>
 #include <iomanip>
 
+#include <complex>
+
 #include <boost/regex.hpp>
 
 #include <climits>
@@ -18,9 +20,15 @@ namespace xxx {
 	// q
 	//
 
+    struct rule;
+    struct predicate;
+
 	template<typename T> using range = std::pair<T,T>;
 
 	using predicate_quantifier = range<size_t>;
+
+    using rules = std::list<rule>;
+    using predicates = std::list<predicate>;
 
 	namespace q {
 		extern const predicate_quantifier star;
@@ -33,7 +41,7 @@ namespace xxx {
 	// predicate
 	//
 
-	enum class predicate_modifier { push, discard, lift, peek };
+	enum struct predicate_modifier { push, discard, lift, peek };
 
 	struct predicate {
 
@@ -52,14 +60,14 @@ namespace xxx {
 	// rule
 	//
 
-	enum class rule_type { recursive, terminal };
+	enum struct rule_type { recursive, terminal };
 
-	enum class rule_transform { none, le, be, dec, hex, oct, bin, uint };
+	enum struct rule_transform { none, le, be, dec, hex, oct, bin, uint };
 
 	struct rule {
 
-		typedef std::list<predicate> recursive_type;
-		typedef boost::regex terminal_type;
+        using recursive_type = predicates;
+        using terminal_type = boost::regex;
 
 		static rule_type default_type;
 
@@ -71,32 +79,36 @@ namespace xxx {
 		rule_transform transform = rule_transform::none;
 
 		rule();
+
 		rule(rule_type);
-		rule(const rule&);
-		rule(const terminal_type&);
-		rule(const recursive_type&);
+
 		rule(const std::string&);
 
+		rule(const terminal_type&);
+		rule(const recursive_type&);
+
 		rule& operator<<(const rule_type);
+
+		rule& operator<<(const std::string&);
+
 		rule& operator<<(const predicate_modifier);
+		rule& operator<<(const predicate_quantifier&);
 
 		rule& operator<<(const terminal_type&);
-		rule& operator<<(const std::string&);
-		rule& operator<<(const predicate_quantifier&);
 		rule& operator<<(const predicate&);
 
 		void retype(rule_type);
 
 		std::string str() const;
 
-		static std::list<rule> singletons(const std::list<std::string>&);
+		static rules singletons(const std::list<std::string>&);
 	};
 
 	//
 	// grammar
 	//
 
-	using grammar = std::map<std::string,std::list<rule>>;
+	using grammar = std::map<std::string,rules>;
 
 	std::string grammar_str(const grammar&);
 
