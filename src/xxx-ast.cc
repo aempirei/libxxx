@@ -2,7 +2,7 @@
 
 namespace xxx {
 
-	static range<ssize_t> parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t);
+	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t);
 	static std::string ast_str_recursive(const ast&, int, bool);
 	static std::string ast_xml_recursive(const ast&, int, int, int);
 
@@ -63,7 +63,7 @@ namespace xxx {
 
 	void ast::parse(const grammar& g, const std::string& s) {
 
-		range<ssize_t> ab = parse_recursive(g, "document", s, *this, 0);
+        std::pair<ssize_t,ssize_t> ab = parse_recursive(g, "document", s, *this, 0);
 
 		if(ab.first == -1) {
 
@@ -82,7 +82,7 @@ namespace xxx {
 		}
 	}
 
-	static range<ssize_t> parse_recursive(const grammar& g, std::string name, const std::string& s, ast& q, ssize_t offset) {
+	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar& g, std::string name, const std::string& s, ast& q, ssize_t offset) {
 
 		const auto iter = g.find(name);
 
@@ -187,10 +187,10 @@ namespace xxx {
 			}
 
 			if(success)
-				return range<ssize_t>(offset,current);
+				return std::pair<ssize_t,ssize_t>(offset,current);
 		}
 
-		return range<ssize_t>(-1,current);
+		return std::pair<ssize_t,ssize_t>(-1,current);
 	}
 
 	static std::string ast_str_recursive(const ast& q, int depth=0, bool basic = false) {

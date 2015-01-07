@@ -22,20 +22,19 @@ namespace xxx {
 
     struct rule;
     struct predicate;
+    struct q;
 
-	template<typename T> using range = std::pair<T,T>;
-
-	using predicate_quantifier = range<size_t>;
+	using predicate_quantifier = std::pair<size_t,size_t>;
 
     using rules = std::list<rule>;
     using predicates = std::list<predicate>;
 
-	namespace q {
-		extern const predicate_quantifier star;
-		extern const predicate_quantifier plus;
-		extern const predicate_quantifier question;
-		extern const predicate_quantifier one;
-	}
+    struct q {
+        static const predicate_quantifier star;
+        static const predicate_quantifier plus;
+        static const predicate_quantifier question;
+        static const predicate_quantifier one;
+    };
 
 	//
 	// predicate
