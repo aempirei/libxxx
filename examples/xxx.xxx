@@ -12,14 +12,14 @@ fs          ~= /\//
 qm          ~= /\?/
 _           ~= /[ \t]+/
 eof         ~= /\z/
-eol         ~= /\s*($|\z)/
+eol         ~= /\s*(?:$|\z)/
 modifier    ~= /[!^>]/
 name        ~= /\w+/
 ws          ~= /\s*/
 quantifier  ~= /[*?+]/
-builtinre   ~= /\w+/
-literalre   ~= /".*?"$/
-regexre     ~= //(\/|[^\/\n])*//
+builtinre   ~= /\b\w+\b/
+literalre   ~= /"[^\n]*"\s*$/
+regexre     ~= /\/((?:\/|[^\/\n])*)\/\s*$/
 ceq         ~= /:=/
 req         ~= /~=/
 leq         ~= /"=/

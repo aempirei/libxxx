@@ -29,11 +29,13 @@ namespace xxx {
     using var = std::string;
 
     struct q {
+
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
         static const predicate_quantifier question;
         static const predicate_quantifier one;
         static const predicate_quantifier zero;
+
         static predicate_quantifier lower(size_t);
         static predicate_quantifier upper(size_t);
     };

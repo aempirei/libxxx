@@ -24,23 +24,10 @@ namespace xxx {
 
                 const auto& name = b.children[0].matches[0];
 
-                if(b.name == "literal") {
-
-                    g[name] = { rule::hint(rule_type::literal, b.children[1].matches[0]) };
-
-                } else if(b.name == "builtin") {
-
-                    g[name] = { rule::hint(rule_type::builtin, b.children[1].matches[0]) };
-
-                } else if(b.name == "regex") {
-
-                    std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
-
-                    reg.pop_back();
-
-                    g[name] = { rule::hint(rule_type::regex, reg) };
-
-                } else if(b.name == "recursive") {
+                /**/ if(b.name == "literal"  ) g[name] = { rule::hint(rule_type::literal, b.children[1].matches[0]) };
+                else if(b.name == "builtin"  ) g[name] = { rule::hint(rule_type::builtin, b.children[1].matches[0]) };
+                else if(b.name == "regex"    ) g[name] = { rule::hint(rule_type::regex  , b.children[1].matches[0]) };
+                else if(b.name == "recursive") {
 
                     g[name] = {};
 

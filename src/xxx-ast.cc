@@ -152,12 +152,9 @@ namespace xxx {
 						break;
 					}
 
-					x.matches.resize(matches.size());
-
-					for(size_t n = 0; n < matches.size(); n++)
-						x.matches[n] = matches[n];
-
-					current += x.matches[0].length();
+                    x.matches.resize(1);
+                    x.matches[0] = matches[matches.size() > 1 ? 1 : 0];
+					current += matches[0].length();
 
 					break;
 
@@ -169,27 +166,27 @@ namespace xxx {
 
 						for(n = 0; n < p.quantifier.second; n++) {
 
-							ast qq;
+							ast y;
 
-							auto next = parse_recursive(g, p.name, s, qq, current);
+							auto next = parse_recursive(g, p.name, s, y, current);
 
 							if(next.first == -1)
 								break;
 
 							if(p.modifier == predicate_modifier::push) {
 
-								x.children.push_back(qq);
+								x.children.push_back(y);
 
 							} else if(p.modifier == predicate_modifier::lift) {
 
-								if(qq.type != rule_type::recursive) {
+								if(y.type != rule_type::recursive) {
 									throw new std::runtime_error(
 											"attempting to lift non-recursive ast node"
 											);
 								}
 
-								for(const auto& qqq : qq.children)
-									x.children.push_back(qqq);
+								for(const auto& z : y.children)
+									x.children.push_back(z);
 
 							} else if(p.modifier == predicate_modifier::peek) {
 
@@ -219,7 +216,7 @@ namespace xxx {
 		return std::pair<ssize_t,ssize_t>(-1,current);
 	}
 
-	static std::string ast_str_recursive(const ast& x, int depth=0, bool basic = false) {
+	static std::string ast_str_recursive(const ast& x, int depth = 0, bool basic = false) {
 
 		std::stringstream ss;
 
@@ -230,12 +227,9 @@ namespace xxx {
 		}
 		switch(x.type) {
 
-			case rule_type::literal:
-			case rule_type::builtin:
-			case rule_type::regex:
-
-				ss << " =: " << '\'' << x.matches[0] << '\'' << std::endl;
-				break;
+            case rule_type::literal: ss << ' ' << '"' << "= " << x.matches[0] << std::endl; break;
+			case rule_type::builtin: ss << ' ' << '&' << "= " << x.matches[0] << std::endl; break;
+			case rule_type::regex  : ss << ' ' << '~' << "= " << x.matches[0] << std::endl; break;
 
 			case rule_type::recursive:
 
@@ -245,8 +239,8 @@ namespace xxx {
 
 					ss << std::endl;
 
-					for(const auto& qq : x.children)
-						ss << ast_str_recursive(qq, depth + 2);
+					for(const auto& y : x.children)
+						ss << ast_str_recursive(y, depth + 2);
 				}
 
 				break;
@@ -323,8 +317,8 @@ namespace xxx {
 
 						ss << std::endl;
 
-						for(const auto& qq : x.children) {
-							ss << ast_xml_recursive(qq, dm, dm + 1, dl + 1) << std::endl;
+						for(const auto& y : x.children) {
+							ss << ast_xml_recursive(y, dm, dm + 1, dl + 1) << std::endl;
 						}
 
 						ss << std::string(dl, ' ') << "</" << tag << '>';
@@ -349,9 +343,9 @@ namespace xxx {
 		std::stringstream ss;
 
 		ss << "namespace xxx {" << std::endl;
-		ss << "static grammar define_grammar() {" << std::endl;
-		ss << "\tgrammar g;" << std::endl;
-		ss << "\tusing M = predicate_modifier;" << std::endl;
+		ss << "\tstatic grammar define_grammar() {" << std::endl;
+		ss << "\t\tgrammar g;" << std::endl;
+		ss << "\t\tusing M = predicate_modifier;" << std::endl;
 
 		if(a.name == "document") {
 
@@ -369,23 +363,21 @@ namespace xxx {
 
                 } else if(b.name == "regex") {
 
-					std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
-
-					reg.pop_back();
+					const auto& regexstr = b.children[1].matches[0];
 
 					std::string escreg;
 
-					for(size_t n = 0; n < reg.length(); n++) {
-						if(reg[n] == '\\' or reg[n] == '"')
+					for(size_t n = 0; n < regexstr.length(); n++) {
+						if(regexstr[n] == '\\' or regexstr[n] == '"')
 							escreg.push_back('\\');
-						escreg.push_back(reg[n]);
+						escreg.push_back(regexstr[n]);
 					}
 
-					ss << "\tg[\"" << name << "\"] = { rule::hint(rule_type::regex, \"" << escreg << "\") };" << std::endl;
+					ss << "\t\tg[\"" << name << "\"] = { rule::hint(rule_type::regex, \"" << escreg << "\") };" << std::endl;
 
 				} else {
 
-					ss << "\tg[\"" << name << "\"] = {";
+					ss << "\t\tg[\"" << name << "\"] = {";
 
 					// ordered
 
@@ -398,7 +390,7 @@ namespace xxx {
 						if(single)
 							ss << ' ';
 						else
-							ss << std::endl << '\t' << '\t';
+							ss << std::endl << "\t\t\t";
 
 						ss << "{ rule()";
 
@@ -465,13 +457,13 @@ namespace xxx {
 					if(not single)
 						ss << std::endl;
 
-					ss << "\t};" << std::endl;
+					ss << "\t\t};" << std::endl;
 				}
 			}
 		}
 
-		ss << "\treturn g;" << std::endl;
-		ss << "}" << std::endl;
+		ss << "\t\treturn g;" << std::endl;
+		ss << "\t}" << std::endl;
 		ss << "}" << std::endl;
 
 		return ss.str();
