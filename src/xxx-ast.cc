@@ -2,7 +2,7 @@
 
 namespace xxx {
 
-	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, std::string, const std::string&, ast&, ssize_t);
+	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ast&, ssize_t);
 	static std::string ast_str_recursive(const ast&, int, bool);
 	static std::string ast_xml_recursive(const ast&, int, int, int);
 
@@ -17,39 +17,37 @@ namespace xxx {
 		parse(g, s);
 	}
 
-	template<class T, class F> static size_t sum(int sum0, const T& xs, F f) {
+	template<typename T, typename F> static size_t sum(size_t sum0, size_t sum, const T& xs, F f) {
 
 		if(xs.empty())
-			return 1;
-
-		size_t sum = sum0;
+			return sum0;
 
 		for(const auto& x : xs)
-			sum += f(x);
+			sum += (x.*f)();
 
 		return sum;
 
 	}
 
 	size_t ast::node_count() const {
-		return sum(1, children, [](const ast& x) -> size_t { return x.node_count(); });
+		return sum(1, 1, children, &ast::node_count);
 	}
 
 	size_t ast::leaf_count() const {
-		return sum(0, children, [](const ast& x) -> size_t { return x.node_count(); });
+		return sum(1, 0, children, &ast::leaf_count);
 	}
 
 	void ast::parse(const grammar& g, FILE *fp) {
 
 		std::string s;
 
-		char buf[512];
+		char buf[1024];
 
 		while(not feof(fp)) {
 
 			int n = fread(buf, 1, sizeof(buf), fp);
 
-			if(n != sizeof(buf) && ferror(fp)) {
+			if(n != sizeof(buf) and ferror(fp)) {
 				std::string s("fread(): ");
 				s += strerror(errno);
 				throw new std::runtime_error(s);
@@ -63,7 +61,7 @@ namespace xxx {
 
 	void ast::parse(const grammar& g, const std::string& s) {
 
-        std::pair<ssize_t,ssize_t> ab = parse_recursive(g, "document", s, *this, 0);
+        auto ab = parse_recursive(g, "document", s, *this, 0);
 
 		if(ab.first == -1) {
 
@@ -82,24 +80,26 @@ namespace xxx {
 		}
 	}
 
-	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar& g, std::string name, const std::string& s, ast& q, ssize_t offset) {
+	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar& g, const var& name, const std::string& s, ast& x, ssize_t offset) {
 
-		const auto iter = g.find(name);
+        x.entry = g.find(name);
 
-		if(iter == g.end()) {
+		if(x.entry == g.end()) {
 			std::stringstream ss;
 			ss << "grammar rule not found -- \"" << name << '"';
 			throw std::runtime_error(ss.str());
 		}
 
-		const auto& rules = iter->second;
+		const auto& rules = x.entry->second;
 
 		ssize_t current = offset;
 
-		q.offset = offset;
-		q.name = name;
+		x.offset = offset;
+		x.name = name;
 
-		for(const auto& rule : rules) {
+        for(x.subentry = rules.begin(); x.subentry != rules.end(); x.subentry++) {
+
+            const auto& rule = *x.subentry;
 
 			bool success = true;
 
@@ -108,49 +108,79 @@ namespace xxx {
 
 			current = offset;
 
-			q.children.clear();
-			q.type = rule.type;
+			x.children.clear();
+			x.type = rule.type;
 
 			switch(rule.type) {
 
-				case rule_type::terminal:
+                case rule_type::literal:
+
+                    ms = s.substr(offset, rule.literal.length());
+
+                    if(ms != rule.literal) {
+                        success = false;
+                        break;
+                    }
+
+                    x.matches.resize(1);
+                    x.matches[0] = ms;
+                    current += x.matches[0].length();
+
+                    break;
+
+                case rule_type::builtin:
+
+                    ms = s.substr(offset, 1);
+
+                    if(ms.empty() or not rule.builtin(ms[0])) {
+                        success = false;
+                        break;
+                    }
+
+                    x.matches.resize(1);
+                    x.matches[0] = ms;
+                    current += x.matches[0].length();
+
+                    break;
+
+				case rule_type::regex:
 
 					ms = s.substr(offset, std::string::npos);
 
-					if(!boost::regex_search(ms, matches, rule.terminal)) {
+					if(not boost::regex_search(ms, matches, rule.regex)) {
 						success = false;
 						break;
 					}
 
-					q.matches.resize(matches.size());
+					x.matches.resize(matches.size());
 
 					for(size_t n = 0; n < matches.size(); n++)
-						q.matches[n] = matches[n];
+						x.matches[n] = matches[n];
 
-					current += q.matches[0].size();
+					current += x.matches[0].length();
 
 					break;
 
 				case rule_type::recursive:
 
-					for(const auto& predicate : rule.recursive) {
+					for(const predicate& p : rule.recursive) {
 
 						size_t n;
 
-						for(n = 0; n < predicate.quantifier.second; n++) {
+						for(n = 0; n < p.quantifier.second; n++) {
 
 							ast qq;
 
-							auto next = parse_recursive(g, predicate.name, s, qq, current);
+							auto next = parse_recursive(g, p.name, s, qq, current);
 
 							if(next.first == -1)
 								break;
 
-							if(predicate.modifier == predicate_modifier::push) {
+							if(p.modifier == predicate_modifier::push) {
 
-								q.children.push_back(qq);
+								x.children.push_back(qq);
 
-							} else if(predicate.modifier == predicate_modifier::lift) {
+							} else if(p.modifier == predicate_modifier::lift) {
 
 								if(qq.type != rule_type::recursive) {
 									throw new std::runtime_error(
@@ -159,13 +189,13 @@ namespace xxx {
 								}
 
 								for(const auto& qqq : qq.children)
-									q.children.push_back(qqq);
+									x.children.push_back(qqq);
 
-							} else if(predicate.modifier == predicate_modifier::peek) {
+							} else if(p.modifier == predicate_modifier::peek) {
 
 								next.second = current;
 
-							} else if(predicate.modifier == predicate_modifier::discard) {
+							} else if(p.modifier == predicate_modifier::discard) {
 
 								// discard
 							}
@@ -173,17 +203,13 @@ namespace xxx {
 							current = next.second;
 						}
 
-						if(n < predicate.quantifier.first) {
+						if(n < p.quantifier.first) {
 							success = false;
 							break;
 						}
 					}
 
 					break;
-
-				default:
-
-					throw std::runtime_error("undefined rule type");
 			}
 
 			if(success)
@@ -193,28 +219,33 @@ namespace xxx {
 		return std::pair<ssize_t,ssize_t>(-1,current);
 	}
 
-	static std::string ast_str_recursive(const ast& q, int depth=0, bool basic = false) {
+	static std::string ast_str_recursive(const ast& x, int depth=0, bool basic = false) {
 
 		std::stringstream ss;
 
 		if(basic) {
-			ss << q.name;
+			ss << x.name;
 		} else {
-			ss << std::setw(4) << q.offset << " " << std::setw(depth) << "" << q.name;
+			ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.name;
 		}
-		switch(q.type) {
-			case rule_type::terminal:
-				ss << " =~ " << '"' << q.matches[0] << '"' << std::endl;
+		switch(x.type) {
+
+			case rule_type::literal:
+			case rule_type::builtin:
+			case rule_type::regex:
+
+				ss << " =: " << '\'' << x.matches[0] << '\'' << std::endl;
 				break;
+
 			case rule_type::recursive:
 
-				if(q.children.size() == 1) {
-					ss << ' ' << ast_str_recursive(q.children.back(), depth + 2, true);
+				if(x.children.size() == 1) {
+					ss << ' ' << ast_str_recursive(x.children.back(), depth + 2, true);
 				} else {
 
 					ss << std::endl;
 
-					for(const auto& qq : q.children)
+					for(const auto& qq : x.children)
 						ss << ast_str_recursive(qq, depth + 2);
 				}
 
@@ -228,7 +259,7 @@ namespace xxx {
 		return ast_str_recursive(*this);
 	}
 
-	static std::string ast_xml_recursive(const ast& q, int df = 0, int dm = 1, int dl = 0) {
+	static std::string ast_xml_recursive(const ast& x, int df = 0, int dm = 1, int dl = 0) {
 
 
 		const std::string xmlns = "xmlns:xxx=\"http://www.256.bz/xmlns/xxx\"";
@@ -236,7 +267,7 @@ namespace xxx {
 		std::stringstream ss;
 
 		std::string content;
-		std::string tag = q.name;
+		std::string tag = x.name;
 
 		if(!tag.empty()) {
 			if(isdigit(tag[0])) {
@@ -250,11 +281,13 @@ namespace xxx {
 		if(tag == "document")
 			ss << ' ' << xmlns;
 
-		switch(q.type) {
+		switch(x.type) {
 
-			case rule_type::terminal:
+			case rule_type::literal:
+			case rule_type::builtin:
+			case rule_type::regex:
 
-				content = q.matches[0];
+				content = x.matches[0];
 
 				content = boost::regex_replace(content, boost::regex("&"), "&amp;");
 				content = boost::regex_replace(content, boost::regex("<"), "&lt;");
@@ -268,7 +301,7 @@ namespace xxx {
 
 			case rule_type::recursive:
 
-				if(q.children.empty()) {
+				if(x.children.empty()) {
 
 					ss << " />";
 
@@ -276,21 +309,21 @@ namespace xxx {
 
 					ss << '>';
 
-					if(q.leaf_count() == 1) {
+					if(x.leaf_count() == 1) {
 
-						ss << ast_xml_recursive(q.children.back());
+						ss << ast_xml_recursive(x.children.back());
 						ss << "</" << tag << '>';
 
-					} else if(q.children.size() == 1) {
+					} else if(x.children.size() == 1) {
 
-						ss << ast_xml_recursive(q.children.back(), 0, dm, dl);
+						ss << ast_xml_recursive(x.children.back(), 0, dm, dl);
 						ss << "</" << tag << '>';
 
 					} else {
 
 						ss << std::endl;
 
-						for(const auto& qq : q.children) {
+						for(const auto& qq : x.children) {
 							ss << ast_xml_recursive(qq, dm, dm + 1, dl + 1) << std::endl;
 						}
 
@@ -315,13 +348,10 @@ namespace xxx {
 
 		std::stringstream ss;
 
-		ss << "static xxx::grammar define_grammar() {" << std::endl;
-		ss << "\tusing namespace xxx;" << std::endl;
+		ss << "namespace xxx {" << std::endl;
+		ss << "static grammar define_grammar() {" << std::endl;
 		ss << "\tgrammar g;" << std::endl;
-		ss << "\tusing R = rule;" << std::endl;
 		ss << "\tusing M = predicate_modifier;" << std::endl;
-		ss << "\tconst auto N = rule_type::recursive;" << std::endl;
-		ss << "\tconst auto T = rule_type::terminal;" << std::endl;
 
 		if(a.name == "document") {
 
@@ -329,7 +359,15 @@ namespace xxx {
 
 				const auto& name = b.children[0].matches[0];
 
-				if(b.name == "terminal") {
+				if(b.name == "literal") {
+
+                    throw std::runtime_error("xxx::ast_code_recursive cannot process xxx::rule_type::literal");
+
+                } else if(b.name == "builtin") {
+
+                    throw std::runtime_error("xxx::ast_code_recursive cannot process xxx::rule_type::builtin");
+
+                } else if(b.name == "regex") {
 
 					std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
 
@@ -343,7 +381,7 @@ namespace xxx {
 						escreg.push_back(reg[n]);
 					}
 
-					ss << "\tg[\"" << name << "\"] = { R(T) << \"" << escreg << "\" };" << std::endl;
+					ss << "\tg[\"" << name << "\"] = { rule::hint(rule_type::regex, \"" << escreg << "\") };" << std::endl;
 
 				} else {
 
@@ -362,7 +400,7 @@ namespace xxx {
 						else
 							ss << std::endl << '\t' << '\t';
 
-						ss << "{ R(N)";
+						ss << "{ rule()";
 
 						for(const auto& d : c.children) {
 
@@ -393,6 +431,7 @@ namespace xxx {
 
 								/**/ if(iter->matches[0] == "*") p.quantifier = q::star;
 								else if(iter->matches[0] == "+") p.quantifier = q::plus;
+								else if(iter->matches[0] == "-") p.quantifier = q::zero;
 								else if(iter->matches[0] == "?") p.quantifier = q::question;
 
 							} else {
@@ -405,6 +444,7 @@ namespace xxx {
 								ss << (
 										(p.quantifier == q::star    ) ? " << q::star"     :
 										(p.quantifier == q::plus    ) ? " << q::plus"     :
+										(p.quantifier == q::zero    ) ? " << q::zero"     :
 										(p.quantifier == q::question) ? " << q::question" : "");
 							}
 
@@ -432,6 +472,7 @@ namespace xxx {
 
 		ss << "\treturn g;" << std::endl;
 		ss << "}" << std::endl;
+		ss << "}" << std::endl;
 
 		return ss.str();
 	}
@@ -439,6 +480,4 @@ namespace xxx {
 	std::string ast::code() const {
 		return ast_code_recursive(*this);
 	}
-
-
 }

@@ -2,23 +2,20 @@
 
 namespace xxx {
 
-	static std::string grammar_mapped_type_str(const grammar::mapped_type&);
+	static std::string grammar_rules_str(const rules&);
 
 	std::string grammar_str(const grammar& g) {
 
-		std::string s;
+        std::stringstream ss;
 
-		for(const auto& x : g) {
-			s += x.first;
-			s += ((x.second.front().type == rule_type::terminal) ? " ~= " : " := ");
-			s += grammar_mapped_type_str(x.second);
-		}
+		for(const auto& x : g)
+            ss << x.first << " := " << grammar_rules_str(x.second) << std::endl;
 
 
-		return s;
+		return ss.str();
 	}
 
-	static std::string grammar_mapped_type_str(const grammar::mapped_type& rs) {
+	static std::string grammar_rules_str(const rules& rs) {
 
 		std::stringstream ss;
 
@@ -31,8 +28,6 @@ namespace xxx {
             while(++iter != rs.end())
                 ss << " / " << iter->str();
 		}
-
-		ss << std::endl;
 
 		return ss.str();
 	}

@@ -34,4 +34,4 @@ bin/xxx: src/xxx.o lib/libxxx.a
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
 
 src/xxx-xxx.hh:  bin/xxx examples/xxx.xxx
-	xxx -g examples/xxx.xxx -c > src/xxx-xxx.hh
+	bin/xxx -g examples/xxx.xxx -c > src/xxx-xxx.hh

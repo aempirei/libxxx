@@ -4,21 +4,18 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <algorithm>
 
-#include <complex>
+#include <climits>
+#include <cctype>
+#include <cstring>
 
 #include <boost/regex.hpp>
 
-#include <climits>
-
-#include <ctype.h>
-
 namespace xxx {
-
-	//
-	// q
-	//
 
     struct rule;
     struct predicate;
@@ -29,11 +26,16 @@ namespace xxx {
     using rules = std::list<rule>;
     using predicates = std::list<predicate>;
 
+    using var = std::string;
+
     struct q {
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
         static const predicate_quantifier question;
         static const predicate_quantifier one;
+        static const predicate_quantifier zero;
+        static predicate_quantifier lower(size_t);
+        static predicate_quantifier upper(size_t);
     };
 
 	//
@@ -44,13 +46,13 @@ namespace xxx {
 
 	struct predicate {
 
-		std::string name;
+		var name;
 
-		predicate_quantifier quantifier = q::one;
-		predicate_modifier modifier = predicate_modifier::push;
+		predicate_quantifier quantifier;
+		predicate_modifier modifier;
 
 		predicate();
-		predicate(const std::string&);
+		predicate(const var&);
 
 		std::string str() const;
 	};
@@ -59,55 +61,59 @@ namespace xxx {
 	// rule
 	//
 
-	enum struct rule_type { recursive, terminal };
+	enum struct rule_type { recursive, literal, regex, builtin };
 
 	enum struct rule_transform { none, le, be, dec, hex, oct, bin, uint };
 
 	struct rule {
 
-        using recursive_type = predicates;
-        using terminal_type = boost::regex;
+        using literal_type = std::string;
+        using builtin_type = decltype(&isalpha);
+        using regex_type = boost::regex;
 
-		static rule_type default_type;
+        using recursive_type = predicates;
+
+        using hint = std::pair<rule_type, std::string>;
+        using hints = std::list<hint>;
 
 		rule_type type;
 
-		terminal_type terminal;
 		recursive_type recursive;
+
+        literal_type literal;
+        builtin_type builtin;
+        regex_type regex;
 
 		rule_transform transform = rule_transform::none;
 
 		rule();
 
-		rule(rule_type);
+        rule(rule_type, const std::string&);
 
-		rule(const std::string&);
+        rule(const hint&);
 
-		rule(const terminal_type&);
 		rule(const recursive_type&);
 
-		rule& operator<<(const rule_type);
+		rule(const literal_type&);
+		rule(const builtin_type&);
+		rule(const regex_type&);
 
-		rule& operator<<(const std::string&);
+		rule& operator<<(const var&);
 
-		rule& operator<<(const predicate_modifier);
+		rule& operator<<(predicate_modifier);
 		rule& operator<<(const predicate_quantifier&);
-
-		rule& operator<<(const terminal_type&);
 		rule& operator<<(const predicate&);
-
-		void retype(rule_type);
 
 		std::string str() const;
 
-		static rules singletons(const std::list<std::string>&);
+		static rules singletons(const hints&);
 	};
 
 	//
 	// grammar
 	//
 
-	using grammar = std::map<std::string,rules>;
+	using grammar = std::map<var,rules>;
 
 	std::string grammar_str(const grammar&);
 
@@ -117,9 +123,12 @@ namespace xxx {
 
 	struct ast {
 
-		std::string name;
+		var name;
 
 		rule_type type;
+
+        grammar::const_iterator entry;
+        rules::const_iterator subentry;
 
 		std::vector<std::string> matches;
 

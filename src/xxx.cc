@@ -6,13 +6,6 @@
 #include <cassert>
 #include <cstdarg>
 
-#include <list>
-#include <iostream>
-#include <iomanip>
-#include <thread>
-#include <sstream>
-#include <algorithm>
-
 extern "C" {
 #include <unistd.h>
 }
@@ -20,97 +13,113 @@ extern "C" {
 #include <xxx.hh>
 #include <xxx-xxx.hh>
 
-using namespace xxx;
+namespace xxx {
+    static grammar load_dynamic_grammar(const ast& a) {
 
-static grammar load_dynamic_grammar(const ast& a) {
+        grammar g;
 
-	grammar g;
+        if(a.name == "document") {
 
-	if(a.name == "document") {
+            for(const auto& b : a.children) {
 
-		for(const auto& b : a.children) {
+                const auto& name = b.children[0].matches[0];
 
-			const auto& name = b.children[0].matches[0];
+                if(b.name == "literal") {
 
-			if(b.name == "terminal") {
+                    g[name] = { rule::hint(rule_type::literal, b.children[1].matches[0]) };
 
-				std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
+                } else if(b.name == "builtin") {
 
-				reg.pop_back();
+                    g[name] = { rule::hint(rule_type::builtin, b.children[1].matches[0]) };
 
-				g[name] = { rule(rule_type::terminal) << reg };
+                } else if(b.name == "regex") {
 
-			} else {
+                    std::string reg = b.children[1].matches[0].substr(1,std::string::npos);
 
-				g[name] = {};
+                    reg.pop_back();
 
-				// ordered
+                    g[name] = { rule::hint(rule_type::regex, reg) };
 
-				for(const auto& c : b.children[1].children) {
+                } else if(b.name == "recursive") {
 
-					// predicates
+                    g[name] = {};
 
-					rule r(rule_type::recursive);
+                    // ordered
 
-					for(const auto& d : c.children) {
+                    for(const auto& c : b.children[1].children) {
 
-						// predicate
+                        // predicates
 
-						predicate p;
+                        rule r;
 
-						auto iter = d.children.begin();
+                        for(const auto& d : c.children) {
 
-						if(iter->name == "modifier") {
+                            // predicate
 
-							/**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
-							else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
-							else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek;
+                            predicate p;
 
-							iter++;
+                            auto iter = d.children.begin();
 
-						} else {
-							p.modifier = predicate_modifier::push;
-						}
+                            if(iter->name == "modifier") {
 
-						if(iter->name == "name") {
-							p.name = iter->matches[0];
-							iter++;
-						}
+                                /**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
+                                else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
+                                else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek;
 
-						if(iter != d.children.end() && iter->name == "quantifier") {
+                                iter++;
 
-							/**/ if(iter->matches[0] == "*") p.quantifier = q::star;
-							else if(iter->matches[0] == "+") p.quantifier = q::plus;
-							else if(iter->matches[0] == "?") p.quantifier = q::question;
+                            } else {
+                                p.modifier = predicate_modifier::push;
+                            }
 
-						} else {
-							p.quantifier = q::one;
-						}
+                            if(iter->name == "name") {
+                                p.name = iter->matches[0];
+                                iter++;
+                            }
 
-						r << p;
-					}
+                            if(iter != d.children.end() and iter->name == "quantifier") {
 
-					g[name].push_back(r);
-				}
-			}
-		}
-	}
+                                /**/ if(iter->matches[0] == "*") p.quantifier = q::star;
+                                else if(iter->matches[0] == "+") p.quantifier = q::plus;
+                                else if(iter->matches[0] == "?") p.quantifier = q::question;
 
-	return g;
+                            } else {
+                                p.quantifier = q::one;
+                            }
+
+                            r << p;
+                        }
+
+                        g[name].push_back(r);
+                    }
+                } else {
+                    std::stringstream ss;
+                    ss << "unexpected rule type " << b.name << " in load_dynamic_grammar";
+                    throw std::runtime_error(ss.str());
+                }
+            }
+        }
+
+        return g;
+    }
 }
+
+using namespace xxx;
 
 #define FLAG '\t' << std::left << std::setw(18)
 
 static void usage(const char *arg0) {
 
     auto usageline = [](char flag, const char *opt, const char *msg) {
-        std::cerr << '\t' << std::left << std::setw(18) << '-' << flag;
-        if(opt != nullptr) std::cerr << ' ' << opt;
+        std::stringstream ss;
+        ss << '-' << flag;
+        if(opt != nullptr) ss << ' ' << opt;
+        std::cerr << '\t' << std::left << std::setw(13) << ss.str();
         if(msg != nullptr) std::cerr << ' ' << msg;
         std::cerr << std::endl;
     };
 
-	std::cerr << std::endl << "usage: " << arg0 << " [-{hpax}] [-g filename]" << std::endl << std::endl;
+    std::cerr << std::endl << "usage: " << arg0 << " [-{hpaxci}] [-g filename]" << std::endl << std::endl;
 
     usageline('h', nullptr   , "show this help"       );
     usageline('p', nullptr   , "display grammar"      );
@@ -120,88 +129,88 @@ static void usage(const char *arg0) {
     usageline('i', nullptr   , "parse stdin"          );
     usageline('g', "filename", "grammar specification");
 
-	std::cerr << std::endl;
+    std::cerr << std::endl;
 }
 
 #undef FLAG
 
 int main(int argc, char **argv) {
 
-	bool do_print_code		= false;
-	bool do_print_xml		= false;
-	bool do_print_grammar	= false;
-	bool do_load_grammar	= false;
-	bool do_print_ast		= false;
-	bool do_parse_input		= false;
+    bool do_print_code		= false;
+    bool do_print_xml		= false;
+    bool do_print_grammar	= false;
+    bool do_load_grammar	= false;
+    bool do_print_ast		= false;
+    bool do_parse_input		= false;
 
-	const char *filename = nullptr;
+    const char *filename = nullptr;
 
-	int opt;
+    int opt;
 
-	if(argc == 1) {
-		usage(*argv);
-		return -1;
-	}
+    if(argc == 1) {
+        usage(*argv);
+        return -1;
+    }
 
-	while ((opt = getopt(argc, argv, "achpsixg:")) != -1) {
+    while ((opt = getopt(argc, argv, "achpsixg:")) != -1) {
 
-		switch (opt) {
+        switch (opt) {
 
-			case 'g': do_load_grammar	= true; filename = optarg;	break;
-			case 'a': do_print_ast		= true;						break;
-			case 'x': do_print_xml		= true;						break;
-			case 'p': do_print_grammar	= true;						break;
-			case 'c': do_print_code		= true;						break;
-			case 'i': do_parse_input	= true;						break;
+            case 'g': do_load_grammar	= true; filename = optarg;	break;
+            case 'a': do_print_ast		= true;						break;
+            case 'x': do_print_xml		= true;						break;
+            case 'p': do_print_grammar	= true;						break;
+            case 'c': do_print_code		= true;						break;
+            case 'i': do_parse_input	= true;						break;
 
-			case 'h':
-			case '?':
-			default:
+            case 'h':
+            case '?':
+            default:
 
-					  usage(*argv);
-					  return -1;
-		}
-	}
+                      usage(*argv);
+                      return -1;
+        }
+    }
 
-	grammar g = define_grammar();
+    grammar g = define_grammar();
 
-	if(do_print_grammar and not do_parse_input)
-		std::cout << grammar_str(g);
+    if(do_print_grammar and not do_parse_input)
+        std::cout << grammar_str(g);
 
-	if(do_load_grammar) {
+    if(do_load_grammar) {
 
-		FILE *fp = fopen(filename, "r");
-		if(fp == nullptr) {
-			perror("fopen()");
-			return -1;
-		}
+        FILE *fp = fopen(filename, "r");
+        if(fp == nullptr) {
+            perror("fopen()");
+            return -1;
+        }
 
-		ast a(g, fp);
+        ast a(g, fp);
 
-		fclose(fp);
+        fclose(fp);
 
-		if(do_print_ast and not do_parse_input)
-			std::cout << a.str() << std::endl;
+        if(do_print_ast and not do_parse_input)
+            std::cout << a.str() << std::endl;
 
-		if(do_print_code)
-			std::cout << a.code();
+        if(do_print_code)
+            std::cout << a.code();
 
-		grammar h = load_dynamic_grammar(a);
+        grammar h = load_dynamic_grammar(a);
 
-		if(do_parse_input) {
+        if(do_parse_input) {
 
-			ast b(h, stdin);
+            ast b(h, stdin);
 
-			if(do_print_grammar)
-				std::cout << grammar_str(h);
+            if(do_print_grammar)
+                std::cout << grammar_str(h);
 
-			if(do_print_ast)
-				std::cout << b.str() << std::endl;
+            if(do_print_ast)
+                std::cout << b.str() << std::endl;
 
-			if(do_print_xml)
-				std::cout << b.xml() << std::endl;
-		}
-	}
+            if(do_print_xml)
+                std::cout << b.xml() << std::endl;
+        }
+    }
 
-	return 0;
+    return 0;
 }

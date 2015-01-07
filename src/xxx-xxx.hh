@@ -1,38 +1,44 @@
-static xxx::grammar define_grammar() {
-	using namespace xxx;
+namespace xxx {
+static grammar define_grammar() {
 	grammar g;
-	using R = rule;
 	using M = predicate_modifier;
-	const auto N = rule_type::recursive;
-	const auto T = rule_type::terminal;
-	g["document"] = { { R(N) << "_rule" << q::star << M::lift << "eof" << M::discard } 	};
-	g["_rule"] = { { R(N) << "ws" << M::discard << "rule" << M::lift << "eol" << M::discard } 	};
+	g["document"] = { { rule() << "_rule" << q::star << M::lift << "eof" << M::discard } 	};
+	g["_rule"] = { { rule() << "ws" << M::discard << "rule" << M::lift << "eol" << M::discard } 	};
 	g["rule"] = {
-		{ R(N) << "recursive" },
-		{ R(N) << "terminal" },
+		{ rule() << "recursive" },
+		{ rule() << "regex" },
+		{ rule() << "literal" },
+		{ rule() << "builtin" },
 	};
-	g["recursive"] = { { R(N) << "name" << "_" << M::discard << "ceq" << M::discard << "_" << M::discard << "ordered" } 	};
-	g["terminal"] = { { R(N) << "name" << "_" << M::discard << "req" << M::discard << "_" << M::discard << "regex" } 	};
-	g["ordered"] = {
-		{ R(N) << "predicates" << "_" << M::discard << "fs" << M::discard << "_" << M::discard << "ordered" << M::lift },
-		{ R(N) << "predicates" },
+	g["recursive"] = { { rule() << "name" << "_" << M::discard << "ceq" << M::discard << "_" << M::discard << "rules" } 	};
+	g["regex"] = { { rule() << "name" << "_" << M::discard << "req" << M::discard << "_" << M::discard << "regexre" } 	};
+	g["literal"] = { { rule() << "name" << "_" << M::discard << "leq" << M::discard << "_" << M::discard << "literalre" } 	};
+	g["builtin"] = { { rule() << "name" << "_" << M::discard << "beq" << M::discard << "_" << M::discard << "builtinre" } 	};
+	g["rules"] = {
+		{ rule() << "predicates" << "_" << M::discard << "fs" << M::discard << "_" << M::discard << "rules" << M::lift },
+		{ rule() << "predicates" },
 	};
 	g["predicates"] = {
-		{ R(N) << "predicate" << "_" << M::discard << "predicates" << M::lift },
-		{ R(N) << "predicate" },
+		{ rule() << "predicate" << "_" << M::discard << "predicates" << M::lift },
+		{ rule() << "predicate" },
 	};
-	g["predicate"] = { { R(N) << "modifier" << q::question << "name" << "quantifier" << q::question } 	};
-	g["fs"] = { R(T) << "\\/" };
-	g["ceq"] = { R(T) << ":=" };
-	g["qm"] = { R(T) << "\\?" };
-	g["_"] = { R(T) << "[ \\t]+" };
-	g["eof"] = { R(T) << "\\z" };
-	g["eol"] = { R(T) << "\\s*($|\\z)" };
-	g["modifier"] = { R(T) << "[!^>]" };
-	g["name"] = { R(T) << "\\w+" };
-	g["quantifier"] = { R(T) << "[*?+]" };
-	g["regex"] = { R(T) << "/(\\/|[^\\/\\n])*/" };
-	g["ws"] = { R(T) << "\\s*" };
-	g["req"] = { R(T) << "\\~=" };
+	g["predicate"] = { { rule() << "modifier" << q::question << "name" << "quantifier" << q::question } 	};
+	g["fs"] = { rule::hint(rule_type::regex, "\\/") };
+	g["qm"] = { rule::hint(rule_type::regex, "\\?") };
+	g["_"] = { rule::hint(rule_type::regex, "[ \\t]+") };
+	g["eof"] = { rule::hint(rule_type::regex, "\\z") };
+	g["eol"] = { rule::hint(rule_type::regex, "\\s*($|\\z)") };
+	g["modifier"] = { rule::hint(rule_type::regex, "[!^>]") };
+	g["name"] = { rule::hint(rule_type::regex, "\\w+") };
+	g["ws"] = { rule::hint(rule_type::regex, "\\s*") };
+	g["quantifier"] = { rule::hint(rule_type::regex, "[*?+]") };
+	g["builtinre"] = { rule::hint(rule_type::regex, "\\w+") };
+	g["literalre"] = { rule::hint(rule_type::regex, "\".*?\"$") };
+	g["regexre"] = { rule::hint(rule_type::regex, "/(\\/|[^\\/\\n])*/") };
+	g["ceq"] = { rule::hint(rule_type::regex, ":=") };
+	g["req"] = { rule::hint(rule_type::regex, "~=") };
+	g["leq"] = { rule::hint(rule_type::regex, "\"=") };
+	g["beq"] = { rule::hint(rule_type::regex, "&=") };
 	return g;
+}
 }

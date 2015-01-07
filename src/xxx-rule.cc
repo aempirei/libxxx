@@ -2,17 +2,45 @@
 
 namespace xxx {
 
-	rule_type rule::default_type = rule_type::recursive;
+    static const std::map<rule::builtin_type, const char *> builtin_to_c_str = {
+        { isalnum , "isalnum"  },
+        { isalpha , "isalpha"  },
+        { iscntrl , "iscntrl"  },
+        { isdigit , "isdigit"  },
+        { isgraph , "isgraph"  },
+        { islower , "islower"  },
+        { isprint , "isprint"  },
+        { ispunct , "ispunct"  },
+        { isspace , "isspace"  },
+        { isupper , "isupper"  },
+        { isxdigit, "isxdigit" },
+        { isascii , "isascii"  },
+        { isblank , "isblank"  }
+    };
 
-    void rule::retype(rule_type my_type) {
-        operator=(rule(my_type));
-    }
+    static const std::map<std::string, rule::builtin_type> string_to_builtin = {
+        { "isalnum" , isalnum  },
+        { "isalpha" , isalpha  },
+        { "iscntrl" , iscntrl  },
+        { "isdigit" , isdigit  },
+        { "isgraph" , isgraph  },
+        { "islower" , islower  },
+        { "isprint" , isprint  },
+        { "ispunct" , ispunct  },
+        { "isspace" , isspace  },
+        { "isupper" , isupper  },
+        { "isxdigit", isxdigit },
+        { "isascii" , isascii  },
+        { "isblank" , isblank  }
+    };
 
 	std::string rule::str() const {
 
-		if(type == rule_type::recursive) {
+        std::stringstream ss;
 
-                std::stringstream ss;
+        switch(type) {
+
+            case rule_type::recursive:
 
                 if(not recursive.empty()) {
 
@@ -24,28 +52,34 @@ namespace xxx {
                         ss << ' ' << iter->str();
                 }
 
-                return ss.str();
+                break;
 
-		} else if(type == rule_type::terminal) {
+            case rule_type::literal:
 
-			std::string s = terminal.str().substr(2,std::string::npos);
+                ss << '\'' << literal << '\'';
+                break;
 
-			return '/' + s + '/';
+            case rule_type::builtin:
 
-        } else {
+                ss << builtin_to_c_str.at(builtin) << "()";
+                break;
 
-            throw new std::runtime_error("unexpected type found in rule::str()");
+            case rule_type::regex:
 
+                ss << '/' << regex.str().substr(2,std::string::npos) << '/';
+                break;
         }
+
+        return ss.str();
 	}
 
-	rules rule::singletons(const std::list<std::string>& xs) {
+	rules rule::singletons(const hints& xs) {
 
         rules y;
 
-		for(auto x : xs)
+		for(const auto& x : xs)
 
-			y.push_back(rule(rule_type::recursive) << x);
+			y.push_back(rule(x));
 
 		return y;
 	}
@@ -55,83 +89,67 @@ namespace xxx {
     // rule::rule
     //
 
-	rule::rule() : rule(default_type) {
+	rule::rule() : type(rule_type::recursive) {
 	}
 
-	rule::rule(rule_type my_type) : type(my_type) {
-	}
+    rule::rule(const hint& h) : type(h.first) {
 
-	rule::rule(const std::string& x) : rule() {
-		operator<<(x);
-	}
+        switch(type) {
 
-	rule::rule(const terminal_type& x) : rule(rule_type::terminal) {
-		terminal = x;
-	}
+            case rule_type::literal:
 
-	rule::rule(const recursive_type& x) : rule(rule_type::recursive) {
-		recursive = x;
-	}
+                literal = h.second;
+                break;
+
+            case rule_type::builtin:
+
+                builtin = string_to_builtin.at(h.second);
+                break;
+
+            case rule_type::regex:
+
+                regex.assign("\\A" + h.second, boost::regex::perl);
+                break;
+
+            case rule_type::recursive:
+
+                recursive = { predicate(h.second) };
+                break;
+        }
+    }
+
+	rule::rule(const   literal_type& x) : type(rule_type::literal  ) { literal   = x; }
+	rule::rule(const   builtin_type& x) : type(rule_type::builtin  ) { builtin   = x; }
+	rule::rule(const     regex_type& x) : type(rule_type::regex    ) { regex     = x; }
+	rule::rule(const recursive_type& x) : type(rule_type::recursive) { recursive = x; }
 
     //
     // rule::operator<<
     //
 
-	rule& rule::operator<<(rule_type t) {
+    rule& rule::operator<<(const var& x) {
+        return operator<<(predicate(x));
+    }
 
-		if(type != t)
-			retype(t);
+    rule& rule::operator<<(const predicate& x) {
 
-		return *this;
-	}
+        if(type != rule_type::recursive)
+            throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
 
-	rule& rule::operator<<(const terminal_type& x) {
+        recursive.push_back(predicate(x));
 
-		if(type != rule_type::terminal)
-			retype(rule_type::terminal);
+        return *this;
+    }
 
-		terminal = x;
+    rule& rule::operator<<(predicate_modifier x) {
 
-		return *this;
-	}
+        if(type != rule_type::recursive)
+            throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
 
-	rule& rule::operator<<(const predicate& x) {
+        if(recursive.empty())
+            throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-		if(type != rule_type::recursive)
-			retype(rule_type::recursive);
-
-		recursive.push_back(x);
-
-		return *this;
-	}
-
-	rule& rule::operator<<(const std::string& x) {
-
-		if(type == rule_type::terminal) {
-
-			terminal.assign("\\A" + x, boost::regex::perl);
-
-		} else if(type == rule_type::recursive) {
-
-            operator<<(predicate(x));
-
-		} else {
-
-			throw std::runtime_error("unknown rule type found in rule::operator<<");
-		}
-
-		return *this;
-	}
-
-	rule& rule::operator<<(predicate_modifier m) {
-
-		if(type != rule_type::recursive)
-			throw std::runtime_error("rule type is not recursive");
-
-		if(recursive.empty())
-			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
-
-		recursive.back().modifier = m;
+		recursive.back().modifier = x;
 
 		return *this;
 	}
@@ -139,7 +157,7 @@ namespace xxx {
 	rule& rule::operator<<(const predicate_quantifier& x) {
 
 		if(type != rule_type::recursive)
-			throw std::runtime_error("rule type is not recursive");
+			throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
 
 		if(recursive.empty())
 			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
