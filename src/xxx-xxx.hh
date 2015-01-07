@@ -33,7 +33,7 @@ namespace xxx {
 		g["ws"] = { rule::hint(rule_type::regex, "\\s*") };
 		g["quantifier"] = { rule::hint(rule_type::regex, "[*?+]") };
 		g["builtinre"] = { rule::hint(rule_type::regex, "\\b\\w+\\b") };
-		g["literalre"] = { rule::hint(rule_type::regex, "\"[^\\n]*\"\\s*$") };
+		g["literalre"] = { rule::hint(rule_type::regex, "\"([^\\n]*)\"\\s*$") };
 		g["regexre"] = { rule::hint(rule_type::regex, "\\/((?:\\/|[^\\/\\n])*)\\/\\s*$") };
 		g["ceq"] = { rule::hint(rule_type::regex, ":=") };
 		g["req"] = { rule::hint(rule_type::regex, "~=") };

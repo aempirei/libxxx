@@ -18,7 +18,7 @@ name        ~= /\w+/
 ws          ~= /\s*/
 quantifier  ~= /[*?+]/
 builtinre   ~= /\b\w+\b/
-literalre   ~= /"[^\n]*"\s*$/
+literalre   ~= /"([^\n]*)"\s*$/
 regexre     ~= /\/((?:\/|[^\/\n])*)\/\s*$/
 ceq         ~= /:=/
 req         ~= /~=/

@@ -355,11 +355,11 @@ namespace xxx {
 
 				if(b.name == "literal") {
 
-                    throw std::runtime_error("xxx::ast_code_recursive cannot process xxx::rule_type::literal");
+					ss << "\t\tg[\"" << name << "\"] = { rule::hint(rule_type::literal, \"" << b.children[1].matches[0] << "\") };" << std::endl;
 
                 } else if(b.name == "builtin") {
 
-                    throw std::runtime_error("xxx::ast_code_recursive cannot process xxx::rule_type::builtin");
+					ss << "\t\tg[\"" << name << "\"] = { rule(" << b.children[1].matches[0] << ") };" << std::endl;
 
                 } else if(b.name == "regex") {
 
