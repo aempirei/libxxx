@@ -34,7 +34,6 @@ namespace xxx {
         static const predicate_quantifier plus;
         static const predicate_quantifier question;
         static const predicate_quantifier one;
-        static const predicate_quantifier zero;
 
         static predicate_quantifier lower(size_t);
         static predicate_quantifier upper(size_t);
@@ -44,7 +43,7 @@ namespace xxx {
 	// predicate
 	//
 
-	enum struct predicate_modifier { push, discard, lift, peek };
+	enum struct predicate_modifier { push, lift, discard, peek_positive, peek_negative };
 
 	struct predicate {
 

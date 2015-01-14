@@ -48,10 +48,11 @@ namespace xxx {
                             auto iter = d.children.begin();
 
                             if(iter->name == "modifier") {
-
+                                
                                 /**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
                                 else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
-                                else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek;
+                                else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek_positive;
+                                else if(iter->matches[0] == "~") p.modifier = predicate_modifier::peek_negative;
 
                                 iter++;
 
@@ -158,7 +159,8 @@ namespace xxx {
 
 								/**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
 								else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
-								else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek;
+								else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek_positive;
+								else if(iter->matches[0] == "~") p.modifier = predicate_modifier::peek_negative;
 
 								iter++;
 
@@ -175,7 +177,6 @@ namespace xxx {
 
 								/**/ if(iter->matches[0] == "*") p.quantifier = q::star;
 								else if(iter->matches[0] == "+") p.quantifier = q::plus;
-								else if(iter->matches[0] == "-") p.quantifier = q::zero;
 								else if(iter->matches[0] == "?") p.quantifier = q::question;
 
 							} else {
@@ -188,15 +189,15 @@ namespace xxx {
 								ss << (
 										(p.quantifier == q::star    ) ? " << q::star"     :
 										(p.quantifier == q::plus    ) ? " << q::plus"     :
-										(p.quantifier == q::zero    ) ? " << q::zero"     :
 										(p.quantifier == q::question) ? " << q::question" : "");
 							}
 
 							if(p.modifier != predicate_modifier::push) {
 								ss << (
-										(p.modifier == predicate_modifier::lift   ) ? " << M::lift"    :
-										(p.modifier == predicate_modifier::discard) ? " << M::discard" :
-										(p.modifier == predicate_modifier::peek   ) ? " << M::peek"    : "");
+										(p.modifier == predicate_modifier::lift         ) ? " << M::lift"          :
+										(p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
+										(p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
+										(p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");
 							}
 						}
 

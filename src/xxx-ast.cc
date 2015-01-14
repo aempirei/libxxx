@@ -164,6 +164,8 @@ namespace xxx {
 
 						size_t n;
 
+                        ssize_t rewind = current;
+
 						for(n = 0; n < p.quantifier.second; n++) {
 
 							ast y;
@@ -179,18 +181,19 @@ namespace xxx {
 
 							} else if(p.modifier == predicate_modifier::lift) {
 
-								if(y.type != rule_type::recursive) {
-									throw new std::runtime_error(
-											"attempting to lift non-recursive ast node"
-											);
-								}
+								if(y.type != rule_type::recursive)
+									throw new std::runtime_error("attempting to lift non-recursive ast node");
 
 								for(const auto& z : y.children)
 									x.children.push_back(z);
 
-							} else if(p.modifier == predicate_modifier::peek) {
+							} else if(p.modifier == predicate_modifier::peek_positive) {
 
-								next.second = current;
+                                // peek_positive
+
+							} else if(p.modifier == predicate_modifier::peek_negative) {
+
+                                // peek_negative
 
 							} else if(p.modifier == predicate_modifier::discard) {
 
@@ -200,10 +203,17 @@ namespace xxx {
 							current = next.second;
 						}
 
-						if(n < p.quantifier.first) {
+						if(n < p.quantifier.first)
 							success = false;
-							break;
-						}
+
+                        if(p.modifier == predicate_modifier::peek_negative)
+                            success = not success;
+
+                        if(p.modifier == predicate_modifier::peek_positive or p.modifier == predicate_modifier::peek_negative)
+                            current = rewind;
+
+                        if(not success)
+                            break;
 					}
 
 					break;

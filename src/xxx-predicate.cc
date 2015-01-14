@@ -12,19 +12,19 @@ namespace xxx {
 
 		std::stringstream ss;
 
-		/**/ if(modifier == predicate_modifier::push   ) ss << "";
-		else if(modifier == predicate_modifier::discard) ss << '!';
-		else if(modifier == predicate_modifier::lift   ) ss << '^';
-		else if(modifier == predicate_modifier::peek   ) ss << '>';
-
-		else throw std::runtime_error("unknown predicate modifier for " + name);
+        switch(modifier) {
+            case predicate_modifier::push         : ss << ""; break;
+            case predicate_modifier::discard      : ss << "!"; break;
+            case predicate_modifier::lift         : ss << "^"; break;
+            case predicate_modifier::peek_positive: ss << ">"; break;
+            case predicate_modifier::peek_negative: ss << "~"; break;
+        }
 
 		ss << name;
 
 		/**/ if(quantifier == q::one     ) ss << "";
 		else if(quantifier == q::star    ) ss << '*';
 		else if(quantifier == q::plus    ) ss << '+';
-		else if(quantifier == q::zero    ) ss << '-';
 		else if(quantifier == q::question) ss << '?';
 
 		else if(quantifier.first  == quantifier.second) ss << '{' << quantifier.first                             << '}';
