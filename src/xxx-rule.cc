@@ -89,10 +89,13 @@ namespace xxx {
     // rule::rule
     //
 
-	rule::rule() : type(rule_type::recursive) {
+	rule::rule() : rule(rule_type::recursive) {
 	}
 
-    rule::rule(const hint& h) : type(h.first) {
+	rule::rule(rule_type my_type) : type(my_type) {
+    }
+
+    rule::rule(const hint& h) : rule(h.first) {
 
         switch(type) {
 
@@ -118,10 +121,10 @@ namespace xxx {
         }
     }
 
-	rule::rule(const   literal_type& x) : type(rule_type::literal  ) { literal   = x; }
-	rule::rule(const   builtin_type& x) : type(rule_type::builtin  ) { builtin   = x; }
-	rule::rule(const     regex_type& x) : type(rule_type::regex    ) { regex     = x; }
-	rule::rule(const recursive_type& x) : type(rule_type::recursive) { recursive = x; }
+	rule::rule(const   literal_type& x) : rule(rule_type::literal  ) { literal   = x; }
+	rule::rule(const   builtin_type& x) : rule(rule_type::builtin  ) { builtin   = x; }
+	rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
+	rule::rule(const recursive_type& x) : rule(rule_type::recursive) { recursive = x; }
 
     //
     // rule::operator<<

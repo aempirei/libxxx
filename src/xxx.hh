@@ -65,8 +65,6 @@ namespace xxx {
 
 	enum struct rule_type { recursive, literal, regex, builtin };
 
-	enum struct rule_transform { none, le, be, dec, hex, oct, bin, uint };
-
 	struct rule {
 
         using literal_type = std::string;
@@ -86,11 +84,9 @@ namespace xxx {
         builtin_type builtin;
         regex_type regex;
 
-		rule_transform transform = rule_transform::none;
-
 		rule();
 
-        rule(rule_type, const std::string&);
+        rule(rule_type);
 
         rule(const hint&);
 
@@ -150,6 +146,5 @@ namespace xxx {
 
 		std::string str() const;
 		std::string xml() const;
-		std::string code() const;
 	};
 }
