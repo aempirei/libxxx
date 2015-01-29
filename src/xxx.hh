@@ -89,6 +89,8 @@ namespace xxx {
 
         rule(const hint&);
 
+        rule(rule_type, std::string);
+
 		rule(const recursive_type&);
 
 		rule(const literal_type&);

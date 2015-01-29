@@ -24,9 +24,9 @@ namespace xxx {
 
                 const auto& name = b.children[0].matches[0];
 
-                /**/ if(b.name == "literal"  ) g[name] = { rule::hint(rule_type::literal, b.children[1].matches[0]) };
-                else if(b.name == "builtin"  ) g[name] = { rule::hint(rule_type::builtin, b.children[1].matches[0]) };
-                else if(b.name == "regex"    ) g[name] = { rule::hint(rule_type::regex  , b.children[1].matches[0]) };
+                /**/ if(b.name == "literal"  ) g[name] = { rule(rule_type::literal, b.children[1].matches[0]) };
+                else if(b.name == "builtin"  ) g[name] = { rule(rule_type::builtin, b.children[1].matches[0]) };
+                else if(b.name == "regex"    ) g[name] = { rule(rule_type::regex  , b.children[1].matches[0]) };
                 else if(b.name == "recursive") {
 
                     g[name] = {};
@@ -108,7 +108,7 @@ namespace xxx {
 
 				if(b.name == "literal") {
 
-					ss << "\t\tg[\"" << name << "\"] = { rule::hint(rule_type::literal, \"" << b.children[1].matches[0] << "\") };" << std::endl;
+					ss << "\t\tg[\"" << name << "\"] = { rule(rule_type::literal, \"" << b.children[1].matches[0] << "\") };" << std::endl;
 
                 } else if(b.name == "builtin") {
 
@@ -126,7 +126,7 @@ namespace xxx {
 						escreg.push_back(regexstr[n]);
 					}
 
-					ss << "\t\tg[\"" << name << "\"] = { rule::hint(rule_type::regex, \"" << escreg << "\") };" << std::endl;
+					ss << "\t\tg[\"" << name << "\"] = { rule(rule_type::regex, \"" << escreg << "\") };" << std::endl;
 
 				} else {
 

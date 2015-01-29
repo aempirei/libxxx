@@ -95,30 +95,33 @@ namespace xxx {
 	rule::rule(rule_type my_type) : type(my_type) {
     }
 
-    rule::rule(const hint& h) : rule(h.first) {
+    rule::rule(rule_type my_type, const std::string s) : rule(my_type) {
 
         switch(type) {
 
             case rule_type::literal:
 
-                literal = h.second;
+                literal = s;
                 break;
 
             case rule_type::builtin:
 
-                builtin = string_to_builtin.at(h.second);
+                builtin = string_to_builtin.at(s);
                 break;
 
             case rule_type::regex:
 
-                regex.assign("\\A" + h.second, boost::regex::perl);
+                regex.assign("\\A" + s, boost::regex::perl);
                 break;
 
             case rule_type::recursive:
 
-                recursive = { predicate(h.second) };
+                recursive = { predicate(s) };
                 break;
         }
+    }
+
+    rule::rule(const hint& h) : rule(h.first, h.second) {
     }
 
 	rule::rule(const   literal_type& x) : rule(rule_type::literal  ) { literal   = x; }

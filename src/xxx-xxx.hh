@@ -23,22 +23,22 @@ namespace xxx {
 			{ rule() << "predicate" },
 		};
 		g["predicate"] = { { rule() << "modifier" << q::question << "name" << "quantifier" << q::question } 		};
-		g["fs"] = { rule::hint(rule_type::literal, "/") };
-		g["qm"] = { rule::hint(rule_type::literal, "?") };
-		g["_"] = { rule::hint(rule_type::regex, "[ \\t]+") };
-		g["eof"] = { rule::hint(rule_type::regex, "\\z") };
-		g["eol"] = { rule::hint(rule_type::regex, "\\s*(?:$|\\z)") };
-		g["modifier"] = { rule::hint(rule_type::regex, "[!^>~]") };
-		g["name"] = { rule::hint(rule_type::regex, "\\w+") };
-		g["ws"] = { rule::hint(rule_type::regex, "\\s*") };
-		g["quantifier"] = { rule::hint(rule_type::regex, "[*?+]") };
-		g["builtinre"] = { rule::hint(rule_type::regex, "\\b\\w+\\b") };
-		g["literalre"] = { rule::hint(rule_type::regex, "\"([^\\n]*)\"\\s*$") };
-		g["regexre"] = { rule::hint(rule_type::regex, "\\/((?:\\/|[^\\/\\n])*)\\/\\s*$") };
-		g["ceq"] = { rule::hint(rule_type::literal, ":=") };
-		g["req"] = { rule::hint(rule_type::literal, "~=") };
-		g["leq"] = { rule::hint(rule_type::literal, "\"=") };
-		g["beq"] = { rule::hint(rule_type::literal, "&=") };
+		g["fs"] = { rule(rule_type::literal, "/") };
+		g["qm"] = { rule(rule_type::literal, "?") };
+		g["_"] = { rule(rule_type::regex, "[ \\t]+") };
+		g["eof"] = { rule(rule_type::regex, "\\z") };
+		g["eol"] = { rule(rule_type::regex, "\\s*(?:$|\\z)") };
+		g["modifier"] = { rule(rule_type::regex, "[!^>~]") };
+		g["name"] = { rule(rule_type::regex, "\\w+") };
+		g["ws"] = { rule(rule_type::regex, "\\s*") };
+		g["quantifier"] = { rule(rule_type::regex, "[*?+]") };
+		g["builtinre"] = { rule(rule_type::regex, "\\b\\w+\\b") };
+		g["literalre"] = { rule(rule_type::regex, "\"([^\\n]*)\"\\s*$") };
+		g["regexre"] = { rule(rule_type::regex, "\\/((?:\\/|[^\\/\\n])*)\\/\\s*$") };
+		g["ceq"] = { rule(rule_type::literal, ":=") };
+		g["req"] = { rule(rule_type::literal, "~=") };
+		g["leq"] = { rule(rule_type::literal, "\"=") };
+		g["beq"] = { rule(rule_type::literal, "&=") };
 		return g;
 	}
 }
