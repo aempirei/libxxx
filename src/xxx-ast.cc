@@ -5,7 +5,7 @@ namespace xxx {
 	static std::string ast_str_recursive(const ast&, int, bool);
 	static std::string ast_xml_recursive(const ast&, int, int, int);
 
-	ast::ast() : result(nullptr) {
+	ast::ast() {
 	}
 
 	ast::ast(const grammar& g, FILE *fp) {
@@ -28,10 +28,10 @@ namespace xxx {
 
 	}
 
-    void ast::transform() {
-        for(auto& child : children)
-            child.transform();
-        match_rule->transform(this);
+    void *ast::transform() {
+        void *result;
+        match_rule->transform(this, &result);
+        return result;
     }
 
 	size_t ast::node_count() const {

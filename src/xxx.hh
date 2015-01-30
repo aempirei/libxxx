@@ -33,9 +33,9 @@ namespace xxx {
     using var = std::string;
     using vars = std::list<var>;
 
-    using transform_function = void(ast *);
+    using transform_function = void(ast *, void *);
     
-    inline void empty_transform(ast *) { }
+    inline void empty_transform(ast *, void *) { }
 
     struct q {
 
@@ -152,8 +152,6 @@ namespace xxx {
 
             ssize_t offset;
 
-            void *result; // FIXME: cleanup this shit magically
-
             ast();
             ast(const grammar&, FILE *);
             ast(const grammar&, const std::string&);
@@ -163,7 +161,7 @@ namespace xxx {
 
             std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
 
-            void transform();
+            void *transform();
 
             const var& name() const;
 

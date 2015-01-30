@@ -171,7 +171,11 @@ int main(int argc, char **argv) {
 
         fclose(fp);
 
-        a.transform();
+        grammar *gptr = (grammar *)a.transform();
+
+        std::cout << gptr->to_s(grammar::string_format_type::cc);
+
+        delete gptr;
 
         return 0;
 

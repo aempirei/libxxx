@@ -127,7 +127,7 @@ namespace xxx {
 
                 const auto& r = rs[n];
 
-                ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(ast *a) {" << std::endl;
+                ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(ast *a, void *x) {" << std::endl;
 
                 ss << "\t\t\t//";
 

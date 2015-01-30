@@ -56,75 +56,123 @@ namespace xxx {
 			{ "ws"        , { R("\\A\\s*") } },
 		});
 
-		void document_transform_1(ast *a) {
+        using entry_type = std::pair<var,rules>;
+
+		void document_transform_1(ast *a, void *x) {
 			// [line]
+            using void_ptr = void *;
+
+            xxx::grammar *g = new xxx::grammar();
+
+            void_ptr& result = *(void_ptr *)x;
+
+            result = (void_ptr)g;
+
+            for(auto& child : a->children) {
+                entry_type entry;
+                child.match_rule->transform(&child, &entry);
+                if(g->find(entry.first) == g->end())
+                    g->operator[](entry.first) = {};
+                auto& rs = g->at(entry.first);
+                rs.insert(rs.end(), entry.second.begin(), entry.second.end());
+            }
 		}
 
-		void entry_transform_1(ast *a) {
+		void entry_transform_1(ast *a, void *x) {
 			// recursive
+            auto& child = a->children.front();
+            child.match_rule->transform(&child, x);
 		}
 
-		void entry_transform_2(ast *a) {
+		void entry_transform_2(ast *a, void *x) {
 			// regex
+            auto& child = a->children.front();
+            child.match_rule->transform(&child, x);
 		}
 
-		void line_transform_1(ast *a) {
+		void line_transform_1(ast *a, void *x) {
 			// entry
+            auto& child = a->children.front();
+            child.match_rule->transform(&child, x);
 		}
 
-		void modifier_transform_1(ast *a) {
+		void modifier_transform_1(ast *a, void *x) {
 			// std::string
-            a->result = new predicate_modifier((predicate_modifier)a->match[0]);
-            std::cout << "modifier_t: " << (char)*(predicate_modifier *)(a->result) << std::endl;
+            predicate_modifier& m = *(predicate_modifier *)x;
+            m = (predicate_modifier)a->match[0];
 		}
 
-		void name_transform_1(ast *a) {
+		void name_transform_1(ast *a, void *x) {
 			// std::string
-            a->result = new std::string(a->match);
-            std::cout << "name_t: " << *(std::string *)(a->result) << std::endl;
+            std::string& s = *(std::string *)x;
+            s = a->match;
 		}
 
-		void predicate_transform_1(ast *a) {
+		void predicate_transform_1(ast *a, void *x) {
 			// modifier? name quantifier?
 		}
 
-		void predicates_transform_1(ast *a) {
+		void predicates_transform_1(ast *a, void *x) {
 			// predicate predicates
 		}
 
-		void predicates_transform_2(ast *a) {
+		void predicates_transform_2(ast *a, void *x) {
 			// predicate
 		}
 
-        void quantifier_transform_1(ast *a) {
+        void quantifier_transform_1(ast *a, void *x) {
             // std::string
-            a->result = new predicate_quantifier(
-                    a->match == "*" ? q::star :
-                    a->match == "+" ? q::plus :
-                    a->match == "?" ? q::question : q::one);
-            std::cout << "quantifier_t: " << ((predicate_quantifier *)(a->result))->first << ' ' << ((predicate_quantifier *)(a->result))->second << std::endl;
+            predicate_quantifier& p = *(predicate_quantifier *)x;
+            p = a->match == "*" ? q::star :
+                a->match == "+" ? q::plus :
+                a->match == "?" ? q::question :
+                                  q::one;
 		}
 
-		void recursive_transform_1(ast *a) {
-			// name rules
+        void recursive_transform_1(ast *a, void *x) {
+            // name rules
+            entry_type& entry = *(entry_type *)x;
+            auto& name_child = a->children.front();
+            auto& rules_child = a->children.back();
+            name_child.match_rule->transform(&name_child, &entry.first);
+            rules_child.match_rule->transform(&rules_child, &entry.second);
 		}
 
-		void regex_transform_1(ast *a) {
+		void regex_transform_1(ast *a, void *x) {
 			// name regexre
+            entry_type& entry = *(entry_type *)x;
+            auto& name_child = a->children.front();
+            auto& regexre_child = a->children.back();
+            rule::regex_type re;
+            name_child.match_rule->transform(&name_child, &entry.first);
+            regexre_child.match_rule->transform(&regexre_child, &re);
+            entry.second.push_back(re);
 		}
 
-		void regexre_transform_1(ast *a) {
+		void regexre_transform_1(ast *a, void *x) {
 			// std::string
-            a->result = new rule::regex_type("\\A" + a->match);
-            std::cout << "regex_t: " << ((rule::regex_type *)a->result)->str() << std::endl;
+            rule::regex_type& re = *(rule::regex_type *)x;
+            re = "\\A" + a->match;
 		}
 
-		void rules_transform_1(ast *a) {
+		void rules_transform_1(ast *a, void *x) {
 			// predicates rules
+            rules& rs = *(rules *)x;
+            auto& predicates_child = a->children.front();
+            auto& rules_child = a->children.back();
+            predicates ps;
+            predicates_child.match_rule->transform(&predicates_child, &ps);
+            rs.push_back(ps);
+            rules_child.match_rule->transform(&rules_child, &rs);
 		}
 
-		void rules_transform_2(ast *a) {
+		void rules_transform_2(ast *a, void *x) {
 			// predicates
+            rules& rs = *(rules *)x;
+            auto& child = a->children.front();
+            predicates ps;
+            child.match_rule->transform(&child, &ps);
+            rs.push_back(ps);
 		}
 
 	}
