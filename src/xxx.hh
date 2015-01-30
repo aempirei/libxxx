@@ -27,11 +27,15 @@ namespace xxx {
 
 	using predicate_quantifier = std::pair<size_t,size_t>;
 
-    using rules = std::list<rule>;
+    using rules = std::vector<rule>;
     using predicates = std::list<predicate>;
 
     using var = std::string;
     using vars = std::list<var>;
+
+    using transform_function = void(ast *);
+    
+    inline void empty_transform(ast *) { }
 
     struct q {
 
@@ -88,6 +92,8 @@ namespace xxx {
 		recursive_type recursive;
         regex_type regex;
 
+        transform_function *transform;
+
 		rule();
         rule(rule_type);
 		rule(const recursive_type&);
@@ -97,6 +103,7 @@ namespace xxx {
 		rule& operator<<(predicate_modifier);
 		rule& operator<<(const predicate_quantifier&);
 		rule& operator<<(const predicate&);
+        rule& operator>>(transform_function *);
 
 		std::string str() const;
 
@@ -122,7 +129,7 @@ namespace xxx {
 
             std::string to_s(string_format_type) const;
 
-            vars transforms() const;
+            std::set<var> appendix() const;
 
         private:
 
@@ -146,6 +153,8 @@ namespace xxx {
 
             ssize_t offset;
 
+            void *result;
+
             ast();
             ast(const grammar&, FILE *);
             ast(const grammar&, const std::string&);
@@ -154,6 +163,8 @@ namespace xxx {
             void parse(const grammar&, const std::string&);
 
             std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
+
+            void transform();
 
             const var& name() const;
 

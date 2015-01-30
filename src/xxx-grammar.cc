@@ -16,7 +16,7 @@ namespace xxx {
         return "";
     }
 
-    vars grammar::transforms() const {
+    std::set<var> grammar::appendix() const {
 
         std::set<var> u;
 
@@ -30,17 +30,44 @@ namespace xxx {
                         if(p.modifier == predicate_modifier::push or p.modifier == predicate_modifier::lift)
                             u.insert(p.name);
 
-        return vars(u.begin(), u.end());
+        return u;
     }
 
 	std::string grammar::to_s_cc() const {
 
         std::stringstream ss;
 
+        ss << "#pragma once" << std::endl;
+        ss << "#define R(s) rule(rule::regex_type(s))" << std::endl;
+
+        ss << std::endl;
+
         ss << "namespace xxx {" << std::endl;
-        ss << "\tstatic grammar define_grammar() {" << std::endl;
+        ss << "\tnamespace local {" << std::endl;
+
+        ss << std::endl;
+
         ss << "\t\tusing M = predicate_modifier;" << std::endl;
-        ss << "\t\treturn grammar({" << std::endl;
+
+        ss << std::endl;
+
+        auto ts = appendix();
+
+        //
+        // transform declarations
+        //
+
+        for(const auto& s : ts)
+            for(size_t n = 0; n < at(s).size(); n++)
+                ss << "\t\ttransform_function " << s << "_transform_" << (n + 1) << ';' << std::endl;
+
+        ss << std::endl;
+
+        //
+        // grammar definition
+        //
+
+        ss << "\t\txxx::grammar grammar = xxx::grammar({" << std::endl;
 
         size_t w = 0;
 
@@ -50,62 +77,77 @@ namespace xxx {
 
         for(const auto& x : *this) {
 
-            ss << "\t\t\t{ \"" << x.first << "\"" << std::setw(w - x.first.length()) << "" << ", {";
+            const auto& s = x.first;
+            const auto& rs = x.second;
 
-            if(x.second.size() < 2)
-                ss << ' ';
-            else
-                ss << std::endl << "\t\t\t\t";
+            ss << "\t\t\t{ \"" << s << "\"" << std::setw(w - s.length()) << "" << ", {";
 
-            auto iter = x.second.begin();
+            if(rs.size() == 1) {
 
-            ss << iter->to_cc();
+                ss << ' ' << rs.front().to_cc();
 
-            while(++iter != x.second.end())
-                ss << ',' << std::endl << "\t\t\t\t" << iter->to_cc();
+                if(ts.find(s) != ts.end())
+                    ss << " >> " << s << "_transform_1";
 
-            if(x.second.size() < 2)
-                ss << ' ';
-            else
-                ss << std::endl << "\t\t\t";
+                ss << ' '; 
+
+            } else {
+
+                ss << std::endl;
+
+                for(size_t n = 0; n < rs.size(); n++) {
+
+                    const auto& r = rs[n];
+
+                    ss << "\t\t\t\t" << r.to_cc();
+                    if(ts.find(s) != ts.end())
+                        ss << " >> " << s << "_transform_" << (n + 1);
+                    ss << ',' << std::endl;
+                }
+
+                ss << "\t\t\t";
+            }
 
             ss << "} }," << std::endl;
         }
 
         ss << "\t\t});" << std::endl;
-        ss << "\t}" << std::endl;
 
-        ss << "\tnamespace transform {" << std::endl;
+        ss << std::endl;
 
-        for(const auto& s : transforms())
-            ss << "\t\tstruct " << s << ';' << std::endl;
+        //
+        // transform definitions
+        //
 
-        for(const auto& s : transforms()) {
-
-            ss << "\t\tstruct " << s << " {" << std::endl;
+        for(const auto& s : ts) {
 
             const auto& rs = at(s);
 
-            for(const auto& r : rs) {
+            for(size_t n = 0; n < rs.size(); n++) {
 
-                ss << "\t\t\t" << s << '(';
+                const auto& r = rs[n];
 
-                auto sig = r.to_sig();
-                auto iter = sig.begin();
+                ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(ast *a) {" << std::endl;
 
-                ss << *iter;
+                ss << "\t\t\t//";
 
-                while(++iter != sig.end())
-                    ss << ", " << *iter;
+                for(const auto& sig : r.to_sig())
+                    ss << ' ' << sig;
 
-                ss << ");" << std::endl;
+                ss << std::endl;
+
+                ss << "\t\t}" << std::endl;
+
+                ss << std::endl;
             }
-
-            ss << "\t\t};" << std::endl;
         }
 
         ss << "\t}" << std::endl;
         ss << "}" << std::endl;
+
+        ss << std::endl;
+
+        ss << "#undef R" << std::endl;
 
         return ss.str();
     }

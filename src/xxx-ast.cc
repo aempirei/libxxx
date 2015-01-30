@@ -28,6 +28,10 @@ namespace xxx {
 
 	}
 
+    void ast::transform() {
+        rule_pos->transform(this);
+    }
+
 	size_t ast::node_count() const {
 		return sum(1, 1, children, &ast::node_count);
 	}

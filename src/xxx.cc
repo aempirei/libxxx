@@ -159,10 +159,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    grammar g = define_grammar();
-
     if(do_print_grammar and not do_parse_input)
-        std::cout << g.to_s(grammar::string_format_type::xxx);
+        std::cout << local::grammar.to_s(grammar::string_format_type::xxx);
 
     if(do_load_grammar) {
 
@@ -172,7 +170,7 @@ int main(int argc, char **argv) {
             return -1;
         }
 
-        ast a(g, fp);
+        ast a(local::grammar, fp);
 
         fclose(fp);
 

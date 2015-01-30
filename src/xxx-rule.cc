@@ -46,16 +46,16 @@ namespace xxx {
     vars rule::to_sig() const {
 
         if(type == rule_type::regex)
-            return { "const std::string&" };
+            return { "std::string" };
 
         vars sig;
 
         for(const auto& p : recursive)
             if(p.modifier == predicate_modifier::push or p.modifier == predicate_modifier::lift)
                 sig.push_back(
-                        p.quantifier == q::one      ? ("const " + p.name + '&') :
-                        p.quantifier == q::question ? ("const " + p.name + " *") :
-                                                      ("const std::list<" + p.name + ">&")
+                        p.quantifier == q::one      ? (p.name) :
+                        p.quantifier == q::question ? (p.name + '?') :
+                                                      ('[' + p.name + ']')
                 );
 
         return sig;
@@ -64,7 +64,7 @@ namespace xxx {
     std::string rule::to_cc() const {
 
         if(type == rule_type::regex)
-            return "rule::regex_type(" + to_cstring(regex.str()) + ')';
+            return "R(" + to_cstring(regex.str()) + ")";
 
         std::stringstream ss;
 
@@ -99,11 +99,20 @@ namespace xxx {
     rule::rule() : rule(rule_type::recursive) {
     }
 
-    rule::rule(rule_type my_type) : type(my_type) {
+    rule::rule(rule_type my_type) : type(my_type), transform(empty_transform) {
     }
 
     rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
     rule::rule(const recursive_type& x) : rule(rule_type::recursive) { recursive = x; }
+
+    //
+    // rule::operator>>
+    //
+
+    rule& rule::operator>>(transform_function *x) {
+        transform = x;
+        return *this;
+    }
 
     //
     // rule::operator<<
