@@ -81,31 +81,19 @@ namespace xxx {
 	struct rule {
 
         using regex_type = boost::regex;
-
         using recursive_type = predicates;
-
-        using hint = std::pair<rule_type, std::string>;
-        using hints = std::list<hint>;
 
 		rule_type type;
 
 		recursive_type recursive;
-
         regex_type regex;
 
 		rule();
-
         rule(rule_type);
-
-        rule(const hint&);
-
-        rule(rule_type, std::string);
-
 		rule(const recursive_type&);
 		rule(const regex_type&);
 
 		rule& operator<<(const var&);
-
 		rule& operator<<(predicate_modifier);
 		rule& operator<<(const predicate_quantifier&);
 		rule& operator<<(const predicate&);
@@ -115,8 +103,6 @@ namespace xxx {
         std::string to_cc() const;
 
         vars to_sig() const;
-
-		static rules singletons(const hints&);
 	};
 
 	//
@@ -151,7 +137,8 @@ namespace xxx {
 
 	struct ast {
 
-            const var& name() const;
+            grammar::const_iterator entry_pos;
+            rules::const_iterator rule_pos;
 
             std::string match;
 
@@ -166,17 +153,14 @@ namespace xxx {
             void parse(const grammar&, FILE *);
             void parse(const grammar&, const std::string&);
 
+            std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
+
+            const var& name() const;
+
             size_t node_count() const;
             size_t leaf_count() const;
 
             std::string str() const;
             std::string xml() const;
-
-            grammar::const_iterator entry_pos;
-            rules::const_iterator rule_pos;
-
-            std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
-
-
 	};
 }

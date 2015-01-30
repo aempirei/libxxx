@@ -30,7 +30,7 @@ namespace xxx {
 
                 if(b.name() == "regex") {
 
-                    g.at(name).push_back(rule(rule_type::regex, b.children[1].match));
+                    g.at(name).push_back(rule::regex_type("\\A" + b.children[1].match));
 
                 } else {
 

@@ -92,18 +92,6 @@ namespace xxx {
         return ss.str();
     }
 
-    rules rule::singletons(const hints& xs) {
-
-        rules y;
-
-        for(const auto& x : xs)
-
-            y.push_back(rule(x));
-
-        return y;
-    }
-
-
     //
     // rule::rule
     //
@@ -112,25 +100,6 @@ namespace xxx {
     }
 
     rule::rule(rule_type my_type) : type(my_type) {
-    }
-
-    rule::rule(rule_type my_type, const std::string s) : rule(my_type) {
-
-        switch(type) {
-
-            case rule_type::regex:
-
-                regex.assign("\\A" + s, boost::regex::perl);
-                break;
-
-            case rule_type::recursive:
-
-                recursive = { predicate(s) };
-                break;
-        }
-    }
-
-    rule::rule(const hint& h) : rule(h.first, h.second) {
     }
 
     rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
