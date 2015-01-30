@@ -2,7 +2,7 @@
 
 namespace xxx {
 
-	std::string rule::str() const {
+    std::string rule::str() const {
 
         std::stringstream ss;
 
@@ -29,7 +29,7 @@ namespace xxx {
         }
 
         return ss.str();
-	}
+    }
 
     static std::string to_cstring(const std::string& s) {
         std::stringstream ss;
@@ -43,59 +43,75 @@ namespace xxx {
         return ss.str();
     }
 
+    vars rule::to_sig() const {
+
+        if(type == rule_type::regex)
+            return { "const std::string&" };
+
+        vars sig;
+
+        for(const auto& p : recursive)
+            if(p.modifier == predicate_modifier::push or p.modifier == predicate_modifier::lift)
+                sig.push_back(
+                        p.quantifier == q::one      ? ("const " + p.name + '&') :
+                        p.quantifier == q::question ? ("const " + p.name + " *") :
+                                                      ("const std::list<" + p.name + ">&")
+                );
+
+        return sig;
+    }
+
     std::string rule::to_cc() const {
+
+        if(type == rule_type::regex)
+            return "rule::regex_type(" + to_cstring(regex.str()) + ')';
 
         std::stringstream ss;
 
-        if(type == rule_type::regex) {
-            ss << "rule::regex_type(" << to_cstring(regex.str()) << ')';
-        } else {
+        ss << "rule()";
 
-            ss << "rule()";
+        for(const auto& p : recursive) {
+            ss << " << \"" << p.name << '\"';
 
-            for(const auto& p : recursive) {
-                ss << " << \"" << p.name << '\"';
+            if(p.quantifier != q::one) {
+                ss << (
+                        (p.quantifier == q::star    ) ? " << q::star"     :
+                        (p.quantifier == q::plus    ) ? " << q::plus"     :
+                        (p.quantifier == q::question) ? " << q::question" : "");
+            }
 
-                if(p.quantifier != q::one) {
-                    ss << (
-                            (p.quantifier == q::star    ) ? " << q::star"     :
-                            (p.quantifier == q::plus    ) ? " << q::plus"     :
-                            (p.quantifier == q::question) ? " << q::question" : "");
-                }
-
-                if(p.modifier != predicate_modifier::push) {
-                    ss << (
-                            (p.modifier == predicate_modifier::lift         ) ? " << M::lift"          :
-                            (p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
-                            (p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
-                            (p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");
-                }
+            if(p.modifier != predicate_modifier::push) {
+                ss << (
+                        (p.modifier == predicate_modifier::lift         ) ? " << M::lift"          :
+                        (p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
+                        (p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
+                        (p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");
             }
         }
 
         return ss.str();
     }
 
-	rules rule::singletons(const hints& xs) {
+    rules rule::singletons(const hints& xs) {
 
         rules y;
 
-		for(const auto& x : xs)
+        for(const auto& x : xs)
 
-			y.push_back(rule(x));
+            y.push_back(rule(x));
 
-		return y;
-	}
+        return y;
+    }
 
 
     //
     // rule::rule
     //
 
-	rule::rule() : rule(rule_type::recursive) {
-	}
+    rule::rule() : rule(rule_type::recursive) {
+    }
 
-	rule::rule(rule_type my_type) : type(my_type) {
+    rule::rule(rule_type my_type) : type(my_type) {
     }
 
     rule::rule(rule_type my_type, const std::string s) : rule(my_type) {
@@ -117,14 +133,14 @@ namespace xxx {
     rule::rule(const hint& h) : rule(h.first, h.second) {
     }
 
-	rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
-	rule::rule(const recursive_type& x) : rule(rule_type::recursive) { recursive = x; }
+    rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
+    rule::rule(const recursive_type& x) : rule(rule_type::recursive) { recursive = x; }
 
     //
     // rule::operator<<
     //
 
-    rule& rule::operator<<(const var& x) {
+    rule& rule::operator<<(const std::string& x) {
         return operator<<(predicate(x));
     }
 
@@ -146,22 +162,22 @@ namespace xxx {
         if(recursive.empty())
             throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-		recursive.back().modifier = x;
+        recursive.back().modifier = x;
 
-		return *this;
-	}
+        return *this;
+    }
 
-	rule& rule::operator<<(const predicate_quantifier& x) {
+    rule& rule::operator<<(const predicate_quantifier& x) {
 
-		if(type != rule_type::recursive)
-			throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
+        if(type != rule_type::recursive)
+            throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
 
-		if(recursive.empty())
-			throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+        if(recursive.empty())
+            throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
 
-		recursive.back().quantifier = x;
+        recursive.back().quantifier = x;
 
-		return *this;
-	}
+        return *this;
+    }
 
 }

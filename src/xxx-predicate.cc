@@ -12,17 +12,12 @@ namespace xxx {
 
 		std::stringstream ss;
 
-        switch(modifier) {
-            case predicate_modifier::push         : ss << ""; break;
-            case predicate_modifier::discard      : ss << "!"; break;
-            case predicate_modifier::lift         : ss << "^"; break;
-            case predicate_modifier::peek_positive: ss << ">"; break;
-            case predicate_modifier::peek_negative: ss << "~"; break;
-        }
+        if(modifier != predicate_modifier::push)
+            ss << (char)modifier;
 
 		ss << name;
 
-		/**/ if(quantifier == q::one     ) ss << "";
+		/**/ if(quantifier == q::one     ) /* NOP */;
 		else if(quantifier == q::star    ) ss << '*';
 		else if(quantifier == q::plus    ) ss << '+';
 		else if(quantifier == q::question) ss << '?';

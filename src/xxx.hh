@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <list>
 #include <vector>
 #include <string>
@@ -29,6 +30,7 @@ namespace xxx {
     using predicates = std::list<predicate>;
 
     using var = std::string;
+    using vars = std::list<var>;
 
     struct q {
 
@@ -111,6 +113,8 @@ namespace xxx {
 
         std::string to_cc() const;
 
+        vars to_sig() const;
+
 		static rules singletons(const hints&);
 	};
 
@@ -130,6 +134,8 @@ namespace xxx {
             };
 
             std::string to_s(string_format_type) const;
+
+            vars transforms() const;
 
         private:
 

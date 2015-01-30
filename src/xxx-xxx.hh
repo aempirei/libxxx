@@ -1,38 +1,91 @@
 namespace xxx {
 	static grammar define_grammar() {
-		grammar g;
 		using M = predicate_modifier;
-		g["_"] = { rule::regex_type("\\A[ \\t]+") };
-		g["_rule"] = { rule() << "ws" << M::discard << "rule" << M::lift << "eol" << M::discard };
-		g["beq"] = { rule::regex_type("\\A&=") };
-		g["ceq"] = { rule::regex_type("\\A:=") };
-		g["document"] = { rule() << "_rule" << q::star << M::lift << "eof" << M::discard };
-		g["eof"] = { rule::regex_type("\\A\\z") };
-		g["eol"] = { rule::regex_type("\\A\\s*(?:$|\\z)") };
-		g["fs"] = { rule::regex_type("\\A\\/") };
-		g["leq"] = { rule::regex_type("\\A\"=") };
-		g["modifier"] = { rule::regex_type("\\A[!^>~]") };
-		g["name"] = { rule::regex_type("\\A\\w+") };
-		g["predicate"] = { rule() << "modifier" << q::question << "name" << "quantifier" << q::question };
-		g["predicates"] = {
-			rule() << "predicate" << "_" << M::discard << "predicates" << M::lift,
-			rule() << "predicate",
+		return grammar({
+			{ "_"         , { rule::regex_type("\\A[ \\t]+") } },
+			{ "beq"       , { rule::regex_type("\\A&=") } },
+			{ "ceq"       , { rule::regex_type("\\A:=") } },
+			{ "document"  , { rule() << "line" << q::star << M::lift << "eof" << M::discard } },
+			{ "eof"       , { rule::regex_type("\\A\\z") } },
+			{ "eol"       , { rule::regex_type("\\A\\s*(?:$|\\z)") } },
+			{ "expr"      , {
+				rule() << "recursive",
+				rule() << "regex"
+			} },
+			{ "fs"        , { rule::regex_type("\\A\\/") } },
+			{ "leq"       , { rule::regex_type("\\A\"=") } },
+			{ "line"      , { rule() << "ws" << M::discard << "expr" << M::lift << "eol" << M::discard } },
+			{ "modifier"  , { rule::regex_type("\\A[!^>~]") } },
+			{ "name"      , { rule::regex_type("\\A\\w+") } },
+			{ "predicate" , { rule() << "modifier" << q::question << "name" << "quantifier" << q::question } },
+			{ "predicates", {
+				rule() << "predicate" << "_" << M::discard << "predicates" << M::lift,
+				rule() << "predicate"
+			} },
+			{ "qm"        , { rule::regex_type("\\A\\?") } },
+			{ "quantifier", { rule::regex_type("\\A[*?+]") } },
+			{ "recursive" , { rule() << "name" << "_" << M::discard << "ceq" << M::discard << "_" << M::discard << "rules" } },
+			{ "regex"     , { rule() << "name" << "_" << M::discard << "req" << M::discard << "_" << M::discard << "regexre" } },
+			{ "regexre"   , { rule::regex_type("\\A\\/((?:\\/|[^\\/\\n])*)\\/\\s*$") } },
+			{ "req"       , { rule::regex_type("\\A~=") } },
+			{ "rules"     , {
+				rule() << "predicates" << "_" << M::discard << "fs" << M::discard << "_" << M::discard << "rules" << M::lift,
+				rule() << "predicates"
+			} },
+			{ "ws"        , { rule::regex_type("\\A\\s*") } },
+		});
+	}
+	namespace transform {
+		struct document;
+		struct expr;
+		struct line;
+		struct modifier;
+		struct name;
+		struct predicate;
+		struct predicates;
+		struct quantifier;
+		struct recursive;
+		struct regex;
+		struct regexre;
+		struct rules;
+		struct document {
+			document(const std::list<line>&);
 		};
-		g["qm"] = { rule::regex_type("\\A\\?") };
-		g["quantifier"] = { rule::regex_type("\\A[*?+]") };
-		g["recursive"] = { rule() << "name" << "_" << M::discard << "ceq" << M::discard << "_" << M::discard << "rules" };
-		g["regex"] = { rule() << "name" << "_" << M::discard << "req" << M::discard << "_" << M::discard << "regexre" };
-		g["regexre"] = { rule::regex_type("\\A\\/((?:\\/|[^\\/\\n])*)\\/\\s*$") };
-		g["req"] = { rule::regex_type("\\A~=") };
-		g["rule"] = {
-			rule() << "recursive",
-			rule() << "regex",
+		struct expr {
+			expr(const recursive&);
+			expr(const regex&);
 		};
-		g["rules"] = {
-			rule() << "predicates" << "_" << M::discard << "fs" << M::discard << "_" << M::discard << "rules" << M::lift,
-			rule() << "predicates",
+		struct line {
+			line(const expr&);
 		};
-		g["ws"] = { rule::regex_type("\\A\\s*") };
-		return g;
+		struct modifier {
+			modifier(const std::string&);
+		};
+		struct name {
+			name(const std::string&);
+		};
+		struct predicate {
+			predicate(const modifier *, const name&, const quantifier *);
+		};
+		struct predicates {
+			predicates(const predicate&, const predicates&);
+			predicates(const predicate&);
+		};
+		struct quantifier {
+			quantifier(const std::string&);
+		};
+		struct recursive {
+			recursive(const name&, const rules&);
+		};
+		struct regex {
+			regex(const name&, const regexre&);
+		};
+		struct regexre {
+			regexre(const std::string&);
+		};
+		struct rules {
+			rules(const predicates&, const rules&);
+			rules(const predicates&);
+		};
 	}
 }

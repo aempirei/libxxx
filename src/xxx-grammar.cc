@@ -11,9 +11,26 @@ namespace xxx {
         }
     }
 
-	std::string grammar::to_s_js() const {
+    std::string grammar::to_s_js() const {
         throw std::runtime_error("grammar::to_s_js() unimplemented");
         return "";
+    }
+
+    vars grammar::transforms() const {
+
+        std::set<var> u;
+
+        if(find("document") != end())
+            u.insert("document");
+
+        for(const auto& x : *this)
+            for(const auto& r : x.second)
+                if(r.type == rule_type::recursive)
+                    for(const auto& p : r.recursive)
+                        if(p.modifier == predicate_modifier::push or p.modifier == predicate_modifier::lift)
+                            u.insert(p.name);
+
+        return vars(u.begin(), u.end());
     }
 
 	std::string grammar::to_s_cc() const {
@@ -22,34 +39,71 @@ namespace xxx {
 
         ss << "namespace xxx {" << std::endl;
         ss << "\tstatic grammar define_grammar() {" << std::endl;
-        ss << "\t\tgrammar g;" << std::endl;
         ss << "\t\tusing M = predicate_modifier;" << std::endl;
+        ss << "\t\treturn grammar({" << std::endl;
+
+        size_t w = 0;
+
+        for(const auto& x : *this)
+            if(x.first.length() > w)
+                w = x.first.length();
 
         for(const auto& x : *this) {
-            switch(x.second.size()) {
 
-                case 0:
+            ss << "\t\t\t{ \"" << x.first << "\"" << std::setw(w - x.first.length()) << "" << ", {";
 
-                    ss << "\t\tg[\"" << x.first << "\"] = { };" << std::endl;
-                    break;
+            if(x.second.size() < 2)
+                ss << ' ';
+            else
+                ss << std::endl << "\t\t\t\t";
 
-                case 1:
+            auto iter = x.second.begin();
 
-                    ss << "\t\tg[\"" << x.first << "\"] = { " << x.second.front().to_cc() << " };" << std::endl;
-                    break;
+            ss << iter->to_cc();
 
-                default:
+            while(++iter != x.second.end())
+                ss << ',' << std::endl << "\t\t\t\t" << iter->to_cc();
 
-                    ss << "\t\tg[\"" << x.first << "\"] = {" << std::endl;
-                    for(const auto& r : x.second)
-                        ss << "\t\t\t" << r.to_cc() << ',' << std::endl;
-                    ss << "\t\t};" << std::endl;
-                    break;
-            }
+            if(x.second.size() < 2)
+                ss << ' ';
+            else
+                ss << std::endl << "\t\t\t";
+
+            ss << "} }," << std::endl;
         }
 
+        ss << "\t\t});" << std::endl;
+        ss << "\t}" << std::endl;
 
-        ss << "\t\treturn g;" << std::endl;
+        ss << "\tnamespace transform {" << std::endl;
+
+        for(const auto& s : transforms())
+            ss << "\t\tstruct " << s << ';' << std::endl;
+
+        for(const auto& s : transforms()) {
+
+            ss << "\t\tstruct " << s << " {" << std::endl;
+
+            const auto& rs = at(s);
+
+            for(const auto& r : rs) {
+
+                ss << "\t\t\t" << s << '(';
+
+                auto sig = r.to_sig();
+                auto iter = sig.begin();
+
+                ss << *iter;
+
+                while(++iter != sig.end())
+                    ss << ", " << *iter;
+
+                ss << ");" << std::endl;
+            }
+
+            ss << "\t\t};" << std::endl;
+        }
+
         ss << "\t}" << std::endl;
         ss << "}" << std::endl;
 
