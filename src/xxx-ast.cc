@@ -2,7 +2,6 @@
 
 namespace xxx {
 
-	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ast&, ssize_t);
 	static std::string ast_str_recursive(const ast&, int, bool);
 	static std::string ast_xml_recursive(const ast&, int, int, int);
 
@@ -61,7 +60,7 @@ namespace xxx {
 
 	void ast::parse(const grammar& g, const std::string& s) {
 
-        auto ab = parse_recursive(g, "document", s, *this, 0);
+        auto ab = parse_recursive(g, "document", s, 0);
 
 		if(ab.first == -1) {
 
@@ -80,120 +79,90 @@ namespace xxx {
 		}
 	}
 
-	static std::pair<ssize_t,ssize_t> parse_recursive(const grammar& g, const var& name, const std::string& s, ast& x, ssize_t offset) {
+    const var& ast::name() const {
+        return entry_pos->first;
+    }
 
-        x.entry = g.find(name);
+    std::pair<ssize_t,ssize_t> ast::parse_recursive(const grammar& g, const var& my_name, const std::string& s, ssize_t my_offset) {
 
-		if(x.entry == g.end()) {
-			std::stringstream ss;
-			ss << "grammar rule not found -- \"" << name << '"';
-			throw std::runtime_error(ss.str());
-		}
+        offset = my_offset;
 
-		const auto& rules = x.entry->second;
+        entry_pos = g.find(my_name);
 
-		ssize_t current = offset;
+		if(entry_pos == g.end())
+            throw std::runtime_error("grammar rule not found -- \"" + my_name + '"');
 
-		x.offset = offset;
-		x.name = name;
+		const auto& rules = entry_pos->second;
 
-        for(x.subentry = rules.begin(); x.subentry != rules.end(); x.subentry++) {
+        for(rule_pos = rules.begin(); rule_pos != rules.end(); rule_pos++) {
 
-            const auto& rule = *x.subentry;
+            children.clear();
 
-			bool success = true;
+            if(rule_pos->type == rule_type::recursive) {
 
-			boost::smatch matches;
-			std::string ms;
+                ssize_t current = offset;
+                bool success = true;
 
-			current = offset;
+                for(const predicate& p : rule_pos->recursive) {
 
-			x.children.clear();
-			x.type = rule.type;
+                    size_t n;
 
-			switch(rule.type) {
+                    ssize_t rewind = current;
 
-				case rule_type::regex:
+                    for(n = 0; n < p.quantifier.second; n++) {
 
-					ms = s.substr(offset, std::string::npos);
+                        ast y;
 
-					if(not boost::regex_search(ms, matches, rule.regex)) {
-						success = false;
-						break;
-					}
+                        auto next = y.parse_recursive(g, p.name, s, current);
 
-                    x.matches.resize(1);
-                    x.matches[0] = matches[matches.size() > 1 ? 1 : 0];
-					current += matches[0].length();
-
-					break;
-
-				case rule_type::recursive:
-
-					for(const predicate& p : rule.recursive) {
-
-						size_t n;
-
-                        ssize_t rewind = current;
-
-						for(n = 0; n < p.quantifier.second; n++) {
-
-							ast y;
-
-							auto next = parse_recursive(g, p.name, s, y, current);
-
-							if(next.first == -1)
-								break;
-
-							if(p.modifier == predicate_modifier::push) {
-
-								x.children.push_back(y);
-
-							} else if(p.modifier == predicate_modifier::lift) {
-
-								if(y.type != rule_type::recursive)
-									throw new std::runtime_error("attempting to lift non-recursive ast node");
-
-								for(const auto& z : y.children)
-									x.children.push_back(z);
-
-							} else if(p.modifier == predicate_modifier::peek_positive) {
-
-                                // peek_positive
-
-							} else if(p.modifier == predicate_modifier::peek_negative) {
-
-                                // peek_negative
-
-							} else if(p.modifier == predicate_modifier::discard) {
-
-								// discard
-							}
-
-							current = next.second;
-						}
-
-						if(n < p.quantifier.first)
-							success = false;
-
-                        if(p.modifier == predicate_modifier::peek_negative)
-                            success = not success;
-
-                        if(p.modifier == predicate_modifier::peek_positive or p.modifier == predicate_modifier::peek_negative)
-                            current = rewind;
-
-                        if(not success)
+                        if(next.first == -1)
                             break;
-					}
 
-					break;
-			}
+                        if(p.modifier == predicate_modifier::push) {
 
-			if(success)
-				return std::pair<ssize_t,ssize_t>(offset,current);
-		}
+                            children.push_back(y);
 
-		return std::pair<ssize_t,ssize_t>(-1,current);
+                        } else if(p.modifier == predicate_modifier::lift) {
+
+                            if(y.rule_pos->type != rule_type::recursive)
+                                throw new std::runtime_error("attempting to lift non-recursive ast node");
+
+                            children.insert(children.end(), y.children.begin(), y.children.end());
+                        }
+
+                        current = next.second;
+                    }
+
+                    if(n < p.quantifier.first)
+                        success = false;
+
+                    if(p.modifier == predicate_modifier::peek_negative)
+                        success = not success;
+
+                    if(p.modifier == predicate_modifier::peek_positive or p.modifier == predicate_modifier::peek_negative)
+                        current = rewind;
+
+                    if(not success)
+                        break;
+                }
+
+                if(success)
+                    return std::pair<ssize_t,ssize_t>(offset,current);
+
+            } else {
+
+                boost::smatch matches;
+                std::string ms = s.substr(offset, std::string::npos);
+
+                if(boost::regex_search(ms, matches, rule_pos->regex)) {
+                    match = matches[matches.size() > 1 ? 1 : 0];
+                    return std::pair<ssize_t,ssize_t>(offset,offset + matches[0].length());
+                }
+            }
+
+        }
+
+		return std::pair<ssize_t,ssize_t>(-1,offset);
 	}
 
 	static std::string ast_str_recursive(const ast& x, int depth = 0, bool basic = false) {
@@ -201,15 +170,15 @@ namespace xxx {
 		std::stringstream ss;
 
 		if(basic)
-            ss << x.name;
+            ss << x.name();
 		else
-			ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.name;
+			ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.name();
 
-		switch(x.type) {
+		switch(x.rule_pos->type) {
 
 			case rule_type::regex:
 
-                ss << ' ' << (char)x.type << "= " << x.matches[0] << std::endl;
+                ss << ' ' << (char)x.rule_pos->type << "= " << x.match << std::endl;
                 break;
 
 			case rule_type::recursive:
@@ -241,7 +210,7 @@ namespace xxx {
 		std::stringstream ss;
 
 		std::string content;
-		std::string tag = x.name;
+		std::string tag = x.name();
 
 		if(!tag.empty()) {
 			if(isdigit(tag[0])) {
@@ -255,11 +224,11 @@ namespace xxx {
 		if(tag == "document")
 			ss << ' ' << xmlns;
 
-		switch(x.type) {
+		switch(x.rule_pos->type) {
 
 			case rule_type::regex:
 
-				content = x.matches[0];
+				content = x.match;
 
 				content = boost::regex_replace(content, boost::regex("&"), "&amp;");
 				content = boost::regex_replace(content, boost::regex("<"), "&lt;");

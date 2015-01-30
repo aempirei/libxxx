@@ -18,8 +18,9 @@
 
 namespace xxx {
 
-    struct rule;
     struct predicate;
+    struct rule;
+    struct ast;
     struct q;
 
     class grammar;
@@ -150,30 +151,32 @@ namespace xxx {
 
 	struct ast {
 
-		var name;
+            const var& name() const;
 
-		rule_type type;
+            std::string match;
 
-        grammar::const_iterator entry;
-        rules::const_iterator subentry;
+            std::vector<ast> children;
 
-		std::vector<std::string> matches;
+            ssize_t offset;
 
-		std::vector<ast> children;
+            ast();
+            ast(const grammar&, FILE *);
+            ast(const grammar&, const std::string&);
 
-		ssize_t offset;
+            void parse(const grammar&, FILE *);
+            void parse(const grammar&, const std::string&);
 
-		ast();
-		ast(const grammar&, FILE *);
-		ast(const grammar&, const std::string&);
+            size_t node_count() const;
+            size_t leaf_count() const;
 
-		void parse(const grammar&, FILE *);
-		void parse(const grammar&, const std::string&);
+            std::string str() const;
+            std::string xml() const;
 
-		size_t node_count() const;
-		size_t leaf_count() const;
+            grammar::const_iterator entry_pos;
+            rules::const_iterator rule_pos;
 
-		std::string str() const;
-		std::string xml() const;
+            std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
+
+
 	};
 }

@@ -19,18 +19,18 @@ namespace xxx {
 
         grammar g;
 
-        if(a.name == "document") {
+        if(a.name() == "document") {
 
             for(const auto& b : a.children) {
 
-                const auto& name = b.children[0].matches[0];
+                const auto& name = b.children[0].match;
 
                 if(g.find(name) == g.end())
                     g[name] = {};
 
-                if(b.name == "regex") {
+                if(b.name() == "regex") {
 
-                    g.at(name).push_back(rule(rule_type::regex, b.children[1].matches[0]));
+                    g.at(name).push_back(rule(rule_type::regex, b.children[1].match));
 
                 } else {
 
@@ -50,12 +50,12 @@ namespace xxx {
 
                             auto iter = d.children.begin();
 
-                            if(iter->name == "modifier") {
+                            if(iter->name() == "modifier") {
                                 
-                                /**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
-                                else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
-                                else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek_positive;
-                                else if(iter->matches[0] == "~") p.modifier = predicate_modifier::peek_negative;
+                                /**/ if(iter->match == "^") p.modifier = predicate_modifier::lift;
+                                else if(iter->match == "!") p.modifier = predicate_modifier::discard;
+                                else if(iter->match == ">") p.modifier = predicate_modifier::peek_positive;
+                                else if(iter->match == "~") p.modifier = predicate_modifier::peek_negative;
 
                                 iter++;
 
@@ -63,16 +63,16 @@ namespace xxx {
                                 p.modifier = predicate_modifier::push;
                             }
 
-                            if(iter->name == "name") {
-                                p.name = iter->matches[0];
+                            if(iter->name() == "name") {
+                                p.name = iter->match;
                                 iter++;
                             }
 
-                            if(iter != d.children.end() and iter->name == "quantifier") {
+                            if(iter != d.children.end() and iter->name() == "quantifier") {
 
-                                /**/ if(iter->matches[0] == "*") p.quantifier = q::star;
-                                else if(iter->matches[0] == "+") p.quantifier = q::plus;
-                                else if(iter->matches[0] == "?") p.quantifier = q::question;
+                                /**/ if(iter->match == "*") p.quantifier = q::star;
+                                else if(iter->match == "+") p.quantifier = q::plus;
+                                else if(iter->match == "?") p.quantifier = q::question;
 
                             } else {
                                 p.quantifier = q::one;

@@ -6,15 +6,15 @@ namespace xxx {
 			{ "beq"       , { rule::regex_type("\\A&=") } },
 			{ "ceq"       , { rule::regex_type("\\A:=") } },
 			{ "document"  , { rule() << "line" << q::star << M::lift << "eof" << M::discard } },
-			{ "eof"       , { rule::regex_type("\\A\\z") } },
-			{ "eol"       , { rule::regex_type("\\A\\s*(?:$|\\z)") } },
-			{ "expr"      , {
+			{ "entry"     , {
 				rule() << "recursive",
 				rule() << "regex"
 			} },
+			{ "eof"       , { rule::regex_type("\\A\\z") } },
+			{ "eol"       , { rule::regex_type("\\A\\s*(?:$|\\z)") } },
 			{ "fs"        , { rule::regex_type("\\A\\/") } },
 			{ "leq"       , { rule::regex_type("\\A\"=") } },
-			{ "line"      , { rule() << "ws" << M::discard << "expr" << M::lift << "eol" << M::discard } },
+			{ "line"      , { rule() << "ws" << M::discard << "entry" << M::lift << "eol" << M::discard } },
 			{ "modifier"  , { rule::regex_type("\\A[!^>~]") } },
 			{ "name"      , { rule::regex_type("\\A\\w+") } },
 			{ "predicate" , { rule() << "modifier" << q::question << "name" << "quantifier" << q::question } },
@@ -37,7 +37,7 @@ namespace xxx {
 	}
 	namespace transform {
 		struct document;
-		struct expr;
+		struct entry;
 		struct line;
 		struct modifier;
 		struct name;
@@ -51,12 +51,12 @@ namespace xxx {
 		struct document {
 			document(const std::list<line>&);
 		};
-		struct expr {
-			expr(const recursive&);
-			expr(const regex&);
+		struct entry {
+			entry(const recursive&);
+			entry(const regex&);
 		};
 		struct line {
-			line(const expr&);
+			line(const entry&);
 		};
 		struct modifier {
 			modifier(const std::string&);
