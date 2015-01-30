@@ -31,6 +31,51 @@ namespace xxx {
         return ss.str();
 	}
 
+    static std::string to_cstring(const std::string& s) {
+        std::stringstream ss;
+        ss << '"';
+        for(int c : s) {
+            /**/ if(c == '"' or c == '\\') ss << '\\' << (char)c;
+            else if(isprint(c)           ) ss << (char)c;
+            else                           ss << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+        }
+        ss << '"';
+        return ss.str();
+    }
+
+    std::string rule::to_cc() const {
+
+        std::stringstream ss;
+
+        if(type == rule_type::regex) {
+            ss << "rule::regex_type(" << to_cstring(regex.str()) << ')';
+        } else {
+
+            ss << "rule()";
+
+            for(const auto& p : recursive) {
+                ss << " << \"" << p.name << '\"';
+
+                if(p.quantifier != q::one) {
+                    ss << (
+                            (p.quantifier == q::star    ) ? " << q::star"     :
+                            (p.quantifier == q::plus    ) ? " << q::plus"     :
+                            (p.quantifier == q::question) ? " << q::question" : "");
+                }
+
+                if(p.modifier != predicate_modifier::push) {
+                    ss << (
+                            (p.modifier == predicate_modifier::lift         ) ? " << M::lift"          :
+                            (p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
+                            (p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
+                            (p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");
+                }
+            }
+        }
+
+        return ss.str();
+    }
+
 	rules rule::singletons(const hints& xs) {
 
         rules y;

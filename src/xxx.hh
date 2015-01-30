@@ -109,6 +109,8 @@ namespace xxx {
 
 		std::string str() const;
 
+        std::string to_cc() const;
+
 		static rules singletons(const hints&);
 	};
 

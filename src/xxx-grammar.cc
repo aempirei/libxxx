@@ -17,8 +17,43 @@ namespace xxx {
     }
 
 	std::string grammar::to_s_cc() const {
-        throw std::runtime_error("grammar::to_s_cc() unimplemented");
-        return "";
+
+        std::stringstream ss;
+
+        ss << "namespace xxx {" << std::endl;
+        ss << "\tstatic grammar define_grammar() {" << std::endl;
+        ss << "\t\tgrammar g;" << std::endl;
+        ss << "\t\tusing M = predicate_modifier;" << std::endl;
+
+        for(const auto& x : *this) {
+            switch(x.second.size()) {
+
+                case 0:
+
+                    ss << "\t\tg[\"" << x.first << "\"] = { };" << std::endl;
+                    break;
+
+                case 1:
+
+                    ss << "\t\tg[\"" << x.first << "\"] = { " << x.second.front().to_cc() << " };" << std::endl;
+                    break;
+
+                default:
+
+                    ss << "\t\tg[\"" << x.first << "\"] = {" << std::endl;
+                    for(const auto& r : x.second)
+                        ss << "\t\t\t" << r.to_cc() << ',' << std::endl;
+                    ss << "\t\t};" << std::endl;
+                    break;
+            }
+        }
+
+
+        ss << "\t\treturn g;" << std::endl;
+        ss << "\t}" << std::endl;
+        ss << "}" << std::endl;
+
+        return ss.str();
     }
 
 	std::string grammar::to_s_xxx() const {

@@ -89,129 +89,6 @@ namespace xxx {
 
         return g;
     }
-
-	static std::string codify_dynamic_grammar(const ast& a) {
-
-		std::stringstream ss;
-
-		ss << "namespace xxx {" << std::endl;
-		ss << "\tstatic grammar define_grammar() {" << std::endl;
-		ss << "\t\tgrammar g;" << std::endl;
-		ss << "\t\tusing M = predicate_modifier;" << std::endl;
-
-		if(a.name == "document") {
-
-			for(const auto& b : a.children) {
-
-				const auto& name = b.children[0].matches[0];
-
-                if(b.name == "regex") {
-
-					const auto& regexstr = b.children[1].matches[0];
-
-					std::string escreg;
-
-					for(size_t n = 0; n < regexstr.length(); n++) {
-						if(regexstr[n] == '\\' or regexstr[n] == '"')
-							escreg.push_back('\\');
-						escreg.push_back(regexstr[n]);
-					}
-
-					ss << "\t\tg[\"" << name << "\"] = { rule(rule_type::regex, \"" << escreg << "\") };" << std::endl;
-
-				} else {
-
-					ss << "\t\tg[\"" << name << "\"] = {";
-
-					// ordered
-
-					bool single = (b.children[1].children.size() == 1);
-
-					for(const auto& c : b.children[1].children) {
-
-						// predicates
-
-						if(single)
-							ss << ' ';
-						else
-							ss << std::endl << "\t\t\t";
-
-						ss << "{ rule()";
-
-						for(const auto& d : c.children) {
-
-							// predicate
-
-							auto iter = d.children.begin();
-
-							predicate p;
-
-							if(iter->name == "modifier") {
-
-								/**/ if(iter->matches[0] == "^") p.modifier = predicate_modifier::lift;
-								else if(iter->matches[0] == "!") p.modifier = predicate_modifier::discard;
-								else if(iter->matches[0] == ">") p.modifier = predicate_modifier::peek_positive;
-								else if(iter->matches[0] == "~") p.modifier = predicate_modifier::peek_negative;
-
-								iter++;
-
-							} else {
-								p.modifier = predicate_modifier::push;
-							}
-
-							if(iter->name == "name") {
-								p.name = iter->matches[0];
-								iter++;
-							}
-
-							if(iter != d.children.end() && iter->name == "quantifier") {
-
-								/**/ if(iter->matches[0] == "*") p.quantifier = q::star;
-								else if(iter->matches[0] == "+") p.quantifier = q::plus;
-								else if(iter->matches[0] == "?") p.quantifier = q::question;
-
-							} else {
-								p.quantifier = q::one;
-							}
-
-							ss << " << \"" << p.name << '\"';
-
-							if(p.quantifier != q::one) {
-								ss << (
-										(p.quantifier == q::star    ) ? " << q::star"     :
-										(p.quantifier == q::plus    ) ? " << q::plus"     :
-										(p.quantifier == q::question) ? " << q::question" : "");
-							}
-
-							if(p.modifier != predicate_modifier::push) {
-								ss << (
-										(p.modifier == predicate_modifier::lift         ) ? " << M::lift"          :
-										(p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
-										(p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
-										(p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");
-							}
-						}
-
-						if(single)
-							ss << " } ";
-						else
-							ss << " },";
-					}
-
-					if(not single)
-						ss << std::endl;
-
-					ss << "\t\t};" << std::endl;
-				}
-			}
-		}
-
-		ss << "\t\treturn g;" << std::endl;
-		ss << "\t}" << std::endl;
-		ss << "}" << std::endl;
-
-		return ss.str();
-	}
 }
 
 using namespace xxx;
@@ -302,10 +179,10 @@ int main(int argc, char **argv) {
         if(do_print_ast and not do_parse_input)
             std::cout << a.str() << std::endl;
 
-        if(do_print_code)
-            std::cout << codify_dynamic_grammar(a);
-
         grammar h = load_dynamic_grammar(a);
+
+        if(do_print_code)
+            std::cout << h.to_s(grammar::string_format_type::cc);
 
         if(do_parse_input) {
 
