@@ -21,7 +21,7 @@ install:
 	install -m 755 bin/xxx $(INSTALL_PATH)/bin
 
 test: $(TARGETS)
-	./bin/xxx -apg ./examples/p-lang.xxx < ./examples/example.p-lang
+	./bin/xxx -apg ./test/p-lang.xxx < ./test/example.p-lang
 
 library: lib/libxxx.a
 
@@ -33,5 +33,5 @@ bin/xxx: src/xxx.o lib/libxxx.a
 	if [ ! -d bin ]; then mkdir -vp bin; fi
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
 
-src/xxx-xxx.hh:  bin/xxx examples/xxx.xxx
-	bin/xxx -g examples/xxx.xxx -c > src/xxx-xxx.hh
+src/xxx-xxx.hh:  bin/xxx src/xxx.xxx
+	bin/xxx -g src/xxx.xxx -c > src/xxx-xxx.hh
