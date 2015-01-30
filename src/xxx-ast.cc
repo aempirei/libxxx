@@ -5,7 +5,7 @@ namespace xxx {
 	static std::string ast_str_recursive(const ast&, int, bool);
 	static std::string ast_xml_recursive(const ast&, int, int, int);
 
-	ast::ast() {
+	ast::ast() : result(nullptr) {
 	}
 
 	ast::ast(const grammar& g, FILE *fp) {
@@ -29,7 +29,9 @@ namespace xxx {
 	}
 
     void ast::transform() {
-        rule_pos->transform(this);
+        for(auto& child : children)
+            child.transform();
+        match_rule->transform(this);
     }
 
 	size_t ast::node_count() const {
@@ -84,30 +86,30 @@ namespace xxx {
 	}
 
     const var& ast::name() const {
-        return entry_pos->first;
+        return match_entry->first;
     }
 
     std::pair<ssize_t,ssize_t> ast::parse_recursive(const grammar& g, const var& my_name, const std::string& s, ssize_t my_offset) {
 
         offset = my_offset;
 
-        entry_pos = g.find(my_name);
+        match_entry = g.find(my_name);
 
-		if(entry_pos == g.end())
+		if(match_entry == g.end())
             throw std::runtime_error("grammar rule not found -- \"" + my_name + '"');
 
-		const auto& rules = entry_pos->second;
+		const auto& rs = match_entry->second;
 
-        for(rule_pos = rules.begin(); rule_pos != rules.end(); rule_pos++) {
+        for(match_rule = rs.begin(); match_rule != rs.end(); match_rule++) {
 
             children.clear();
 
-            if(rule_pos->type == rule_type::recursive) {
+            if(match_rule->type == rule_type::recursive) {
 
                 ssize_t current = offset;
                 bool success = true;
 
-                for(const predicate& p : rule_pos->recursive) {
+                for(const predicate& p : match_rule->recursive) {
 
                     size_t n;
 
@@ -122,17 +124,8 @@ namespace xxx {
                         if(next.first == -1)
                             break;
 
-                        if(p.modifier == predicate_modifier::push) {
-
+                        if(p.modifier == predicate_modifier::push)
                             children.push_back(y);
-
-                        } else if(p.modifier == predicate_modifier::lift) {
-
-                            if(y.rule_pos->type != rule_type::recursive)
-                                throw new std::runtime_error("attempting to lift non-recursive ast node");
-
-                            children.insert(children.end(), y.children.begin(), y.children.end());
-                        }
 
                         current = next.second;
                     }
@@ -158,7 +151,7 @@ namespace xxx {
                 boost::smatch matches;
                 std::string ms = s.substr(offset, std::string::npos);
 
-                if(boost::regex_search(ms, matches, rule_pos->regex)) {
+                if(boost::regex_search(ms, matches, match_rule->regex)) {
                     match = matches[matches.size() > 1 ? 1 : 0];
                     return std::pair<ssize_t,ssize_t>(offset,offset + matches[0].length());
                 }
@@ -178,11 +171,11 @@ namespace xxx {
 		else
 			ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.name();
 
-		switch(x.rule_pos->type) {
+		switch(x.match_rule->type) {
 
 			case rule_type::regex:
 
-                ss << ' ' << (char)x.rule_pos->type << "= " << x.match << std::endl;
+                ss << ' ' << (char)x.match_rule->type << "= " << x.match << std::endl;
                 break;
 
 			case rule_type::recursive:
@@ -228,7 +221,7 @@ namespace xxx {
 		if(tag == "document")
 			ss << ' ' << xmlns;
 
-		switch(x.rule_pos->type) {
+		switch(x.match_rule->type) {
 
 			case rule_type::regex:
 

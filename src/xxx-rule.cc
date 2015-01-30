@@ -51,7 +51,7 @@ namespace xxx {
         vars sig;
 
         for(const auto& p : recursive)
-            if(p.modifier == predicate_modifier::push or p.modifier == predicate_modifier::lift)
+            if(p.modifier == predicate_modifier::push)
                 sig.push_back(
                         p.quantifier == q::one      ? (p.name) :
                         p.quantifier == q::question ? (p.name + '?') :
@@ -82,7 +82,6 @@ namespace xxx {
 
             if(p.modifier != predicate_modifier::push) {
                 ss << (
-                        (p.modifier == predicate_modifier::lift         ) ? " << M::lift"          :
                         (p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
                         (p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
                         (p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");

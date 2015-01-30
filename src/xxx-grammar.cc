@@ -27,7 +27,7 @@ namespace xxx {
             for(const auto& r : x.second)
                 if(r.type == rule_type::recursive)
                     for(const auto& p : r.recursive)
-                        if(p.modifier == predicate_modifier::push or p.modifier == predicate_modifier::lift)
+                        if(p.modifier == predicate_modifier::push)
                             u.insert(p.name);
 
         return u;

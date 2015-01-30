@@ -54,7 +54,6 @@ namespace xxx {
 
 	enum struct predicate_modifier : char {
         push          = '=',
-        lift          = '^',
         discard       = '!',
         peek_positive = '>',
         peek_negative = '~'
@@ -144,8 +143,8 @@ namespace xxx {
 
 	struct ast {
 
-            grammar::const_iterator entry_pos;
-            rules::const_iterator rule_pos;
+            grammar::const_iterator match_entry;
+            rules::const_iterator match_rule;
 
             std::string match;
 
@@ -153,7 +152,7 @@ namespace xxx {
 
             ssize_t offset;
 
-            void *result;
+            void *result; // FIXME: cleanup this shit magically
 
             ast();
             ast(const grammar&, FILE *);

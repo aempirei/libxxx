@@ -51,11 +51,8 @@ namespace xxx {
                             auto iter = d.children.begin();
 
                             if(iter->name() == "modifier") {
-                                
-                                /**/ if(iter->match == "^") p.modifier = predicate_modifier::lift;
-                                else if(iter->match == "!") p.modifier = predicate_modifier::discard;
-                                else if(iter->match == ">") p.modifier = predicate_modifier::peek_positive;
-                                else if(iter->match == "~") p.modifier = predicate_modifier::peek_negative;
+
+                                p.modifier = (predicate_modifier)iter->match[0];
 
                                 iter++;
 
@@ -173,6 +170,10 @@ int main(int argc, char **argv) {
         ast a(local::grammar, fp);
 
         fclose(fp);
+
+        a.transform();
+
+        return 0;
 
         if(do_print_ast and not do_parse_input)
             std::cout << a.str() << std::endl;
