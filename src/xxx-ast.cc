@@ -113,36 +113,6 @@ namespace xxx {
 
 			switch(rule.type) {
 
-                case rule_type::literal:
-
-                    ms = s.substr(offset, rule.literal.length());
-
-                    if(ms != rule.literal) {
-                        success = false;
-                        break;
-                    }
-
-                    x.matches.resize(1);
-                    x.matches[0] = ms;
-                    current += x.matches[0].length();
-
-                    break;
-
-                case rule_type::builtin:
-
-                    ms = s.substr(offset, 1);
-
-                    if(ms.empty() or not rule.builtin(ms[0])) {
-                        success = false;
-                        break;
-                    }
-
-                    x.matches.resize(1);
-                    x.matches[0] = ms;
-                    current += x.matches[0].length();
-
-                    break;
-
 				case rule_type::regex:
 
 					ms = s.substr(offset, std::string::npos);
@@ -230,16 +200,17 @@ namespace xxx {
 
 		std::stringstream ss;
 
-		if(basic) {
-			ss << x.name;
-		} else {
+		if(basic)
+            ss << x.name;
+		else
 			ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.name;
-		}
+
 		switch(x.type) {
 
-            case rule_type::literal: ss << ' ' << '"' << "= " << x.matches[0] << std::endl; break;
-			case rule_type::builtin: ss << ' ' << '&' << "= " << x.matches[0] << std::endl; break;
-			case rule_type::regex  : ss << ' ' << '~' << "= " << x.matches[0] << std::endl; break;
+			case rule_type::regex:
+
+                ss << ' ' << (char)x.type << "= " << x.matches[0] << std::endl;
+                break;
 
 			case rule_type::recursive:
 
@@ -252,7 +223,6 @@ namespace xxx {
 					for(const auto& y : x.children)
 						ss << ast_str_recursive(y, depth + 2);
 				}
-
 				break;
 		}
 
@@ -287,8 +257,6 @@ namespace xxx {
 
 		switch(x.type) {
 
-			case rule_type::literal:
-			case rule_type::builtin:
 			case rule_type::regex:
 
 				content = x.matches[0];

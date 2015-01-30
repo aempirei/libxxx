@@ -21,6 +21,8 @@ namespace xxx {
     struct predicate;
     struct q;
 
+    class grammar;
+
 	using predicate_quantifier = std::pair<size_t,size_t>;
 
     using rules = std::list<rule>;
@@ -43,7 +45,13 @@ namespace xxx {
 	// predicate
 	//
 
-	enum struct predicate_modifier { push, lift, discard, peek_positive, peek_negative };
+	enum struct predicate_modifier : char {
+        push          = '=',
+        lift          = '^',
+        discard       = '!',
+        peek_positive = '>',
+        peek_negative = '~'
+    };
 
 	struct predicate {
 
@@ -62,12 +70,13 @@ namespace xxx {
 	// rule
 	//
 
-	enum struct rule_type { recursive, literal, regex, builtin };
+	enum struct rule_type : char {
+        recursive = ':',
+        regex     = '~'
+    };
 
 	struct rule {
 
-        using literal_type = std::string;
-        using builtin_type = decltype(&isalpha);
         using regex_type = boost::regex;
 
         using recursive_type = predicates;
@@ -79,8 +88,6 @@ namespace xxx {
 
 		recursive_type recursive;
 
-        literal_type literal;
-        builtin_type builtin;
         regex_type regex;
 
 		rule();
@@ -92,9 +99,6 @@ namespace xxx {
         rule(rule_type, std::string);
 
 		rule(const recursive_type&);
-
-		rule(const literal_type&);
-		rule(const builtin_type&);
 		rule(const regex_type&);
 
 		rule& operator<<(const var&);
@@ -112,9 +116,25 @@ namespace xxx {
 	// grammar
 	//
 
-	using grammar = std::map<var,rules>;
+	using _grammar = std::map<var,rules>;
+    class grammar : public _grammar {
 
-	std::string grammar_str(const grammar&);
+        public:
+
+            using _grammar::_grammar;
+
+            enum struct string_format_type {
+                xxx, cc, js
+            };
+
+            std::string to_s(string_format_type) const;
+
+        private:
+
+            std::string to_s_xxx() const;
+            std::string to_s_cc() const;
+            std::string to_s_js() const;
+    };
 
 	//
 	// ast

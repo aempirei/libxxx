@@ -2,32 +2,32 @@
 
 namespace xxx {
 
-	static std::string grammar_rules_str(const rules&);
+    std::string grammar::to_s(string_format_type type) const {
+        switch(type) {
+            default:
+            case string_format_type::xxx: return to_s_xxx(); break;
+            case string_format_type::js : return to_s_js (); break;
+            case string_format_type::cc : return to_s_cc (); break;
+        }
+    }
 
-	std::string grammar_str(const grammar& g) {
+	std::string grammar::to_s_js() const {
+        throw std::runtime_error("grammar::to_s_js() unimplemented");
+        return "";
+    }
+
+	std::string grammar::to_s_cc() const {
+        throw std::runtime_error("grammar::to_s_cc() unimplemented");
+        return "";
+    }
+
+	std::string grammar::to_s_xxx() const {
 
         std::stringstream ss;
 
-		for(const auto& x : g)
-            ss << x.first << " := " << grammar_rules_str(x.second) << std::endl;
-
-
-		return ss.str();
-	}
-
-	static std::string grammar_rules_str(const rules& rs) {
-
-		std::stringstream ss;
-
-        if(not rs.empty()) {
-
-            auto iter = rs.begin();
-
-            ss << iter->str();
-
-            while(++iter != rs.end())
-                ss << " / " << iter->str();
-		}
+        for(const auto& x : *this)
+            for(const auto& r : x.second)
+                ss << x.first << ' ' << (char)r.type << "= " << r.str() << std::endl;
 
 		return ss.str();
 	}

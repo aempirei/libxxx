@@ -1,15 +1,13 @@
 document    := ^_rule* !eof
 _rule       := !ws ^rule !eol
-rule        := recursive / regex / literal / builtin
+rule        := recursive / regex
 recursive   := name !_ !ceq !_ rules
 regex       := name !_ !req !_ regexre
-literal     := name !_ !leq !_ literalre
-builtin     := name !_ !beq !_ builtinre
 rules       := predicates !_ !fs !_ ^rules / predicates
 predicates  := predicate !_ ^predicates / predicate
 predicate   := modifier? name quantifier?
-fs          "= "/"
-qm          "= "?"
+fs          ~= /\//
+qm          ~= /\?/
 _           ~= /[ \t]+/
 eof         ~= /\z/
 eol         ~= /\s*(?:$|\z)/
@@ -17,10 +15,8 @@ modifier    ~= /[!^>~]/
 name        ~= /\w+/
 ws          ~= /\s*/
 quantifier  ~= /[*?+]/
-builtinre   ~= /\b\w+\b/
-literalre   ~= /"([^\n]*)"\s*$/
 regexre     ~= /\/((?:\/|[^\/\n])*)\/\s*$/
-ceq         "= ":="
-req         "= "~="
-leq         "= "\"="
-beq         "= "&="
+ceq         ~= /:=/
+req         ~= /~=/
+leq         ~= /"=/
+beq         ~= /&=/

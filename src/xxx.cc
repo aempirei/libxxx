@@ -14,6 +14,7 @@ extern "C" {
 #include <xxx-xxx.hh>
 
 namespace xxx {
+
     static grammar load_dynamic_grammar(const ast& a) {
 
         grammar g;
@@ -24,12 +25,14 @@ namespace xxx {
 
                 const auto& name = b.children[0].matches[0];
 
-                /**/ if(b.name == "literal"  ) g[name] = { rule(rule_type::literal, b.children[1].matches[0]) };
-                else if(b.name == "builtin"  ) g[name] = { rule(rule_type::builtin, b.children[1].matches[0]) };
-                else if(b.name == "regex"    ) g[name] = { rule(rule_type::regex  , b.children[1].matches[0]) };
-                else if(b.name == "recursive") {
-
+                if(g.find(name) == g.end())
                     g[name] = {};
+
+                if(b.name == "regex") {
+
+                    g.at(name).push_back(rule(rule_type::regex, b.children[1].matches[0]));
+
+                } else {
 
                     // ordered
 
@@ -78,12 +81,8 @@ namespace xxx {
                             r << p;
                         }
 
-                        g[name].push_back(r);
+                        g.at(name).push_back(r);
                     }
-                } else {
-                    std::stringstream ss;
-                    ss << "unexpected rule type " << b.name << " in load_dynamic_grammar";
-                    throw std::runtime_error(ss.str());
                 }
             }
         }
@@ -106,15 +105,7 @@ namespace xxx {
 
 				const auto& name = b.children[0].matches[0];
 
-				if(b.name == "literal") {
-
-					ss << "\t\tg[\"" << name << "\"] = { rule(rule_type::literal, \"" << b.children[1].matches[0] << "\") };" << std::endl;
-
-                } else if(b.name == "builtin") {
-
-					ss << "\t\tg[\"" << name << "\"] = { rule(" << b.children[1].matches[0] << ") };" << std::endl;
-
-                } else if(b.name == "regex") {
+                if(b.name == "regex") {
 
 					const auto& regexstr = b.children[1].matches[0];
 
@@ -294,7 +285,7 @@ int main(int argc, char **argv) {
     grammar g = define_grammar();
 
     if(do_print_grammar and not do_parse_input)
-        std::cout << grammar_str(g);
+        std::cout << g.to_s(grammar::string_format_type::xxx);
 
     if(do_load_grammar) {
 
@@ -321,7 +312,7 @@ int main(int argc, char **argv) {
             ast b(h, stdin);
 
             if(do_print_grammar)
-                std::cout << grammar_str(h);
+                std::cout << h.to_s(grammar::string_format_type::xxx);
 
             if(do_print_ast)
                 std::cout << b.str() << std::endl;

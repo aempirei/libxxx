@@ -2,38 +2,6 @@
 
 namespace xxx {
 
-    static const std::map<rule::builtin_type, const char *> builtin_to_c_str = {
-        { isalnum , "isalnum"  },
-        { isalpha , "isalpha"  },
-        { iscntrl , "iscntrl"  },
-        { isdigit , "isdigit"  },
-        { isgraph , "isgraph"  },
-        { islower , "islower"  },
-        { isprint , "isprint"  },
-        { ispunct , "ispunct"  },
-        { isspace , "isspace"  },
-        { isupper , "isupper"  },
-        { isxdigit, "isxdigit" },
-        { isascii , "isascii"  },
-        { isblank , "isblank"  }
-    };
-
-    static const std::map<std::string, rule::builtin_type> string_to_builtin = {
-        { "isalnum" , isalnum  },
-        { "isalpha" , isalpha  },
-        { "iscntrl" , iscntrl  },
-        { "isdigit" , isdigit  },
-        { "isgraph" , isgraph  },
-        { "islower" , islower  },
-        { "isprint" , isprint  },
-        { "ispunct" , ispunct  },
-        { "isspace" , isspace  },
-        { "isupper" , isupper  },
-        { "isxdigit", isxdigit },
-        { "isascii" , isascii  },
-        { "isblank" , isblank  }
-    };
-
 	std::string rule::str() const {
 
         std::stringstream ss;
@@ -52,16 +20,6 @@ namespace xxx {
                         ss << ' ' << iter->str();
                 }
 
-                break;
-
-            case rule_type::literal:
-
-                ss << '\'' << literal << '\'';
-                break;
-
-            case rule_type::builtin:
-
-                ss << builtin_to_c_str.at(builtin) << "()";
                 break;
 
             case rule_type::regex:
@@ -99,16 +57,6 @@ namespace xxx {
 
         switch(type) {
 
-            case rule_type::literal:
-
-                literal = s;
-                break;
-
-            case rule_type::builtin:
-
-                builtin = string_to_builtin.at(s);
-                break;
-
             case rule_type::regex:
 
                 regex.assign("\\A" + s, boost::regex::perl);
@@ -124,8 +72,6 @@ namespace xxx {
     rule::rule(const hint& h) : rule(h.first, h.second) {
     }
 
-	rule::rule(const   literal_type& x) : rule(rule_type::literal  ) { literal   = x; }
-	rule::rule(const   builtin_type& x) : rule(rule_type::builtin  ) { builtin   = x; }
 	rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
 	rule::rule(const recursive_type& x) : rule(rule_type::recursive) { recursive = x; }
 
