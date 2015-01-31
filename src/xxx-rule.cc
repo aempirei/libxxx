@@ -53,8 +53,8 @@ namespace xxx {
         for(const auto& p : recursive)
             if(p.modifier == predicate_modifier::push)
                 sig.push_back(
-                        p.quantifier == q::one      ? (p.name) :
-                        p.quantifier == q::question ? (p.name + '?') :
+                        p.quantifier == Q::one      ? (p.name) :
+                        p.quantifier == Q::question ? (p.name + '?') :
                                                       ('[' + p.name + ']')
                 );
 
@@ -73,11 +73,11 @@ namespace xxx {
         for(const auto& p : recursive) {
             ss << " << \"" << p.name << '\"';
 
-            if(p.quantifier != q::one) {
+            if(p.quantifier != Q::one) {
                 ss << (
-                        (p.quantifier == q::star    ) ? " << q::star"     :
-                        (p.quantifier == q::plus    ) ? " << q::plus"     :
-                        (p.quantifier == q::question) ? " << q::question" : "");
+                        (p.quantifier == Q::star    ) ? " << Q::star"     :
+                        (p.quantifier == Q::plus    ) ? " << Q::plus"     :
+                        (p.quantifier == Q::question) ? " << Q::question" : "");
             }
 
             if(p.modifier != predicate_modifier::push) {

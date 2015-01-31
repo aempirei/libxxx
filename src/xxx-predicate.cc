@@ -2,10 +2,10 @@
 
 namespace xxx {
 
-	predicate::predicate() : quantifier(q::one), modifier(predicate_modifier::push) {
+	predicate::predicate() : quantifier(Q::one), modifier(predicate_modifier::push) {
 	}
 
-	predicate::predicate(const std::string& my_name) : name(my_name), quantifier(q::one), modifier(predicate_modifier::push) {
+	predicate::predicate(const std::string& my_name) : name(my_name), quantifier(Q::one), modifier(predicate_modifier::push) {
 	}
 
 	std::string predicate::str() const {
@@ -17,10 +17,10 @@ namespace xxx {
 
 		ss << name;
 
-		/**/ if(quantifier == q::one     ) /* NOP */;
-		else if(quantifier == q::star    ) ss << '*';
-		else if(quantifier == q::plus    ) ss << '+';
-		else if(quantifier == q::question) ss << '?';
+		/**/ if(quantifier == Q::one     ) /* NOP */;
+		else if(quantifier == Q::star    ) ss << '*';
+		else if(quantifier == Q::plus    ) ss << '+';
+		else if(quantifier == Q::question) ss << '?';
 
 		else if(quantifier.first  == quantifier.second) ss << '{' << quantifier.first                             << '}';
 		else                                            ss << '{' << quantifier.first << ',' << quantifier.second << '}';

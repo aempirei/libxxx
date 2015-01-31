@@ -21,7 +21,7 @@ namespace xxx {
     struct predicate;
     struct rule;
     struct ast;
-    struct q;
+    struct Q;
 
     class grammar;
 
@@ -37,7 +37,7 @@ namespace xxx {
     
     inline void empty_transform(ast *, void *) { }
 
-    struct q {
+    struct Q {
 
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
@@ -162,6 +162,8 @@ namespace xxx {
             std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
 
             void *transform();
+
+            void transform(void *);
 
             const var& name() const;
 

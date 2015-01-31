@@ -28,9 +28,13 @@ namespace xxx {
 
 	}
 
+    void ast::transform(void *x) {
+        match_rule->transform(this, x);
+    }
+
     void *ast::transform() {
         void *result;
-        match_rule->transform(this, &result);
+        transform(&result);
         return result;
     }
 

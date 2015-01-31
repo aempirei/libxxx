@@ -67,12 +67,12 @@ namespace xxx {
 
                             if(iter != d.children.end() and iter->name() == "quantifier") {
 
-                                /**/ if(iter->match == "*") p.quantifier = q::star;
-                                else if(iter->match == "+") p.quantifier = q::plus;
-                                else if(iter->match == "?") p.quantifier = q::question;
+                                /**/ if(iter->match == "*") p.quantifier = Q::star;
+                                else if(iter->match == "+") p.quantifier = Q::plus;
+                                else if(iter->match == "?") p.quantifier = Q::question;
 
                             } else {
-                                p.quantifier = q::one;
+                                p.quantifier = Q::one;
                             }
 
                             r << p;
