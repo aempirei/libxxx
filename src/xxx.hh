@@ -2,7 +2,6 @@
 
 #include <map>
 #include <set>
-#include <list>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -16,28 +15,38 @@
 
 #include <boost/regex.hpp>
 
+#define plural(x) using x##s = std::vector<x>
+
 namespace xxx {
 
+    struct predicate_quantifier;
     struct predicate;
+    struct grammar;
     struct rule;
-    struct ast;
-    struct Q;
-
-    class grammar;
-
-	using predicate_quantifier = std::pair<size_t,size_t>;
-
-    using rules = std::vector<rule>;
-    using predicates = std::list<predicate>;
+    struct tree;
 
     using var = std::string;
-    using vars = std::list<var>;
 
-    using transform_function = void(ast *, void *);
-    
-    inline void empty_transform(ast *, void *) { }
+    plural(predicate);  // predicates
+    plural(rule);       // rules
+    plural(tree);       // trees
+    plural(var);        // vars
 
-    struct Q {
+    using transform_function = void(tree *, void *);
+
+    inline void empty_transform(tree *, void *) { }
+
+    //
+    // predicate
+    //
+
+    enum struct predicate_modifier : char { push = '=', peek = '>', discard = '!' };
+
+    using _predicate_quantifier = std::pair<size_t,size_t>;
+
+    struct predicate_quantifier : _predicate_quantifier {
+
+        using _predicate_quantifier::_predicate_quantifier;
 
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
@@ -48,127 +57,111 @@ namespace xxx {
         static predicate_quantifier upper(size_t);
     };
 
-	//
-	// predicate
-	//
+    struct predicate {
 
-	enum struct predicate_modifier : char {
-        push          = '=',
-        discard       = '!',
-        peek_positive = '>',
-        peek_negative = '~'
+        var name;
+
+        predicate_quantifier quantifier;
+        predicate_modifier modifier;
+
+        predicate();
+        predicate(const var&);
+
+        size_t upper() const;
+        size_t lower() const;
+
+        std::string str() const;
     };
 
-	struct predicate {
+    //
+    // rule
+    //
 
-		var name;
+    enum struct rule_type : char { composite = ':', terminal  = '~' };
 
-		predicate_quantifier quantifier;
-		predicate_modifier modifier;
+    struct rule {
 
-		predicate();
-		predicate(const var&);
+        using terminal_type = boost::regex;
+        using composite_type = predicates;
 
-		std::string str() const;
-	};
+        rule_type type;
 
-	//
-	// rule
-	//
-
-	enum struct rule_type : char {
-        recursive = ':',
-        regex     = '~'
-    };
-
-	struct rule {
-
-        using regex_type = boost::regex;
-        using recursive_type = predicates;
-
-		rule_type type;
-
-		recursive_type recursive;
-        regex_type regex;
+        composite_type composite;
+        terminal_type terminal;
 
         transform_function *transform;
 
-		rule();
+        rule();
         rule(rule_type);
-		rule(const recursive_type&);
-		rule(const regex_type&);
+        rule(const composite_type&);
+        rule(const terminal_type&);
 
-		rule& operator<<(const var&);
-		rule& operator<<(predicate_modifier);
-		rule& operator<<(const predicate_quantifier&);
-		rule& operator<<(const predicate&);
+        rule& operator<<(const var&);
+        rule& operator<<(predicate_modifier);
+        rule& operator<<(const predicate_quantifier&);
+        rule& operator<<(const predicate&);
+
         rule& operator>>(transform_function *);
 
-		std::string str() const;
+        std::string str() const;
 
         std::string to_cc() const;
 
         vars to_sig() const;
-	};
+    };
 
-	//
-	// grammar
-	//
+    //
+    // grammar
+    //
 
-	using _grammar = std::map<var,rules>;
-    class grammar : public _grammar {
+    using _grammar = std::map<var,rules>;
 
-        public:
+    struct grammar : _grammar {
 
             using _grammar::_grammar;
 
-            enum struct string_format_type {
-                xxx, cc, js
-            };
-
-            std::string to_s(string_format_type) const;
-
             std::set<var> appendix() const;
 
-        private:
-
-            std::string to_s_xxx() const;
-            std::string to_s_cc() const;
-            std::string to_s_js() const;
+            std::string to_xxx() const;
+            std::string to_cc() const;
+            std::string to_js() const;
     };
 
-	//
-	// ast
-	//
+    //
+    // tree
+    //
 
-	struct ast {
+    struct tree {
 
-            grammar::const_iterator match_entry;
-            rules::const_iterator match_rule;
+        grammar::const_iterator match_def;
+        rules::const_iterator match_rule;
 
-            std::string match;
+        std::string match;
 
-            std::vector<ast> children;
+        trees children;
 
-            ssize_t offset;
+        ssize_t offset;
 
-            ast();
-            ast(const grammar&, FILE *);
-            ast(const grammar&, const std::string&);
+        tree();
+        tree(const grammar&, FILE *);
+        tree(const grammar&, const std::string&);
 
-            void parse(const grammar&, FILE *);
-            void parse(const grammar&, const std::string&);
+        void parse(const grammar&, FILE *);
+        void parse(const grammar&, const std::string&);
 
-            std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
+        std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
 
-            void transform(void *);
+        void transform(void *);
 
-            const var& name() const;
+        const var& match_name() const;
+        rule_type match_type() const;
 
-            size_t node_count() const;
-            size_t leaf_count() const;
+        size_t node_count() const;
+        size_t leaf_count() const;
 
-            std::string str() const;
-            std::string xml() const;
-	};
+        std::string str() const;
+        std::string xml() const;
+    };
 }
+
+#undef plural

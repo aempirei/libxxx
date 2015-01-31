@@ -32,7 +32,7 @@ static void usage(const char *arg0) {
 
     usageline('h', nullptr   , "show this help"       );
     usageline('p', nullptr   , "display grammar"      );
-    usageline('a', nullptr   , "display ast"          );
+    usageline('a', nullptr   , "display parse tree"   );
     usageline('x', nullptr   , "display xml"          );
     usageline('c', nullptr   , "display code"         );
     usageline('i', nullptr   , "parse stdin"          );
@@ -45,12 +45,12 @@ static void usage(const char *arg0) {
 
 int main(int argc, char **argv) {
 
-    bool do_print_code		= false;
-    bool do_print_xml		= false;
-    bool do_print_grammar	= false;
-    bool do_load_grammar	= false;
-    bool do_print_ast		= false;
-    bool do_parse_input		= false;
+    bool do_print_code      = false;
+    bool do_print_xml       = false;
+    bool do_print_grammar   = false;
+    bool do_load_grammar    = false;
+    bool do_print_tree      = false;
+    bool do_parse_input     = false;
 
     const char *filename = nullptr;
 
@@ -65,12 +65,12 @@ int main(int argc, char **argv) {
 
         switch (opt) {
 
-            case 'g': do_load_grammar	= true; filename = optarg;	break;
-            case 'a': do_print_ast		= true;						break;
-            case 'x': do_print_xml		= true;						break;
-            case 'p': do_print_grammar	= true;						break;
-            case 'c': do_print_code		= true;						break;
-            case 'i': do_parse_input	= true;						break;
+            case 'g': do_load_grammar   = true; filename = optarg;  break;
+            case 'a': do_print_tree     = true;                     break;
+            case 'x': do_print_xml      = true;                     break;
+            case 'p': do_print_grammar  = true;                     break;
+            case 'c': do_print_code     = true;                     break;
+            case 'i': do_parse_input    = true;                     break;
 
             case 'h':
             case '?':
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     }
 
     if(do_print_grammar and not do_parse_input)
-        std::cout << local::grammar.to_s(grammar::string_format_type::xxx);
+        std::cout << local::spec.to_xxx();
 
     if(do_load_grammar) {
 
@@ -92,11 +92,11 @@ int main(int argc, char **argv) {
             return -1;
         }
 
-        ast a(local::grammar, fp);
+        tree a(local::spec, fp);
 
         fclose(fp);
 
-        if(do_print_ast and not do_parse_input)
+        if(do_print_tree and not do_parse_input)
             std::cout << a.str() << std::endl;
 
         grammar h;
@@ -104,16 +104,16 @@ int main(int argc, char **argv) {
         a.transform(&h);
 
         if(do_print_code)
-            std::cout << h.to_s(grammar::string_format_type::cc);
+            std::cout << h.to_cc();
 
         if(do_parse_input) {
 
-            ast b(h, stdin);
+            tree b(h, stdin);
 
             if(do_print_grammar)
-                std::cout << h.to_s(grammar::string_format_type::xxx);
+                std::cout << h.to_xxx();
 
-            if(do_print_ast)
+            if(do_print_tree)
                 std::cout << b.str() << std::endl;
 
             if(do_print_xml)

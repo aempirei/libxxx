@@ -2,17 +2,8 @@
 
 namespace xxx {
 
-    std::string grammar::to_s(string_format_type type) const {
-        switch(type) {
-            default:
-            case string_format_type::xxx: return to_s_xxx(); break;
-            case string_format_type::js : return to_s_js (); break;
-            case string_format_type::cc : return to_s_cc (); break;
-        }
-    }
-
-    std::string grammar::to_s_js() const {
-        throw std::runtime_error("grammar::to_s_js() unimplemented");
+    std::string grammar::to_js() const {
+        throw std::runtime_error("grammar::to_js() unimplemented");
         return "";
     }
 
@@ -25,20 +16,20 @@ namespace xxx {
 
         for(const auto& x : *this)
             for(const auto& r : x.second)
-                if(r.type == rule_type::recursive)
-                    for(const auto& p : r.recursive)
+                if(r.type == rule_type::composite)
+                    for(const auto& p : r.composite)
                         if(p.modifier == predicate_modifier::push)
                             u.insert(p.name); 
 
         return u;
     }
 
-	std::string grammar::to_s_cc() const {
+	std::string grammar::to_cc() const {
 
         std::stringstream ss;
 
         ss << "#pragma once" << std::endl;
-        ss << "#define R(s) rule(rule::regex_type(s))" << std::endl;
+        ss << "#define R(s) rule(rule::terminal_type(s))" << std::endl;
 
         ss << std::endl;
 
@@ -48,6 +39,7 @@ namespace xxx {
         ss << std::endl;
 
         ss << "\t\tusing M = predicate_modifier;" << std::endl;
+        ss << "\t\tusing Q = predicate_quantifier;" << std::endl;
 
         ss << std::endl;
 
@@ -67,7 +59,7 @@ namespace xxx {
         // grammar definition
         //
 
-        ss << "\t\txxx::grammar grammar = xxx::grammar({" << std::endl;
+        ss << "\t\tgrammar spec = grammar({" << std::endl;
 
         size_t w = 0;
 
@@ -127,7 +119,7 @@ namespace xxx {
 
                 const auto& r = rs[n];
 
-                ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(ast *a, void *x) {" << std::endl;
+                ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(tree *a, void *x) {" << std::endl;
 
                 ss << "\t\t\t//";
 
@@ -152,7 +144,7 @@ namespace xxx {
         return ss.str();
     }
 
-	std::string grammar::to_s_xxx() const {
+	std::string grammar::to_xxx() const {
 
         std::stringstream ss;
 

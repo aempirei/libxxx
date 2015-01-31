@@ -8,23 +8,23 @@ namespace xxx {
 
         switch(type) {
 
-            case rule_type::recursive:
+            case rule_type::composite:
 
-                if(not recursive.empty()) {
+                if(not composite.empty()) {
 
-                    auto iter = recursive.begin();
+                    auto iter = composite.begin();
 
                     ss << iter->str();
 
-                    while(++iter != recursive.end())
+                    while(++iter != composite.end())
                         ss << ' ' << iter->str();
                 }
 
                 break;
 
-            case rule_type::regex:
+            case rule_type::terminal:
 
-                ss << '/' << regex.str().substr(2,std::string::npos) << '/';
+                ss << '/' << terminal.str().substr(2,std::string::npos) << '/';
                 break;
         }
 
@@ -45,16 +45,16 @@ namespace xxx {
 
     vars rule::to_sig() const {
 
-        if(type == rule_type::regex)
+        if(type == rule_type::terminal)
             return { "std::string" };
 
         vars sig;
 
-        for(const auto& p : recursive)
+        for(const auto& p : composite)
             if(p.modifier == predicate_modifier::push)
                 sig.push_back(
-                        p.quantifier == Q::one      ? (p.name) :
-                        p.quantifier == Q::question ? (p.name + '?') :
+                        p.quantifier == predicate_quantifier::one      ? (p.name) :
+                        p.quantifier == predicate_quantifier::question ? (p.name + '?') :
                                                       ('[' + p.name + ']')
                 );
 
@@ -63,29 +63,22 @@ namespace xxx {
 
     std::string rule::to_cc() const {
 
-        if(type == rule_type::regex)
-            return "R(" + to_cstring(regex.str()) + ")";
+        if(type == rule_type::terminal)
+            return "R(" + to_cstring(terminal.str()) + ")";
 
         std::stringstream ss;
 
         ss << "rule()";
 
-        for(const auto& p : recursive) {
+        for(const auto& p : composite) {
             ss << " << \"" << p.name << '\"';
 
-            if(p.quantifier != Q::one) {
-                ss << (
-                        (p.quantifier == Q::star    ) ? " << Q::star"     :
-                        (p.quantifier == Q::plus    ) ? " << Q::plus"     :
-                        (p.quantifier == Q::question) ? " << Q::question" : "");
-            }
+            ss << ( (p.quantifier == predicate_quantifier::star    ) ? " << Q::star"     :
+                    (p.quantifier == predicate_quantifier::plus    ) ? " << Q::plus"     :
+                    (p.quantifier == predicate_quantifier::question) ? " << Q::question" : "" );
 
-            if(p.modifier != predicate_modifier::push) {
-                ss << (
-                        (p.modifier == predicate_modifier::discard      ) ? " << M::discard"       :
-                        (p.modifier == predicate_modifier::peek_positive) ? " << M::peek_positive" :
-                        (p.modifier == predicate_modifier::peek_negative) ? " << M::peek_negative" : "");
-            }
+            ss << ( (p.modifier == predicate_modifier::discard) ? " << M::discard" :
+                    (p.modifier == predicate_modifier::peek   ) ? " << M::peek"    : "" );
         }
 
         return ss.str();
@@ -95,14 +88,17 @@ namespace xxx {
     // rule::rule
     //
 
-    rule::rule() : rule(rule_type::recursive) {
+    rule::rule() : rule(rule_type::composite) {
     }
 
     rule::rule(rule_type my_type) : type(my_type), transform(empty_transform) {
     }
 
-    rule::rule(const     regex_type& x) : rule(rule_type::regex    ) { regex     = x; }
-    rule::rule(const recursive_type& x) : rule(rule_type::recursive) { recursive = x; }
+    rule::rule(const terminal_type& my_terminal) : type(rule_type::terminal), terminal(my_terminal), transform(empty_transform) {
+    }
+
+    rule::rule(const composite_type& my_composite) : type(rule_type::composite), composite(my_composite), transform(empty_transform) {
+    }
 
     //
     // rule::operator>>
@@ -123,36 +119,36 @@ namespace xxx {
 
     rule& rule::operator<<(const predicate& x) {
 
-        if(type != rule_type::recursive)
-            throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
+        if(type != rule_type::composite)
+            throw std::runtime_error("rule::type is not rule_type::composite in rule::operator<<");
 
-        recursive.push_back(predicate(x));
+        composite.push_back(predicate(x));
 
         return *this;
     }
 
     rule& rule::operator<<(predicate_modifier x) {
 
-        if(type != rule_type::recursive)
-            throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
+        if(type != rule_type::composite)
+            throw std::runtime_error("rule::type is not rule_type::composite in rule::operator<<");
 
-        if(recursive.empty())
-            throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+        if(composite.empty())
+            throw std::runtime_error("cannot assign quantifier to last predicate--composite rule is empty");
 
-        recursive.back().modifier = x;
+        composite.back().modifier = x;
 
         return *this;
     }
 
     rule& rule::operator<<(const predicate_quantifier& x) {
 
-        if(type != rule_type::recursive)
-            throw std::runtime_error("rule::type is not rule_type::recursive in rule::operator<<");
+        if(type != rule_type::composite)
+            throw std::runtime_error("rule::type is not rule_type::composite in rule::operator<<");
 
-        if(recursive.empty())
-            throw std::runtime_error("cannot assign quantifier to last predicate--recursive rule is empty");
+        if(composite.empty())
+            throw std::runtime_error("cannot assign quantifier to last predicate--composite rule is empty");
 
-        recursive.back().quantifier = x;
+        composite.back().quantifier = x;
 
         return *this;
     }

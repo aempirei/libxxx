@@ -4,8 +4,8 @@ CXXFLAGS = -Wall -pedantic -std=gnu++11 -O3
 LIBFLAGS = -Llib -lxxx -lboost_regex
 TARGETS = lib/libxxx.a bin/xxx
 INSTALL_PATH = /usr/local
-SOURCES = src/xxx-ast.cc src/xxx-rule.cc src/xxx-predicate.cc src/xxx-grammar.cc src/xxx-q.cc
-OBJECTS = src/xxx-ast.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o src/xxx-q.o
+SOURCES = src/xxx-tree.cc src/xxx-rule.cc src/xxx-predicate.cc src/xxx-grammar.cc
+OBJECTS = src/xxx-tree.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o
 
 .PHONY: all clean install test library
 

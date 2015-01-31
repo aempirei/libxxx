@@ -1,10 +1,11 @@
 #pragma once
-#define R(s) rule(rule::regex_type(s))
+#define R(s) rule(rule::terminal_type(s))
 
 namespace xxx {
 	namespace local {
 
 		using M = predicate_modifier;
+        using Q = predicate_quantifier;
 
 		transform_function   document_transform_1;
 		transform_function      entry_transform_1;
@@ -22,7 +23,7 @@ namespace xxx {
 		transform_function      rules_transform_1;
 		transform_function      rules_transform_2;
 
-		xxx::grammar grammar = xxx::grammar({
+		grammar spec = grammar({
 			{ "_"         , { R("\\A[ \\t]+") } },
 			{ "beq"       , { R("\\A&=") } },
 			{ "ceq"       , { R("\\A:=") } },
@@ -59,11 +60,11 @@ namespace xxx {
         using entry_type = std::pair<var,rules>;
         using result_type = void *;
 
-		void document_transform_1(ast *a, void *x) {
+		void document_transform_1(tree *a, void *x) {
 
 			// [line]
 
-            xxx::grammar *g = (xxx::grammar *)x;
+            grammar *g = (grammar *)x;
 
             g->clear();
 
@@ -82,36 +83,36 @@ namespace xxx {
             }
 		}
 
-		void entry_transform_1(ast *a, void *x) {
+		void entry_transform_1(tree *a, void *x) {
 			// recursive
             a->children.front().transform(x);
 		}
 
-		void entry_transform_2(ast *a, void *x) {
+		void entry_transform_2(tree *a, void *x) {
 			// regex
             a->children.front().transform(x);
 		}
 
-		void line_transform_1(ast *a, void *x) {
+		void line_transform_1(tree *a, void *x) {
 			// entry
             a->children.front().transform(x);
 		}
 
-		void modifier_transform_1(ast *a, void *x) {
+		void modifier_transform_1(tree *a, void *x) {
 			// std::string
             *(predicate_modifier *)x = predicate_modifier(a->match[0]);
 		}
 
-		void name_transform_1(ast *a, void *x) {
+		void name_transform_1(tree *a, void *x) {
 			// std::string
             *(std::string *)x = a->match;
 		}
 
-		void predicate_transform_1(ast *a, void *x) {
+		void predicate_transform_1(tree *a, void *x) {
 			// modifier? name quantifier?
             auto iter = a->children.begin();
 
-            if(iter->name() == "modifier") {
+            if(iter->match_name() == "modifier") {
                 iter->transform(&((predicate *)x)->modifier);
                 iter++;
             }
@@ -122,20 +123,20 @@ namespace xxx {
                 iter->transform(&((predicate *)x)->quantifier);
 		}
 
-		void predicates_transform_1(ast *a, void *x) {
+		void predicates_transform_1(tree *a, void *x) {
 			// predicate predicates
             predicates_transform_2(a,x);
             a->children.back().transform(x);
 		}
 
-		void predicates_transform_2(ast *a, void *x) {
+		void predicates_transform_2(tree *a, void *x) {
 			// predicate
             predicate p;
             a->children.front().transform(&p);
             ((predicates *)x)->push_back(p);
 		}
 
-        void quantifier_transform_1(ast *a, void *x) {
+        void quantifier_transform_1(tree *a, void *x) {
             // std::string
             *(predicate_quantifier *)x = a->match == "*" ? Q::star :
                                          a->match == "+" ? Q::plus :
@@ -143,34 +144,34 @@ namespace xxx {
                                                            Q::one;
 		}
 
-        void recursive_transform_1(ast *a, void *x) {
+        void recursive_transform_1(tree *a, void *x) {
             // name rules
             entry_type& entry = *(entry_type *)x;
             a->children.front().transform(&entry.first);
             a->children.back().transform(&entry.second);
 		}
 
-		void regex_transform_1(ast *a, void *x) {
+		void regex_transform_1(tree *a, void *x) {
 			// name regexre
             entry_type& entry = *(entry_type *)x;
-            rule::regex_type re;
+            rule::terminal_type re;
             a->children.front().transform(&entry.first);
             a->children.back().transform(&re);
             entry.second.push_back(re);
 		}
 
-		void regexre_transform_1(ast *a, void *x) {
+		void regexre_transform_1(tree *a, void *x) {
 			// std::string
-            *(rule::regex_type *)x = "\\A" + a->match;
+            *(rule::terminal_type *)x = "\\A" + a->match;
 		}
 
-		void rules_transform_1(ast *a, void *x) {
+		void rules_transform_1(tree *a, void *x) {
 			// predicates rules
             rules_transform_2(a,x);
             a->children.back().transform(x);
 		}
 
-		void rules_transform_2(ast *a, void *x) {
+		void rules_transform_2(tree *a, void *x) {
 			// predicates
             predicates ps;
             a->children.front().transform(&ps);
