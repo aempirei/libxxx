@@ -6,21 +6,21 @@ namespace xxx {
 
 		using M = predicate_modifier;
 
-		transform_function document_transform_1;
-		transform_function entry_transform_1;
-		transform_function entry_transform_2;
-		transform_function line_transform_1;
-		transform_function modifier_transform_1;
-		transform_function name_transform_1;
-		transform_function predicate_transform_1;
+		transform_function   document_transform_1;
+		transform_function      entry_transform_1;
+		transform_function      entry_transform_2;
+		transform_function       line_transform_1;
+		transform_function   modifier_transform_1;
+		transform_function       name_transform_1;
+		transform_function  predicate_transform_1;
 		transform_function predicates_transform_1;
 		transform_function predicates_transform_2;
 		transform_function quantifier_transform_1;
-		transform_function recursive_transform_1;
-		transform_function regex_transform_1;
-		transform_function regexre_transform_1;
-		transform_function rules_transform_1;
-		transform_function rules_transform_2;
+		transform_function  recursive_transform_1;
+		transform_function      regex_transform_1;
+		transform_function    regexre_transform_1;
+		transform_function      rules_transform_1;
+		transform_function      rules_transform_2;
 
 		xxx::grammar grammar = xxx::grammar({
 			{ "_"         , { R("\\A[ \\t]+") } },
@@ -109,9 +109,6 @@ namespace xxx {
 
 		void predicate_transform_1(ast *a, void *x) {
 			// modifier? name quantifier?
-            var name;
-            predicate_quantifier q;
-
             auto iter = a->children.begin();
 
             if(iter->name() == "modifier") {
@@ -127,9 +124,7 @@ namespace xxx {
 
 		void predicates_transform_1(ast *a, void *x) {
 			// predicate predicates
-            predicate p;
-            a->children.front().transform(&p);
-            ((predicates *)x)->push_back(p);
+            predicates_transform_2(a,x);
             a->children.back().transform(x);
 		}
 
@@ -171,9 +166,7 @@ namespace xxx {
 
 		void rules_transform_1(ast *a, void *x) {
 			// predicates rules
-            predicates ps;
-            a->children.front().transform(&ps);
-            ((rules *)x)->push_back(ps);
+            rules_transform_2(a,x);
             a->children.back().transform(x);
 		}
 
