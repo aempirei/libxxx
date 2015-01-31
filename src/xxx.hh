@@ -161,8 +161,6 @@ namespace xxx {
 
             std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
 
-            void *transform();
-
             void transform(void *);
 
             const var& name() const;

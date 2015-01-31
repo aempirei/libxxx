@@ -63,10 +63,9 @@ namespace xxx {
 
 			// [line]
 
-            xxx::grammar *g = new xxx::grammar();
+            xxx::grammar *g = (xxx::grammar *)x;
 
-            result_type& result = *(result_type *)x;
-            result = (result_type)g;
+            g->clear();
 
             for(auto& child : a->children) {
 

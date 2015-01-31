@@ -32,12 +32,6 @@ namespace xxx {
         match_rule->transform(this, x);
     }
 
-    void *ast::transform() {
-        void *result;
-        transform(&result);
-        return result;
-    }
-
 	size_t ast::node_count() const {
 		return sum(1, 1, children, &ast::node_count);
 	}

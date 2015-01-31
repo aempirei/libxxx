@@ -13,81 +13,6 @@ extern "C" {
 #include <xxx.hh>
 #include <xxx-xxx.hh>
 
-namespace xxx {
-
-    static grammar load_dynamic_grammar(const ast& a) {
-
-        grammar g;
-
-        if(a.name() == "document") {
-
-            for(const auto& b : a.children) {
-
-                const auto& name = b.children[0].match;
-
-                if(g.find(name) == g.end())
-                    g[name] = {};
-
-                if(b.name() == "regex") {
-
-                    g.at(name).push_back(rule::regex_type("\\A" + b.children[1].match));
-
-                } else {
-
-                    // ordered
-
-                    for(const auto& c : b.children[1].children) {
-
-                        // predicates
-
-                        rule r;
-
-                        for(const auto& d : c.children) {
-
-                            // predicate
-
-                            predicate p;
-
-                            auto iter = d.children.begin();
-
-                            if(iter->name() == "modifier") {
-
-                                p.modifier = (predicate_modifier)iter->match[0];
-
-                                iter++;
-
-                            } else {
-                                p.modifier = predicate_modifier::push;
-                            }
-
-                            if(iter->name() == "name") {
-                                p.name = iter->match;
-                                iter++;
-                            }
-
-                            if(iter != d.children.end() and iter->name() == "quantifier") {
-
-                                /**/ if(iter->match == "*") p.quantifier = Q::star;
-                                else if(iter->match == "+") p.quantifier = Q::plus;
-                                else if(iter->match == "?") p.quantifier = Q::question;
-
-                            } else {
-                                p.quantifier = Q::one;
-                            }
-
-                            r << p;
-                        }
-
-                        g.at(name).push_back(r);
-                    }
-                }
-            }
-        }
-
-        return g;
-    }
-}
-
 using namespace xxx;
 
 #define FLAG '\t' << std::left << std::setw(18)
@@ -171,18 +96,12 @@ int main(int argc, char **argv) {
 
         fclose(fp);
 
-        grammar *gptr = (grammar *)a.transform();
-
-        std::cout << gptr->to_s(grammar::string_format_type::cc);
-
-        delete gptr;
-
-        return 0;
-
         if(do_print_ast and not do_parse_input)
             std::cout << a.str() << std::endl;
 
-        grammar h = load_dynamic_grammar(a);
+        grammar h;
+
+        a.transform(&h);
 
         if(do_print_code)
             std::cout << h.to_s(grammar::string_format_type::cc);
