@@ -23,11 +23,18 @@ namespace xxx {
     // predicate
     //
 
-	predicate::predicate() : quantifier(predicate_quantifier::one), modifier(predicate_modifier::push) {
+	predicate::predicate() : modifier(predicate_modifier::push), quantifier(predicate_quantifier::one) {
 	}
 
-	predicate::predicate(const std::string& my_name) : name(my_name), quantifier(predicate_quantifier::one), modifier(predicate_modifier::push) {
+    predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::push, my_name, predicate_quantifier::one) 
+    {
     }
+
+    predicate::predicate(predicate_modifier my_modifier, const predicate_name& my_name, const predicate_quantifier& my_quantifier)
+        : modifier(my_modifier), name(my_name), quantifier(my_quantifier)
+    {
+    }
+
 
     size_t predicate::lower() const {
         return quantifier.first;

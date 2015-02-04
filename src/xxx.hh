@@ -59,13 +59,15 @@ namespace xxx {
 
     struct predicate {
 
-        var name;
+        using predicate_name = var;
 
-        predicate_quantifier quantifier;
-        predicate_modifier modifier;
+        predicate_modifier      modifier;
+        predicate_name          name;
+        predicate_quantifier    quantifier;
 
         predicate();
-        predicate(const var&);
+        predicate(const predicate_name&);
+        predicate(predicate_modifier, const predicate_name&, const predicate_quantifier&);
 
         size_t upper() const;
         size_t lower() const;
