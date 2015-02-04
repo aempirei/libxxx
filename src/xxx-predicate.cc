@@ -23,12 +23,29 @@ namespace xxx {
     }
 
     predicate_quantifier::predicate_quantifier(const std::string& s)
-        : predicate_quantifier(s == "*" ? predicate_quantifier::star :
-                               s == "+" ? predicate_quantifier::plus :
-                               s == "?" ? predicate_quantifier::question :
-                                          predicate_quantifier::one)
+        : predicate_quantifier(s == "*" ? star : s == "+" ? plus : s == "?" ? question : one)
         {
         }
+
+    std::string predicate_quantifier::str() const {
+
+        if(*this == star    ) return "*";
+        if(*this == plus    ) return "+";
+        if(*this == question) return "?";
+        if(*this == one     ) return "" ;
+
+        std::stringstream ss; 
+
+        ss << '{' << first;
+
+        if(first != second)
+            ss << ',' << second;
+            
+        ss << '}';
+
+        return ss.str();
+
+    }
 
     //
     // predicate
@@ -62,15 +79,7 @@ namespace xxx {
         if(modifier != predicate_modifier::push)
             ss << (char)modifier;
 
-		ss << name;
-
-		/**/ if(quantifier == predicate_quantifier::one     ) /* NOP */;
-		else if(quantifier == predicate_quantifier::star    ) ss << '*';
-		else if(quantifier == predicate_quantifier::plus    ) ss << '+';
-		else if(quantifier == predicate_quantifier::question) ss << '?';
-
-		else if(quantifier.first  == quantifier.second) ss << '{' << quantifier.first                             << '}';
-		else                                            ss << '{' << quantifier.first << ',' << quantifier.second << '}';
+		ss << name << quantifier.str();
 
 		return ss.str();
 	}

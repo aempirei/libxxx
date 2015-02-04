@@ -21,6 +21,18 @@ namespace xxx {
         return u;
     }
 
+    grammar::iterator grammar::concat(const value_type& x) {
+
+        auto iter = find(x.first);
+
+        if(iter == end())
+            return insert(x).first;
+
+        iter->second.insert(iter->second.end(), x.second.begin(), x.second.end());
+
+        return iter;
+    }
+
 	std::string grammar::to_cc() const {
 
         std::stringstream ss;

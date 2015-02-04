@@ -95,8 +95,7 @@ namespace xxx {
                     p.quantifier == predicate_quantifier::question ? " << Q::question" : "" );
 
             ss << ( p.modifier == predicate_modifier::discard ? " << M::discard" :
-                    p.modifier == predicate_modifier::peek    ? " << M::peek"    :
-                    p.modifier == predicate_modifier::lift    ? " << M::lift"    : "" );
+                    p.modifier == predicate_modifier::peek    ? " << M::peek"    : "" );
         }
 
         return ss.str();

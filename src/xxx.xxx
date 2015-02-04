@@ -1,22 +1,37 @@
-document    := line* !eof
-line        := !ws entry !eol
-entry       := recursive / regex
-recursive   := name !_ !ceq !_ rules
-regex       := name !_ !req !_ regexre
-rules       := predicates !_ !fs !_ rules / predicates
-predicates  := predicate !_ predicates / predicate
-predicate   := modifier? name quantifier?
-fs          ~= /\//
-qm          ~= /\?/
-_           ~= /[ \t]+/
-eof         ~= /\z/
-eol         ~= /\s*(?:$|\z)/
-modifier    ~= /[!>~]/
-name        ~= /\w+/
-ws          ~= /\s*/
-quantifier  ~= /[*?+]/
-regexre     ~= /\/((?:\/|[^\/\n])*)\/\s*$/
-ceq         ~= /:=/
-req         ~= /~=/
-leq         ~= /"=/
-beq         ~= /&=/
+document                = grammar !eof
+grammar                 = statement*
+statement               = !ws expr !eol
+expr                    = grammar::value_type / transform
+grammar::value_type     = var !_ !eq !_ rules
+rules                   = rule !_ !fs !_ rules / rule
+rule                    = rule::composite_type / rule::terminal_type
+rule::terminal_type     = regexre
+rule::composite_type    = predicates
+predicates              = predicate !_ predicates / predicate
+predicate               = M? var Q?
+transform               = filters !_ !ra !_ function
+filters                 = filter !_ filters / filter
+filter                  = il / send / quant / call / product
+function                = call / product
+il                      = !lb var !rb
+send                    = !amp
+quant                   = var Q
+call                    = var !dot var
+product                 = var
+
+lb          = /\A\{/
+rb          = /\A\}/
+dot         = /\A\./
+amp         = /\A&/
+fs          = /\A\//
+qm          = /\A\?/
+_           = /\A[ \t]+/
+eof         = /\A\z/
+eol         = /\A\s*(?:$|\z)/
+M           = /\A[!>~]/
+Q           = /\A[*?+]/
+var         = /\A(?:::|\w)*\w/
+ws          = /\A\s*/
+ra          = /\A->/
+regexre     = /\A\/((?:\\.|[^\/])*)\//
+eq          = /\A=/

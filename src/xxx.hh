@@ -40,7 +40,7 @@ namespace xxx {
     // predicate
     //
 
-    enum struct predicate_modifier : char { push = 0, lift = '^', peek = '>', discard = '!' };
+    enum struct predicate_modifier : char { push = 0, peek = '>', discard = '!' };
 
     using predicate_name = var;
 
@@ -52,6 +52,8 @@ namespace xxx {
 
         predicate_quantifier();
         predicate_quantifier(const std::string&);
+
+        std::string str() const;
 
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
@@ -84,6 +86,8 @@ namespace xxx {
 
     enum struct rule_type : char { composite = ':', terminal  = '~' };
 
+    enum struct rule_kind { product, variadic };
+
     struct rule {
 
         using terminal_type = boost::regex;
@@ -113,6 +117,8 @@ namespace xxx {
         std::string to_cc() const;
 
         vars to_sig() const;
+
+        rule_kind to_kind() const;
     };
 
     //
@@ -127,10 +133,14 @@ namespace xxx {
 
             std::set<var> appendix() const;
 
+            iterator concat(const value_type&);
+
             std::string to_xxx() const;
             std::string to_cc() const;
             std::string to_js() const;
     };
+
+    using entry = grammar::value_type;
 
     //
     // tree
