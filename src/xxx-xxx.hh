@@ -7,30 +7,27 @@ namespace xxx {
 		using M = predicate_modifier;
         using Q = predicate_quantifier;
 
-		transform_function   document_transform_1;
-		transform_function      entry_transform_1;
-		transform_function      entry_transform_2;
-		transform_function       line_transform_1;
-		transform_function   modifier_transform_1;
-		transform_function       name_transform_1;
-		transform_function  predicate_transform_1;
-		transform_function predicates_transform_1;
-		transform_function predicates_transform_2;
-		transform_function quantifier_transform_1;
-		transform_function  recursive_transform_1;
-		transform_function      regex_transform_1;
-		transform_function    regexre_transform_1;
-		transform_function      rules_transform_1;
-		transform_function      rules_transform_2;
+		transform_function        line_transform_1;
+		transform_function    modifier_transform_1;
+		transform_function        name_transform_1;
+		transform_function   predicate_transform_1;
+		transform_function  predicates_transform_1;
+		transform_function  predicates_transform_2;
+		transform_function  quantifier_transform_1;
+		transform_function   recursive_transform_1;
+		transform_function       regex_transform_1;
+		transform_function     regexre_transform_1;
+		transform_function       rules_transform_1;
+		transform_function       rules_transform_2;
 
 		grammar spec = grammar({
 			{ "_"         , { R("\\A[ \\t]+") } },
 			{ "beq"       , { R("\\A&=") } },
 			{ "ceq"       , { R("\\A:=") } },
-			{ "document"  , { rule() << "line" << Q::star << "eof" << M::discard >> document_transform_1 } },
+			{ "document"  , { rule() << "line" << Q::star << "eof" << M::discard } },
 			{ "entry"     , {
-				rule() << "recursive" >> entry_transform_1,
-				rule() << "regex" >> entry_transform_2,
+				rule() << "recursive",
+				rule() << "regex",
 			} },
 			{ "eof"       , { R("\\A\\z") } },
 			{ "eol"       , { R("\\A\\s*(?:$|\\z)") } },
@@ -57,129 +54,122 @@ namespace xxx {
 			{ "ws"        , { R("\\A\\s*") } },
 		});
 
-        using entry_type = std::pair<var,rules>;
-
-		void document_transform_1(tree *a, void *x) {
-
-			// [line] : entry* -> grammar :: insert
-            // [line]
-            // FIXME: change this into a pass-thru so that grammar is built differentially via concatenation at the child
-
-            grammar *g = (grammar *)x;
-
-            g->clear();
-
-            for(auto& child : a->children) {
-
-                entry_type entry;
-
-                child.transform(&entry);
-
-                if(g->find(entry.first) == g->end())
-                    g->operator[](entry.first) = {};
-
-                auto& rs = g->at(entry.first);
-
-                rs.insert(rs.end(), entry.second.begin(), entry.second.end());
-            }
-		}
-
-		void entry_transform_1(tree *a, void *x) {
-			// recursive
-            a->children.front().transform(x);
-		}
-
-		void entry_transform_2(tree *a, void *x) {
-			// regex
-            a->children.front().transform(x);
-		}
+        using entry = grammar::value_type;
 
 		void line_transform_1(tree *a, void *x) {
-			// entry
-            // entry :: entry -> grammar :: insert
-            // FIXME: make as this shit above
-            a->children.front().transform(x);
+            // entry -> grammar { insert }
+            // entry -> grammar { concat } ' FIXME
+
+            entry arg0;
+            a->children[0].transform(&arg0);
+
+            // ((grammar *)x)->concat(arg0);
+
+            grammar& g = *(grammar *)x;
+            auto& e = g[arg0.first];
+            auto& rs = arg0.second;
+            e.insert(e.end(), rs.begin(), rs.end());
 		}
 
 		void modifier_transform_1(tree *a, void *x) {
-			// std::string :: std::string -> predicate_modifier
-            *(predicate_modifier *)x = predicate_modifier(a->match[0]);
+			// * .front -> predicate_modifier
+            new (x) predicate_modifier((predicate_modifier)a->match.front());
 		}
 
 		void name_transform_1(tree *a, void *x) {
-			// std::string :: std::string -> std::string
-            *(std::string *)x = a->match;
+            // * -> std::string
+            new (x) std::string(a->match);
 		}
 
 		void predicate_transform_1(tree *a, void *x) {
-			// modifier? name quantifier? :: modifier name quantifier -> predicate
-            // FIXME: rework as cartesian product construction
+			// predicate_modifier? predicate_name predicate_quantifier? -> predicate
+
+            predicate_modifier arg0; // FIXME: default case needs to be PUSH
+            predicate_name arg1;
+            predicate_quantifier arg2;
+
             auto iter = a->children.begin();
 
-            if(iter->match_name() == "modifier") {
-                iter->transform(&((predicate *)x)->modifier);
-                iter++;
-            }
+            if(iter != a->children.end() and iter->match_name() == "modifier")
+                (iter++)->transform(&arg0);
 
-            iter->transform(&((predicate *)x)->name);
+            if(iter != a->children.end() and iter->match_name() == "name")
+                (iter++)->transform(&arg1);
 
-            if(++iter != a->children.end())
-                iter->transform(&((predicate *)x)->quantifier);
+            if(iter != a->children.end() and iter->match_name() == "quantifier")
+                (iter++)->transform(&arg2);
+
+            new (x) predicate(arg0, arg1, arg2);
 		}
 
 		void predicates_transform_1(tree *a, void *x) {
-			// predicate predicates :: predicate predicates -> predicates
-            predicates_transform_2(a,x);
-            a->children.back().transform(x);
+			// predicate & -> predicates { push_back }
+
+            predicate arg0;
+            a->children[0].transform(&arg0);
+            ((predicates *)x)->push_back(arg0);
+
+            a->children[1].transform(x);
 		}
 
 		void predicates_transform_2(tree *a, void *x) {
-			// predicate :: predicate -> predicates :: push_back
-            predicate p;
-            a->children.front().transform(&p);
-            ((predicates *)x)->push_back(p);
+			// predicate -> predicates { push_back }
+
+            predicate arg0;
+            a->children[0].transform(&arg0);
+            ((predicates *)x)->push_back(arg0);
 		}
 
         void quantifier_transform_1(tree *a, void *x) {
-            // std::string :: std::string -> predicate_quantifier
-            *(predicate_quantifier *)x = a->match == "*" ? Q::star :
-                                         a->match == "+" ? Q::plus :
-                                         a->match == "?" ? Q::question :
-                                                           Q::one;
+            // * -> predicate_quantifier
+            new (x) predicate_quantifier(a->match);
 		}
 
         void recursive_transform_1(tree *a, void *x) {
-            // name rules :: name rules -> entry
-            entry_type& entry = *(entry_type *)x;
-            a->children.front().transform(&entry.first);
-            a->children.back().transform(&entry.second);
+            // var rules -> entry
+
+            var arg0;
+            a->children[0].transform(&arg0);
+
+            rules arg1;
+            a->children[1].transform(&arg1);
+
+            new (x) entry(arg0, arg1);
 		}
 
         void regex_transform_1(tree *a, void *x) {
-            // name regexre :: name regex -> entry
-            entry_type& entry = *(entry_type *)x;
-            rule::terminal_type re;
-            a->children.front().transform(&entry.first);
-            a->children.back().transform(&re);
-            entry.second.push_back(re);
+            // var rule::terminal_type -> entry ' FIXME
+
+            var arg0;
+            a->children[0].transform(&arg0);
+
+            rule::terminal_type arg1;
+            a->children[1].transform(&arg1);
+
+            new (x) entry(arg0, { arg1 });
 		}
 
 		void regexre_transform_1(tree *a, void *x) {
-			// std::string :: std::string -> regex
-            *(rule::terminal_type *)x = "\\A" + a->match;
+			// * -> rule::terminal_type
+            new (x) rule::terminal_type("\\A" + a->match); // FIXME: handle the prepend
 		}
 
 		void rules_transform_1(tree *a, void *x) {
-			// predicates rules :: predicates rules -> rules
-            rules_transform_2(a,x);
-            a->children.back().transform(x);
+			// predicates & -> rules { push_back }
+
+            predicates arg0;
+            a->children[0].transform(&arg0);
+            ((rules *)x)->push_back(arg0);
+
+            a->children[1].transform(x);
 		}
 
 		void rules_transform_2(tree *a, void *x) {
-			// predicates :: predicates -> rules :: push_back
-            predicates ps;
-            a->children.front().transform(&ps);
-            ((rules *)x)->push_back(ps);
+			// predicates :: predicates -> rules { push_back }
+
+            predicates arg0;
+            a->children[0].transform(&arg0);
+            ((rules *)x)->push_back(arg0);
 		}
 
 	}

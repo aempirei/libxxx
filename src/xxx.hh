@@ -34,19 +34,24 @@ namespace xxx {
 
     using transform_function = void(tree *, void *);
 
-    inline void empty_transform(tree *, void *) { }
+    transform_function passthru_transform;
 
     //
     // predicate
     //
 
-    enum struct predicate_modifier : char { push = '=', peek = '>', discard = '!' };
+    enum struct predicate_modifier : char { push = 0, peek = '>', discard = '!' };
+
+    using predicate_name = var;
 
     using _predicate_quantifier = std::pair<size_t,size_t>;
 
     struct predicate_quantifier : _predicate_quantifier {
 
         using _predicate_quantifier::_predicate_quantifier;
+
+        predicate_quantifier();
+        predicate_quantifier(const std::string&);
 
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
@@ -58,8 +63,6 @@ namespace xxx {
     };
 
     struct predicate {
-
-        using predicate_name = var;
 
         predicate_modifier      modifier;
         predicate_name          name;

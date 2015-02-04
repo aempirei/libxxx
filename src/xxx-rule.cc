@@ -2,6 +2,35 @@
 
 namespace xxx {
 
+    //
+    // to_cstring ' escape a string as a double-quoted c-string for presentation
+    //
+
+    static std::string to_cstring(const std::string& s) {
+        std::stringstream ss;
+        ss << '"';
+        for(int c : s) {
+            /**/ if(c == '"' or c == '\\') ss << '\\' << (char)c;
+            else if(isprint(c)           ) ss << (char)c;
+            else                           ss << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+        }
+        ss << '"';
+        return ss.str();
+    }
+
+    //
+    // transform_function passthru_transform
+    //
+
+    void passthru_transform(tree *a, void *x) {
+        for(auto& b : a->children)
+            b.transform(x);
+    }
+
+    //
+    // rule
+    //
+
     std::string rule::str() const {
 
         std::stringstream ss;
@@ -28,18 +57,6 @@ namespace xxx {
                 break;
         }
 
-        return ss.str();
-    }
-
-    static std::string to_cstring(const std::string& s) {
-        std::stringstream ss;
-        ss << '"';
-        for(int c : s) {
-            /**/ if(c == '"' or c == '\\') ss << '\\' << (char)c;
-            else if(isprint(c)           ) ss << (char)c;
-            else                           ss << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (int)c;
-        }
-        ss << '"';
         return ss.str();
     }
 
@@ -91,13 +108,13 @@ namespace xxx {
     rule::rule() : rule(rule_type::composite) {
     }
 
-    rule::rule(rule_type my_type) : type(my_type), transform(empty_transform) {
+    rule::rule(rule_type my_type) : type(my_type), transform(passthru_transform) {
     }
 
-    rule::rule(const terminal_type& my_terminal) : type(rule_type::terminal), terminal(my_terminal), transform(empty_transform) {
+    rule::rule(const terminal_type& my_terminal) : type(rule_type::terminal), terminal(my_terminal), transform(passthru_transform) {
     }
 
-    rule::rule(const composite_type& my_composite) : type(rule_type::composite), composite(my_composite), transform(empty_transform) {
+    rule::rule(const composite_type& my_composite) : type(rule_type::composite), composite(my_composite), transform(passthru_transform) {
     }
 
     //

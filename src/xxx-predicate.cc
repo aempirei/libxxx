@@ -19,6 +19,17 @@ namespace xxx {
         return predicate_quantifier(min, SIZE_MAX);
     }
 
+    predicate_quantifier::predicate_quantifier() : predicate_quantifier(predicate_quantifier::one) {
+    }
+
+    predicate_quantifier::predicate_quantifier(const std::string& s)
+        : predicate_quantifier(s == "*" ? predicate_quantifier::star :
+                               s == "+" ? predicate_quantifier::plus :
+                               s == "?" ? predicate_quantifier::question :
+                                          predicate_quantifier::one)
+        {
+        }
+
     //
     // predicate
     //
