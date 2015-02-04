@@ -40,7 +40,7 @@ namespace xxx {
     // predicate
     //
 
-    enum struct predicate_modifier : char { push = 0, peek = '>', discard = '!' };
+    enum struct predicate_modifier : char { push = 0, lift = '^', peek = '>', discard = '!' };
 
     using predicate_name = var;
 

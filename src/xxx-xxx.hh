@@ -84,7 +84,7 @@ namespace xxx {
 		void predicate_transform_1(tree *a, void *x) {
 			// predicate_modifier? predicate_name predicate_quantifier? -> predicate
 
-            predicate_modifier arg0; // FIXME: default case needs to be PUSH
+            predicate_modifier arg0;
             predicate_name arg1;
             predicate_quantifier arg2;
 
@@ -165,7 +165,7 @@ namespace xxx {
 		}
 
 		void rules_transform_2(tree *a, void *x) {
-			// predicates :: predicates -> rules { push_back }
+			// predicates -> rules { push_back }
 
             predicates arg0;
             a->children[0].transform(&arg0);

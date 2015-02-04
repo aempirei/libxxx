@@ -11,9 +11,6 @@ namespace xxx {
 
         std::set<var> u;
 
-        if(find("document") != end())
-            u.insert("document");
-
         for(const auto& x : *this)
             for(const auto& r : x.second)
                 if(r.type == rule_type::composite)

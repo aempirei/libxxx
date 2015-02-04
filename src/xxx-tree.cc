@@ -128,6 +128,8 @@ namespace xxx {
 
                         if(p.modifier == predicate_modifier::push)
                             children.push_back(y);
+                        else if(p.modifier == predicate_modifier::lift)
+                            children.insert(children.end(), y.children.begin(), y.children.end());
 
                         current = next.second;
                     }

@@ -72,7 +72,7 @@ namespace xxx {
                 sig.push_back(
                         p.quantifier == predicate_quantifier::one      ? (p.name) :
                         p.quantifier == predicate_quantifier::question ? (p.name + '?') :
-                                                      ('[' + p.name + ']')
+                                                                         (p.name + "...")
                 );
 
         return sig;
@@ -90,12 +90,13 @@ namespace xxx {
         for(const auto& p : composite) {
             ss << " << \"" << p.name << '\"';
 
-            ss << ( (p.quantifier == predicate_quantifier::star    ) ? " << Q::star"     :
-                    (p.quantifier == predicate_quantifier::plus    ) ? " << Q::plus"     :
-                    (p.quantifier == predicate_quantifier::question) ? " << Q::question" : "" );
+            ss << ( p.quantifier == predicate_quantifier::star     ? " << Q::star"     :
+                    p.quantifier == predicate_quantifier::plus     ? " << Q::plus"     :
+                    p.quantifier == predicate_quantifier::question ? " << Q::question" : "" );
 
-            ss << ( (p.modifier == predicate_modifier::discard) ? " << M::discard" :
-                    (p.modifier == predicate_modifier::peek   ) ? " << M::peek"    : "" );
+            ss << ( p.modifier == predicate_modifier::discard ? " << M::discard" :
+                    p.modifier == predicate_modifier::peek    ? " << M::peek"    :
+                    p.modifier == predicate_modifier::lift    ? " << M::lift"    : "" );
         }
 
         return ss.str();
