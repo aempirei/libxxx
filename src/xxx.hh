@@ -86,7 +86,7 @@ namespace xxx {
 
     enum struct rule_type : char { composite = ':', terminal  = '~' };
 
-    enum struct rule_kind { product, variadic };
+    enum struct rule_kind { product, functor };
 
     struct rule {
 
@@ -118,7 +118,7 @@ namespace xxx {
 
         vars to_sig() const;
 
-        rule_kind to_kind() const;
+        bool is_product() const;
     };
 
     //

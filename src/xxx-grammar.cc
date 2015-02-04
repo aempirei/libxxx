@@ -135,6 +135,8 @@ namespace xxx {
                 for(const auto& sig : r.to_sig())
                     ss << ' ' << sig;
 
+                ss << " -> " << s;
+
                 ss << std::endl;
 
                 ss << "\t\t}" << std::endl;
