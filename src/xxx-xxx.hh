@@ -112,7 +112,7 @@ namespace xxx {
 		}
 
 		void predicate_transform_1(tree *a, void *x) {
-			// modifier? name quantifier? :: modifier name quantifier -> predicate :: X ' product
+			// modifier? name quantifier? :: modifier name quantifier -> predicate
             // FIXME: rework as cartesian product construction
             auto iter = a->children.begin();
 
@@ -128,7 +128,7 @@ namespace xxx {
 		}
 
 		void predicates_transform_1(tree *a, void *x) {
-			// predicate predicates :: predicate predicates -> predicates :: X ' product
+			// predicate predicates :: predicate predicates -> predicates
             predicates_transform_2(a,x);
             a->children.back().transform(x);
 		}
@@ -149,14 +149,14 @@ namespace xxx {
 		}
 
         void recursive_transform_1(tree *a, void *x) {
-            // name rules :: name rules -> entry :: X ' product
+            // name rules :: name rules -> entry
             entry_type& entry = *(entry_type *)x;
             a->children.front().transform(&entry.first);
             a->children.back().transform(&entry.second);
 		}
 
         void regex_transform_1(tree *a, void *x) {
-            // name regexre :: name regex -> entry :: X ' product
+            // name regexre :: name regex -> entry
             entry_type& entry = *(entry_type *)x;
             rule::terminal_type re;
             a->children.front().transform(&entry.first);
@@ -170,7 +170,7 @@ namespace xxx {
 		}
 
 		void rules_transform_1(tree *a, void *x) {
-			// predicates rules :: predicates rules -> rules :: X ' product
+			// predicates rules :: predicates rules -> rules
             rules_transform_2(a,x);
             a->children.back().transform(x);
 		}
