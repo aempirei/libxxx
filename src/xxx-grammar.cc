@@ -137,7 +137,12 @@ namespace xxx {
 
                 ss << " -> " << s;
 
+                if(not r.is_product())
+                    ss << ".push_back";
+
                 ss << std::endl;
+
+                ss << to_cc_transform(s, r);
 
                 ss << "\t\t}" << std::endl;
 
@@ -154,6 +159,47 @@ namespace xxx {
 
         return ss.str();
     }
+
+    std::string grammar::to_cc_transform(const key_type& name, const rule& r) const {
+
+        std::stringstream ss;
+
+        if(r.type == rule_type::terminal) {
+            ss << "// TERMINAL RULE : " << name << " = " << r.str() << std::endl;           
+        } else {
+
+            {
+                size_t n = 0;
+                for(const auto& p : r.composite)
+                    if(p.modifier == predicate_modifier::push)
+                        ss << p.to_cc_decl(n++);
+            }
+
+            if(r.is_product()) {
+
+                {
+                    size_t n = 0;
+                    for(const auto& p : r.composite)
+                        if(p.modifier == predicate_modifier::push)
+                            ss << p.to_cc_def(n++);
+                }
+
+                ss << "// PRODUCT RULE : " << name << "(arg...)" << std::endl;
+            } else {
+                ss << "// FUNCTOR RULE : map (arg...) " << name << std::endl;
+            }
+        }
+
+        return ss.str();
+    }
+
+    std::string grammar::to_cc_transforms(const key_type& name) const {
+        std::stringstream ss;
+        for(const auto& r : at(name))
+            ss << to_cc_transform(name, r);
+        return ss.str();
+    }
+
 
 	std::string grammar::to_xxx() const {
 

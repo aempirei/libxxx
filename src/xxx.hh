@@ -78,6 +78,9 @@ namespace xxx {
         size_t lower() const;
 
         std::string str() const;
+
+        std::string to_cc_decl(size_t) const;
+        std::string to_cc_def(size_t) const;
     };
 
     //
@@ -138,6 +141,9 @@ namespace xxx {
             std::string to_xxx() const;
             std::string to_cc() const;
             std::string to_js() const;
+
+            std::string to_cc_transform(const key_type&, const rule&) const;
+            std::string to_cc_transforms(const key_type&) const;
     };
 
     using entry = grammar::value_type;

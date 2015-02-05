@@ -40,7 +40,7 @@ namespace xxx {
 
         if(first != second)
             ss << ',' << second;
-            
+
         ss << '}';
 
         return ss.str();
@@ -51,8 +51,8 @@ namespace xxx {
     // predicate
     //
 
-	predicate::predicate() : modifier(predicate_modifier::push), quantifier(predicate_quantifier::one) {
-	}
+    predicate::predicate() : modifier(predicate_modifier::push), quantifier(predicate_quantifier::one) {
+    }
 
     predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::push, my_name, predicate_quantifier::one) 
     {
@@ -72,15 +72,42 @@ namespace xxx {
         return quantifier.second;
     }
 
-	std::string predicate::str() const {
+    std::string predicate::str() const {
 
-		std::stringstream ss;
+        std::stringstream ss;
 
         if(modifier != predicate_modifier::push)
             ss << (char)modifier;
 
-		ss << name << quantifier.str();
+        ss << name << quantifier.str();
 
-		return ss.str();
-	}
+        return ss.str();
+    }
+
+    std::string predicate::to_cc_def(size_t n) const {
+
+        std::stringstream ssexpr; 
+        ssexpr << "(iter++)->transform(&arg" << n << ");" << std::endl;
+        std::string expr = ssexpr.str();
+
+        std::stringstream sscond; 
+        sscond << "(iter != a->children.end() and iter->match_name() == \"" << name << "\")";
+        std::string cond = sscond.str();
+
+        std::stringstream ss; 
+
+        /**/ if(quantifier == predicate_quantifier::one     ) ss << expr;
+        else if(quantifier == predicate_quantifier::question) ss <<                  "if"    << cond         << std::endl << '\t' << expr;
+        else if(quantifier == predicate_quantifier::star    ) ss <<                  "while" << cond         << std::endl << '\t' << expr;
+        else if(quantifier == predicate_quantifier::plus    ) ss << "do " << expr << "while" << cond << ";"  << std::endl                ;
+        else                                                  ss <<                  "for(;" << cond << ";)" << std::endl << '\t' << expr;
+
+        return ss.str();
+    }
+
+    std::string predicate::to_cc_decl(size_t n) const {
+        std::stringstream ss;
+        ss << name << " arg" << n << ';' << std::endl;
+        return ss.str();
+    }
 }
