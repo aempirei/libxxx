@@ -40,28 +40,43 @@ namespace xxx {
     // predicate
     //
 
-    enum struct predicate_modifier : char { push = 0, peek = '>', discard = '!' };
+    enum class predicate_modifier : char { push = 0, peek = '>', discard = '!' };
 
     using predicate_name = var;
 
     using _predicate_quantifier = std::pair<size_t,size_t>;
-
     struct predicate_quantifier : _predicate_quantifier {
-
-        using _predicate_quantifier::_predicate_quantifier;
-
-        predicate_quantifier();
-        predicate_quantifier(const std::string&);
-
-        std::string str() const;
 
         static const predicate_quantifier star;
         static const predicate_quantifier plus;
         static const predicate_quantifier question;
         static const predicate_quantifier one;
 
-        static predicate_quantifier lower(size_t);
-        static predicate_quantifier upper(size_t);
+        using _predicate_quantifier::_predicate_quantifier;
+
+        predicate_quantifier(const std::string&);
+
+        constexpr predicate_quantifier() : predicate_quantifier(1,1) {
+        }
+
+        constexpr predicate_quantifier(char ch)
+            : predicate_quantifier(ch == '*' ? star : ch == '+' ? plus : ch == '?' ? question : one)
+            {
+            }
+
+        constexpr bool operator!=(predicate_quantifier x) const {
+            return first != x.first or second != x.second;
+        }
+
+        constexpr bool operator==(predicate_quantifier x) const {
+            return first == x.first and second == x.second;
+        }
+
+        constexpr explicit operator char() const {
+            return (first == 0 and second == SIZE_MAX) ? '*' : (first == 1 and second == SIZE_MAX) ? '+' : (first == 0 and second == 1) ? '?' : '\0';
+        }
+
+        std::string str() const;
     };
 
     struct predicate {

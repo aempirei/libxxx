@@ -2,49 +2,36 @@
 
 namespace xxx {
 
-    //
-    // predicate_quantifier
-    //
-
     const predicate_quantifier predicate_quantifier::star     ( 0, SIZE_MAX );
     const predicate_quantifier predicate_quantifier::plus     ( 1, SIZE_MAX );
     const predicate_quantifier predicate_quantifier::question ( 0, 1        );
     const predicate_quantifier predicate_quantifier::one      ( 1, 1        );
 
-    predicate_quantifier predicate_quantifier::upper(size_t max) {
-        return predicate_quantifier(0, max);
+    predicate_quantifier::predicate_quantifier(const std::string& s) : predicate_quantifier(s.empty() ? '\0' : s.front()) {
     }
-
-    predicate_quantifier predicate_quantifier::lower(size_t min) {
-        return predicate_quantifier(min, SIZE_MAX);
-    }
-
-    predicate_quantifier::predicate_quantifier() : predicate_quantifier(predicate_quantifier::one) {
-    }
-
-    predicate_quantifier::predicate_quantifier(const std::string& s)
-        : predicate_quantifier(s == "*" ? star : s == "+" ? plus : s == "?" ? question : one)
-        {
-        }
 
     std::string predicate_quantifier::str() const {
 
-        if(*this == star    ) return "*";
-        if(*this == plus    ) return "+";
-        if(*this == question) return "?";
-        if(*this == one     ) return "" ;
+        char ch = operator char();
 
-        std::stringstream ss; 
+        if(ch == '\0') {
 
-        ss << '{' << first;
+            if(operator==(one))
+                return "";
 
-        if(first != second)
-            ss << ',' << second;
+            std::stringstream ss; 
 
-        ss << '}';
+            ss << '{' << first;
 
-        return ss.str();
+            if(first != second)
+                ss << ',' << second;
 
+            ss << '}';
+
+            return ss.str();
+        }
+
+        return std::string(1, ch);
     }
 
     //
@@ -62,7 +49,6 @@ namespace xxx {
         : modifier(my_modifier), name(my_name), quantifier(my_quantifier)
     {
     }
-
 
     size_t predicate::lower() const {
         return quantifier.first;

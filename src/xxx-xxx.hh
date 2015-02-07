@@ -40,8 +40,8 @@ namespace xxx {
             // * .front -> predicate_modifier ' FIXME: deal with cast
             // * -> std::string
 
-            { "modifier"  , { R("\\A[!>~]") >> [](tree *a, void *x) { new (x) predicate_modifier((predicate_modifier)a->match.front()); } } },
-            { "var"       , { R("\\A\\w+") >> [](tree *a, void *x) { new (x) std::string(a->match); } } },
+            { "modifier"  , { R("\\A[!>~]") >> [](tree *a, void *x) { *(predicate_modifier *)x = (predicate_modifier)a->match.front(); } } },
+            { "var"       , { R("\\A\\w+") >> [](tree *a, void *x) { *(std::string *)x = a->match; } } },
 
             // predicate_modifier? predicate_name predicate_quantifier? -> predicate
 
