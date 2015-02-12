@@ -78,7 +78,7 @@ namespace xxx {
     //
 
     enum struct predicate_modifier_enum : char {
-        push = '\0',
+        push = '=',
         peek = '>',
         drop = '!'
     };

@@ -36,8 +36,8 @@ namespace xxx {
 				rule() << "entry" << "grammar" >> grammar_transform_1,
 				rule() << "entry" >> grammar_transform_2,
 			} },
-			{ "pm"        , { R("\\A[!>]") >> pm_transform_1 } },
-			{ "pq"        , { R("\\A[?]") >> pq_transform_1 } },
+			{ "pm"        , { R("\\A[=!>]") >> pm_transform_1 } },
+			{ "pq"        , { R("\\A\\?") >> pq_transform_1 } },
 			{ "predicate" , { rule() << "pm" << Q::maybe << "var" << "pq" << Q::maybe >> predicate_transform_1 } },
 			{ "predicates", {
 				rule() << "predicate" << "_" << M::drop << "predicates" >> predicates_transform_1,
@@ -99,12 +99,12 @@ namespace xxx {
 		}
 
 		void pm_transform_1(tree *a, void *x) {
-			// terminal rule : pm = /[!>]/
+			// terminal rule : pm = /[=!>]/
 			*(pm *)x = pm(head(a->match));
 		}
 
 		void pq_transform_1(tree *a, void *x) {
-			// terminal rule : pq = /[?]/
+			// terminal rule : pq = /\?/
 			*(pq *)x = pq(head(a->match));
 		}
 

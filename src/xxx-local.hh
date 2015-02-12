@@ -10,7 +10,7 @@ namespace xxx {
         using entry = std::pair<var,rules>;
         using pm = predicate_modifier;
         using pq = predicate_quantifier;
-        static inline char head(const std::string& s) {
+        template <typename T> static inline typename T::value_type head(const T& s) {
             return s.front();
         }
     }
