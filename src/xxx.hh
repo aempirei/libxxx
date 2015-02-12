@@ -19,7 +19,7 @@
 
 namespace xxx {
 
-    struct predicate_modifier;
+    template <typename E, typename, E> struct enum_wrapper;
     struct predicate_quantifier;
     struct predicate;
     struct rule;
@@ -60,18 +60,24 @@ namespace xxx {
     // predicate
     //
 
-    struct predicate_modifier {
-        enum struct predicate_modifier_type : char { push = '\0', peek = '>', drop = '!' };
-        predicate_modifier_type m;
-        constexpr predicate_modifier() : m(predicate_modifier_type::push) { }
-        constexpr predicate_modifier(predicate_modifier_type my_m) : m(my_m) { }
-        inline predicate_modifier(const std::string &s) : m((predicate_modifier_type)(s.empty() ? '\0' : s.front())) { }
-        static constexpr predicate_modifier_type push = predicate_modifier_type::push;
-        static constexpr predicate_modifier_type peek = predicate_modifier_type::peek;
-        static constexpr predicate_modifier_type drop = predicate_modifier_type::drop;
-        constexpr operator predicate_modifier_type() const { return m; }
-        constexpr explicit operator char() const { return (char)m; }
+    enum struct predicate_modifier_enum : char { push = '\0', peek = '>', drop = '!' };
+
+    //
+    // enum_wrapper
+    //
+
+    template <typename E, typename N, E x0> struct enum_wrapper {
+        using type = E;
+        using base = N;
+        type x;
+        constexpr enum_wrapper() : x(x0) { }
+        constexpr enum_wrapper(type my_x) : x(my_x) { }
+        constexpr enum_wrapper(base my_x) : x((type)my_x) { }
+        constexpr operator type() const { return x; }
+        constexpr operator base() const { return (base)x; }
     };
+
+    using predicate_modifier = enum_wrapper<predicate_modifier_enum, char, predicate_modifier_enum::push>;
 
     using predicate_name = var;
 
@@ -143,10 +149,14 @@ namespace xxx {
 
         transform_function *transform;
 
+        var repl;
+
         rule();
         rule(rule_type);
         rule(const composite_type&);
+        rule(const composite_type&, const var&);
         rule(const terminal_type&);
+        rule(const terminal_type&, const var&);
 
         rule& operator<<(const var&);
         rule& operator<<(predicate_modifier);
@@ -154,6 +164,7 @@ namespace xxx {
         rule& operator<<(const predicate&);
 
         rule& operator>>(transform_function *);
+        rule& operator>>(const var&);
 
         std::string str() const;
 

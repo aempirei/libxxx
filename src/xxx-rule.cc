@@ -68,7 +68,7 @@ namespace xxx {
         vars sig;
 
         for(const auto& p : composite)
-            if(p.modifier == predicate_modifier::push)
+            if(p.modifier == predicate_modifier::type::push)
                 sig.push_back(p.name + p.quantifier.str());
 
         return sig;
@@ -88,8 +88,8 @@ namespace xxx {
 
             ss << ( p.quantifier == predicate_quantifier::maybe ? " << Q::maybe" : "" );
 
-            ss << ( p.modifier == predicate_modifier::drop ? " << M::drop" :
-                    p.modifier == predicate_modifier::peek ? " << M::peek"    : "" );
+            ss << ( p.modifier == predicate_modifier::type::drop ? " << M::drop" :
+                    p.modifier == predicate_modifier::type::peek ? " << M::peek" : "" );
         }
 
         return ss.str();
@@ -99,21 +99,44 @@ namespace xxx {
     // rule::rule
     //
 
-    rule::rule() : rule(rule_type::composite) {
+    rule::rule()
+        : rule(rule_type::composite)
+    {
     }
 
-    rule::rule(rule_type my_type) : type(my_type), transform(passthru_transform) {
+    rule::rule(rule_type my_type)
+        : type(my_type), transform(passthru_transform)
+    {
     }
 
-    rule::rule(const terminal_type& my_terminal) : type(rule_type::terminal), terminal(my_terminal), transform(passthru_transform) {
+    rule::rule(const terminal_type& my_terminal, const var& my_repl)
+        : type(rule_type::terminal), terminal(my_terminal), transform(passthru_transform), repl(my_repl)
+    {
     }
 
-    rule::rule(const composite_type& my_composite) : type(rule_type::composite), composite(my_composite), transform(passthru_transform) {
+    rule::rule(const terminal_type& my_terminal)
+        : type(rule_type::terminal), terminal(my_terminal), transform(passthru_transform)
+    {
+    }
+
+    rule::rule(const composite_type& my_composite, const var& my_repl)
+        : type(rule_type::composite), composite(my_composite), transform(passthru_transform), repl(my_repl)
+    {
+    }
+
+    rule::rule(const composite_type& my_composite)
+        : type(rule_type::composite), composite(my_composite), transform(passthru_transform)
+    {
     }
 
     //
     // rule::operator>>
     //
+
+    rule& rule::operator>>(const var& x) {
+        repl = x;
+        return *this;
+    }
 
     rule& rule::operator>>(transform_function *x) {
         transform = x;

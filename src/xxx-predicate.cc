@@ -17,10 +17,10 @@ namespace xxx {
     // predicate
     //
 
-    predicate::predicate() : modifier(predicate_modifier::push), quantifier(predicate_quantifier::one) {
+    predicate::predicate() : modifier(predicate_modifier::type::push), quantifier(predicate_quantifier::one) {
     }
 
-    predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::push, my_name, predicate_quantifier::one) 
+    predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::type::push, my_name, predicate_quantifier::one) 
     {
     }
 
@@ -41,7 +41,7 @@ namespace xxx {
 
         std::stringstream ss;
 
-        if(modifier != predicate_modifier::push)
+        if(modifier != predicate_modifier::type::push)
             ss << (char)modifier;
 
         ss << name << quantifier.str();

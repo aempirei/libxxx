@@ -43,7 +43,7 @@ namespace xxx {
                 if(r.type == rule_type::composite) {
                     u.insert(x.first);
                     for(const auto& p : r.composite)
-                        if(p.modifier == predicate_modifier::push)
+                        if(p.modifier == predicate_modifier::type::push)
                             u.insert(p.name); 
                 }
             }
@@ -67,7 +67,7 @@ namespace xxx {
 
         ss << std::endl;
 
-        ss << "\t\tusing M = predicate_modifier;" << std::endl;
+        ss << "\t\tusing M = predicate_modifier::type;" << std::endl;
         ss << "\t\tusing Q = predicate_quantifier;" << std::endl;
 
         ss << std::endl;
@@ -173,13 +173,13 @@ namespace xxx {
 
         if(r.type == rule_type::terminal) {
             ss << "\t\t\t// terminal rule : " << name << " = " << r.str() << std::endl;           
-            ss << "\t\t\t*(" << name << " *)x = " << name << "(a->match);" << std::endl;
+            ss << "\t\t\t*(" << name << " *)x = " << name << '(' << r.repl << "(a->match));" << std::endl;
         } else {
 
             {
                 size_t n = 0;
                 for(const auto& p : r.composite)
-                    if(p.modifier == predicate_modifier::push)
+                    if(p.modifier == predicate_modifier::type::push)
                         ss << p.to_cc_decl(n++);
             }
 
@@ -189,13 +189,13 @@ namespace xxx {
             {
                 size_t n = 0;
                 for(const auto& p : r.composite)
-                    if(p.modifier == predicate_modifier::push)
+                    if(p.modifier == predicate_modifier::type::push)
                         ss << p.to_cc_def(n++);
 
                 ss << "\t\t\tif(iter != a->children.end())" << std::endl;
                 ss << "\t\t\t\tthrow std::runtime_error(\"not all arguments processed by " << name << " rule\");" << std::endl;
 
-                ss << "\t\t\t*(" << name << " *)x = " << name << '(';
+                ss << "\t\t\t*(" << name << " *)x = " << (r.repl.empty() ? name : r.repl) << '(';
                 if(n > 0) {
                     ss << "arg" << 0;
                     for(size_t i = 1; i < n; i++)
