@@ -20,22 +20,23 @@
 namespace xxx {
 
     template <typename E, typename, E> struct enum_wrapper;
-    struct predicate;
-    struct rule;
-    struct grammar;
-    struct tree;
 
     template <typename> struct _s;
 
-    using var = std::string;
-
-    plural(tree);       // trees
-    plural(var);        // vars
+    struct predicate;
+    struct grammar;
+    struct rule;
+    struct tree;
 
     using rules = _s<rule>;
     using predicates = _s<predicate>;
 
+    using var = std::string;
+
     using transform_function = void(tree *, void *);
+
+    plural(tree);   // trees
+    plural(var);    // vars
 
     transform_function passthru_transform;
 
@@ -59,17 +60,24 @@ namespace xxx {
     // enum_wrapper
     //
 
-    template <typename E, typename N, E x0> struct enum_wrapper {
-        using type = E;
-        using base = N;
-        type x;
-        constexpr enum_wrapper() : x(x0) { }
-        constexpr enum_wrapper(type my_x) : x(my_x) { }
-        constexpr enum_wrapper(base my_x) : x((type)my_x) { }
-        constexpr operator type() const { return x; }
-        constexpr operator base() const { return (base)x; }
-        inline std::basic_string<base> str() const {
-            return (x == x0) ? "" : std::basic_string<base>(1, (base)x);
+    template <typename E, typename N, E X> struct enum_wrapper {
+
+        using enum_type = E;
+        using base_type = N;
+
+        enum_type x;
+
+        constexpr static enum_type default_value = X;
+
+        constexpr enum_wrapper(              ) : x((default_value)) { }
+        constexpr enum_wrapper(enum_type my_x) : x((enum_type)my_x) { }
+        constexpr enum_wrapper(base_type my_x) : x((enum_type)my_x) { }
+
+        constexpr operator enum_type() const { return (enum_type)x; }
+        constexpr operator base_type() const { return (base_type)x; }
+
+        inline std::basic_string<base_type> str() const {
+            return (x == default_value) ? "" : std::basic_string<base_type>(1, (base_type)x);
         }
     };
 
@@ -88,12 +96,15 @@ namespace xxx {
         maybe = '?'
     };
 
-    using predicate_modifier = enum_wrapper<predicate_modifier_enum, char, predicate_modifier_enum::push>;
-    using predicate_quantifier = enum_wrapper<predicate_quantifier_enum, char, predicate_quantifier_enum::one>;
+    using predicate_modifier   = enum_wrapper< predicate_modifier_enum  , char, predicate_modifier_enum::push  >;
+    using predicate_quantifier = enum_wrapper< predicate_quantifier_enum, char, predicate_quantifier_enum::one >;
 
     using predicate_name = var;
 
     struct predicate {
+
+        using M = predicate_modifier::enum_type;
+        using Q = predicate_quantifier::enum_type;
 
         predicate_modifier      modifier;
         predicate_name          name;

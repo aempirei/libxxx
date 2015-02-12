@@ -68,7 +68,7 @@ namespace xxx {
         vars sig;
 
         for(const auto& p : composite)
-            if(p.modifier == predicate_modifier::type::push)
+            if(p.modifier == predicate::M::push)
                 sig.push_back(p.modifier.str() + p.name + p.quantifier.str());
 
         return sig;
@@ -86,10 +86,10 @@ namespace xxx {
         for(const auto& p : composite) {
             ss << " << \"" << p.name << '\"';
 
-            ss << ( p.quantifier == predicate_quantifier::type::maybe ? " << Q::maybe" : "" );
+            ss << ( p.quantifier == predicate::Q::maybe ? " << Q::maybe" : "" );
 
-            ss << ( p.modifier == predicate_modifier::type::drop ? " << M::drop" :
-                    p.modifier == predicate_modifier::type::peek ? " << M::peek" : "" );
+            ss << ( p.modifier == predicate::M::drop ? " << M::drop" :
+                    p.modifier == predicate::M::peek ? " << M::peek" : "" );
         }
 
         return ss.str();

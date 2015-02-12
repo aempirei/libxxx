@@ -4,8 +4,8 @@
 namespace xxx {
 	namespace local {
 
-		using M = predicate_modifier::type;
-		using Q = predicate_quantifier::type;
+		using M = predicate::M;
+		using Q = predicate::Q;
 
 		transform_function document_transform_1;
 		transform_function entry_transform_1;

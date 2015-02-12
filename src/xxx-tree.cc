@@ -126,7 +126,7 @@ namespace xxx {
                         if(next.first == -1)
                             break;
 
-                        if(p.modifier == predicate_modifier::type::push)
+                        if(p.modifier == predicate::M::push)
                             children.push_back(y);
 
                         current = next.second;
@@ -135,7 +135,7 @@ namespace xxx {
                     if(n < p.lower())
                         success = false;
 
-                    if(p.modifier == predicate_modifier::type::peek)
+                    if(p.modifier == predicate::M::peek)
                         current = rewind;
 
                     if(not success)

@@ -6,10 +6,10 @@ namespace xxx {
     // predicate
     //
 
-    predicate::predicate() : modifier(predicate_modifier::type::push), quantifier(predicate_quantifier::type::one) {
+    predicate::predicate() : modifier(M::push), quantifier(Q::one) {
     }
 
-    predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::type::push, my_name, predicate_quantifier::type::one) 
+    predicate::predicate(const std::string& my_name) : predicate(M::push, my_name, Q::one) 
     {
     }
 
@@ -19,11 +19,11 @@ namespace xxx {
     }
 
     size_t predicate::lower() const {
-        return quantifier == predicate_quantifier::type::one ? 1 : 0;
+        return quantifier == Q::one ? 1 : 0;
     }
 
     size_t predicate::upper() const {
-        return quantifier == predicate_quantifier::type::one ? 1 : 1;
+        return quantifier == Q::one ? 1 : 1;
     }
 
     std::string predicate::str() const {
@@ -47,7 +47,7 @@ namespace xxx {
 
         std::stringstream ss; 
 
-        if(quantifier == predicate_quantifier::type::maybe)
+        if(quantifier == Q::maybe)
             ss << "\t\t\tif" << cond << std::endl << '\t';
 
         ss << "\t\t\t" << expr;

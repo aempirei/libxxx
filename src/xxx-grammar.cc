@@ -43,7 +43,7 @@ namespace xxx {
                 if(r.type == rule_type::composite) {
                     u.insert(x.first);
                     for(const auto& p : r.composite)
-                        if(p.modifier == predicate_modifier::type::push)
+                        if(p.modifier == predicate::M::push)
                             u.insert(p.name); 
                 }
             }
@@ -67,8 +67,8 @@ namespace xxx {
 
         ss << std::endl;
 
-        ss << "\t\tusing M = predicate_modifier::type;" << std::endl;
-        ss << "\t\tusing Q = predicate_quantifier::type;" << std::endl;
+        ss << "\t\tusing M = predicate::M;" << std::endl;
+        ss << "\t\tusing Q = predicate::Q;" << std::endl;
 
         ss << std::endl;
 
@@ -179,7 +179,7 @@ namespace xxx {
             {
                 size_t n = 0;
                 for(const auto& p : r.composite)
-                    if(p.modifier == predicate_modifier::type::push)
+                    if(p.modifier == predicate::M::push)
                         ss << p.to_cc_decl(n++);
             }
 
@@ -189,7 +189,7 @@ namespace xxx {
             {
                 size_t n = 0;
                 for(const auto& p : r.composite)
-                    if(p.modifier == predicate_modifier::type::push)
+                    if(p.modifier == predicate::M::push)
                         ss << p.to_cc_def(n++);
 
                 ss << "\t\t\tif(iter != a->children.end())" << std::endl;
