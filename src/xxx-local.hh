@@ -7,6 +7,5 @@ namespace xxx {
         using regex = rule::terminal_type;
         using terminal = regex;
         using entry = std::pair<var,rules>;
-
     }
 }

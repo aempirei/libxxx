@@ -86,12 +86,10 @@ namespace xxx {
         for(const auto& p : composite) {
             ss << " << \"" << p.name << '\"';
 
-            ss << ( p.quantifier == predicate_quantifier::star     ? " << Q::star"     :
-                    p.quantifier == predicate_quantifier::plus     ? " << Q::plus"     :
-                    p.quantifier == predicate_quantifier::question ? " << Q::question" : "" );
+            ss << ( p.quantifier == predicate_quantifier::maybe ? " << Q::maybe" : "" );
 
-            ss << ( p.modifier == predicate_modifier::discard ? " << M::discard" :
-                    p.modifier == predicate_modifier::peek    ? " << M::peek"    : "" );
+            ss << ( p.modifier == predicate_modifier::drop ? " << M::drop" :
+                    p.modifier == predicate_modifier::peek ? " << M::peek"    : "" );
         }
 
         return ss.str();

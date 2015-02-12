@@ -23,9 +23,6 @@ install:
 test: $(TARGETS)
 	./bin/xxx -apg ./test/p-lang.xxx < ./test/example.p-lang
 
-code: $(TARGETS)
-	./bin/xxx -g src/xxx.xxx -c | less
-
 library: lib/libxxx.a
 
 lib/libxxx.a: $(OBJECTS)
@@ -36,5 +33,8 @@ bin/xxx: src/main.o lib/libxxx.a
 	if [ ! -d bin ]; then mkdir -vp bin; fi
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
 
-src/xxx-xxx.hh:  bin/xxx src/xxx.xxx
-	bin/xxx -g src/xxx.xxx -c > src/xxx-xxx.hh
+code: bin/xxx src/xxx.xxx
+	bin/xxx -g src/xxx.xxx -ct | less
+
+src/xxx-xxx.hh: bin/xxx src/xxx.xxx
+	bin/xxx -g src/xxx.xxx -ct > src/xxx-xxx.hh

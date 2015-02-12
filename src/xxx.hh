@@ -61,18 +61,15 @@ namespace xxx {
     //
 
     struct predicate_modifier {
-        char ch;
-        predicate_modifier(const std::string&);
-        constexpr predicate_modifier(char my_ch) : ch(my_ch) {
-        }
-        constexpr predicate_modifier() : ch(0) {
-        }
-        constexpr operator char() const {
-            return ch;
-        }
-        const static predicate_modifier push;
-        const static predicate_modifier peek;
-        const static predicate_modifier discard;
+        enum struct predicate_modifier_type : char { push = '\0', peek = '>', drop = '!' };
+        predicate_modifier_type m;
+        constexpr predicate_modifier() : m(predicate_modifier_type::push) { }
+        constexpr predicate_modifier(predicate_modifier_type my_m) : m(my_m) { }
+        inline predicate_modifier(const std::string &s) : m((predicate_modifier_type)(s.empty() ? '\0' : s.front())) { }
+        static constexpr predicate_modifier_type push = predicate_modifier_type::push;
+        static constexpr predicate_modifier_type peek = predicate_modifier_type::peek;
+        static constexpr predicate_modifier_type drop = predicate_modifier_type::drop;
+        constexpr operator predicate_modifier_type() const { return m; }
     };
 
     using predicate_name = var;
@@ -80,9 +77,7 @@ namespace xxx {
     using _predicate_quantifier = std::pair<size_t,size_t>;
     struct predicate_quantifier : _predicate_quantifier {
 
-        static const predicate_quantifier star;
-        static const predicate_quantifier plus;
-        static const predicate_quantifier question;
+        static const predicate_quantifier maybe;
         static const predicate_quantifier one;
 
         using _predicate_quantifier::_predicate_quantifier;
@@ -92,10 +87,8 @@ namespace xxx {
         constexpr predicate_quantifier() : predicate_quantifier(1,1) {
         }
 
-        constexpr predicate_quantifier(char ch)
-            : predicate_quantifier(ch == '*' ? star : ch == '+' ? plus : ch == '?' ? question : one)
-            {
-            }
+        constexpr predicate_quantifier(char ch) : predicate_quantifier(ch == '?' ? maybe : one) {
+        }
 
         constexpr bool operator!=(predicate_quantifier x) const {
             return first != x.first or second != x.second;
@@ -106,7 +99,7 @@ namespace xxx {
         }
 
         constexpr explicit operator char() const {
-            return (first == 0 and second == SIZE_MAX) ? '*' : (first == 1 and second == SIZE_MAX) ? '+' : (first == 0 and second == 1) ? '?' : '\0';
+            return (first == 0 and second == 1) ? '?' : '\0';
         }
 
         std::string str() const;
@@ -136,8 +129,6 @@ namespace xxx {
     //
 
     enum struct rule_type : char { composite = ':', terminal  = '~' };
-
-    enum struct rule_kind { product, functor };
 
     struct rule {
 
@@ -188,8 +179,9 @@ namespace xxx {
             iterator concat(const value_type&);
 
             std::string to_xxx() const;
-            std::string to_cc() const;
             std::string to_js() const;
+
+            std::string to_cc(bool) const;
 
             std::set<var> appendix() const;
 

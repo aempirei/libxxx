@@ -31,13 +31,14 @@ static void usage(const char *arg0) {
 
     std::cerr << std::endl << "usage: " << arg0 << " [-{hpaxci}] [-g filename]" << std::endl << std::endl;
 
-    usageline('h', nullptr   , "show this help"       );
-    usageline('p', nullptr   , "display grammar"      );
-    usageline('a', nullptr   , "display parse tree"   );
-    usageline('x', nullptr   , "display xml"          );
-    usageline('c', nullptr   , "display code"         );
-    usageline('i', nullptr   , "parse stdin"          );
-    usageline('g', "filename", "grammar specification");
+    usageline('h', nullptr   , "show this help"          );
+    usageline('p', nullptr   , "display grammar"         );
+    usageline('a', nullptr   , "display parse tree"      );
+    usageline('x', nullptr   , "display xml"             );
+    usageline('c', nullptr   , "display code"            );
+    usageline('t', nullptr   , "generate code transforms");
+    usageline('i', nullptr   , "parse stdin"             );
+    usageline('g', "filename", "grammar specification"   );
 
     std::cerr << std::endl;
 }
@@ -52,6 +53,7 @@ int main(int argc, char **argv) {
     bool do_load_grammar    = false;
     bool do_print_tree      = false;
     bool do_parse_input     = false;
+    bool use_transforms     = false;
 
     const char *filename = nullptr;
 
@@ -62,7 +64,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    while ((opt = getopt(argc, argv, "achpsixg:")) != -1) {
+    while ((opt = getopt(argc, argv, "acthpsixg:")) != -1) {
 
         switch (opt) {
 
@@ -71,6 +73,7 @@ int main(int argc, char **argv) {
             case 'x': do_print_xml      = true;                     break;
             case 'p': do_print_grammar  = true;                     break;
             case 'c': do_print_code     = true;                     break;
+            case 't': use_transforms    = true;                     break;
             case 'i': do_parse_input    = true;                     break;
 
             case 'h':
@@ -105,7 +108,7 @@ int main(int argc, char **argv) {
         a.transform(&h);
 
         if(do_print_code)
-            std::cout << h.to_cc();
+            std::cout << h.to_cc(use_transforms);
 
         if(do_parse_input) {
 

@@ -26,12 +26,12 @@ namespace xxx {
 		transform_function var_transform_1;
 
 		grammar spec = grammar({
-			{ "M"         , { R("\\A[!>~]") >> M_transform_1 } },
-			{ "Q"         , { R("\\A[?*+]") >> Q_transform_1 } },
+			{ "M"         , { R("\\A[!>]") >> M_transform_1 } },
+			{ "Q"         , { R("\\A[?]") >> Q_transform_1 } },
 			{ "_"         , { R("\\A[ \\t]+") } },
 			{ "composite" , { rule() << "predicates" >> composite_transform_1 } },
-			{ "document"  , { rule() << "grammar" << "eof" << M::discard >> document_transform_1 } },
-			{ "entry"     , { rule() << "ws" << M::discard << "var" << "_" << M::discard << "eq" << M::discard << "_" << M::discard << "rules" << "eol" << M::discard >> entry_transform_1 } },
+			{ "document"  , { rule() << "grammar" << "eof" << M::drop >> document_transform_1 } },
+			{ "entry"     , { rule() << "ws" << M::drop << "var" << "_" << M::drop << "eq" << M::drop << "_" << M::drop << "rules" << "eol" << M::drop >> entry_transform_1 } },
 			{ "eof"       , { R("\\A\\z") } },
 			{ "eol"       , { R("\\A\\s*(?:$|\\z)") } },
 			{ "eq"        , { R("\\A=") } },
@@ -40,9 +40,9 @@ namespace xxx {
 				rule() << "entry" << "grammar" >> grammar_transform_1,
 				rule() << "entry" >> grammar_transform_2,
 			} },
-			{ "predicate" , { rule() << "M" << Q::question << "var" << "Q" << Q::question >> predicate_transform_1 } },
+			{ "predicate" , { rule() << "M" << Q::maybe << "var" << "Q" << Q::maybe >> predicate_transform_1 } },
 			{ "predicates", {
-				rule() << "predicate" << "_" << M::discard << "predicates" >> predicates_transform_1,
+				rule() << "predicate" << "_" << M::drop << "predicates" >> predicates_transform_1,
 				rule() << "predicate" >> predicates_transform_2,
 			} },
 			{ "regex"     , { R("\\A\\/((?:\\\\.|[^\\/])*)\\/") >> regex_transform_1 } },
@@ -51,7 +51,7 @@ namespace xxx {
 				rule() << "terminal" >> rule_transform_2,
 			} },
 			{ "rules"     , {
-				rule() << "rule" << "_" << M::discard << "fs" << M::discard << "_" << M::discard << "rules" >> rules_transform_1,
+				rule() << "rule" << "_" << M::drop << "fs" << M::drop << "_" << M::drop << "rules" >> rules_transform_1,
 				rule() << "rule" >> rules_transform_2,
 			} },
 			{ "terminal"  , { rule() << "regex" >> terminal_transform_1 } },
@@ -60,12 +60,12 @@ namespace xxx {
 		});
 
 		void M_transform_1(tree *a, void *x) {
-			// terminal rule : M = /[!>~]/
+			// terminal rule : M = /[!>]/
 			*(M *)x = M(a->match);
 		}
 
 		void Q_transform_1(tree *a, void *x) {
-			// terminal rule : Q = /[?*+]/
+			// terminal rule : Q = /[?]/
 			*(Q *)x = Q(a->match);
 		}
 

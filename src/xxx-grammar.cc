@@ -53,7 +53,7 @@ namespace xxx {
     }
 
 
-	std::string grammar::to_cc() const {
+	std::string grammar::to_cc(bool use_transforms) const {
 
         std::stringstream ss;
 
@@ -78,11 +78,13 @@ namespace xxx {
 
         auto ts = appendix();
 
-        for(const auto& s : ts)
-            for(size_t n = 0; n < at(s).size(); n++)
-                ss << "\t\ttransform_function " << s << "_transform_" << (n + 1) << ';' << std::endl;
+        if(use_transforms) {
+            for(const auto& s : ts)
+                for(size_t n = 0; n < at(s).size(); n++)
+                    ss << "\t\ttransform_function " << s << "_transform_" << (n + 1) << ';' << std::endl;
 
-        ss << std::endl;
+            ss << std::endl;
+        }
 
         //
         // grammar definition
@@ -106,7 +108,7 @@ namespace xxx {
             if(rs.size() == 1) {
 
                 ss << ' ' << rs.front().to_cc();
-                if(ts.find(s) != ts.end())
+                if(use_transforms and ts.find(s) != ts.end())
                     ss << " >> " << s << "_transform_1";
                 ss << ' ';
 
@@ -116,7 +118,7 @@ namespace xxx {
 
                 for(size_t n = 0; n < rs.size(); n++) {
                     ss << "\t\t\t\t" << rs[n].to_cc();
-                    if(ts.find(s) != ts.end())
+                    if(use_transforms and ts.find(s) != ts.end())
                         ss << " >> " << s << "_transform_" << (n + 1);
                     ss << ',' << std::endl;
                 }
@@ -135,21 +137,23 @@ namespace xxx {
         // transform definitions
         //
 
-        for(const auto& s : ts) {
+        if(use_transforms) {
+            for(const auto& s : ts) {
 
-            const auto& rs = at(s);
+                const auto& rs = at(s);
 
-            for(size_t n = 0; n < rs.size(); n++) {
+                for(size_t n = 0; n < rs.size(); n++) {
 
-                const auto& r = rs[n];
+                    const auto& r = rs[n];
 
-                ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(tree *a, void *x) {" << std::endl;
+                    ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(tree *a, void *x) {" << std::endl;
 
-                ss << to_cc_transform(s, r);
+                    ss << to_cc_transform(s, r);
 
-                ss << "\t\t}" << std::endl;
+                    ss << "\t\t}" << std::endl;
 
-                ss << std::endl;
+                    ss << std::endl;
+                }
             }
         }
 

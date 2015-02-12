@@ -2,42 +2,14 @@
 
 namespace xxx {
 
-    const predicate_modifier predicate_modifier::push = predicate_modifier(0);
-    const predicate_modifier predicate_modifier::peek = predicate_modifier('>');
-    const predicate_modifier predicate_modifier::discard = predicate_modifier('!');
-
-    predicate_modifier::predicate_modifier(const std::string& s) : ch(s.front()) {
-    }
-
-    const predicate_quantifier predicate_quantifier::star     ( 0, SIZE_MAX );
-    const predicate_quantifier predicate_quantifier::plus     ( 1, SIZE_MAX );
-    const predicate_quantifier predicate_quantifier::question ( 0, 1        );
-    const predicate_quantifier predicate_quantifier::one      ( 1, 1        );
+    const predicate_quantifier predicate_quantifier::maybe (0,1);
+    const predicate_quantifier predicate_quantifier::one   (1,1);
 
     predicate_quantifier::predicate_quantifier(const std::string& s) : predicate_quantifier(s.empty() ? '\0' : s.front()) {
     }
 
     std::string predicate_quantifier::str() const {
-
         char ch = operator char();
-
-        if(ch == '\0') {
-
-            if(operator==(one))
-                return "";
-
-            std::stringstream ss; 
-
-            ss << '{' << first;
-
-            if(first != second)
-                ss << ',' << second;
-
-            ss << '}';
-
-            return ss.str();
-        }
-
         return std::string(1, ch);
     }
 
@@ -70,7 +42,7 @@ namespace xxx {
         std::stringstream ss;
 
         if(modifier != predicate_modifier::push)
-            ss << (char)modifier;
+            ss << (char)(predicate_modifier::predicate_modifier_type)modifier;
 
         ss << name << quantifier.str();
 
@@ -89,11 +61,10 @@ namespace xxx {
 
         std::stringstream ss; 
 
-        /**/ if(quantifier == predicate_quantifier::one     ) ss << "\t\t\t" << expr;
-        else if(quantifier == predicate_quantifier::question) ss <<                  "\t\t\tif"    << cond         << std::endl << '\t' << "\t\t\t" << expr;
-        else if(quantifier == predicate_quantifier::star    ) ss <<                  "\t\t\twhile" << cond         << std::endl << '\t' << "\t\t\t" << expr;
-        else if(quantifier == predicate_quantifier::plus    ) ss << "\t\t\tdo " << expr << "while" << cond << ";"  << std::endl                ;
-        else                                                  ss <<                  "\t\t\tfor(;" << cond << ";)" << std::endl << '\t' << "\t\t\t" << expr;
+        if(quantifier == predicate_quantifier::maybe)
+            ss << "\t\t\tif" << cond << std::endl << '\t';
+
+        ss << "\t\t\t" << expr;
 
         return ss.str();
     }
