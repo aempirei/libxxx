@@ -1,20 +1,20 @@
-document                = grammar !eof
-grammar                 = entry grammar / entry
-entry                   = !ws var !_ !eq !_ rules !eol
-rules                   = rule !_ !fs !_ rules / rule
-rule                    = predicates / regex repl?
-repl                    = !_ !ra !_ var
-predicates              = predicate !_ predicates / predicate
-predicate               = m? var Q?
+document   = grammar !eof
+grammar    = entry grammar / entry
+entry      = !ws var !_ !eq !_ rules !eol
+rules      = rule !_ !fs !_ rules / rule
+rule       = predicates / regex repl?
+repl       = !_ !ra !_ var
+predicates = predicate !_ predicates / predicate
+predicate  = pm? var pq?
 
-ra          = /\A->/
-fs          = /\A\//
-_           = /\A[ \t]+/
-ws          = /\A\s*/
-eof         = /\A\z/
-eol         = /\A\s*(?:$|\z)/
-m           = /\A[!>]/ -> head
-Q           = /\A[?]/
-var         = /\A\w+/
-regex       = /\A\/((?:\\.|[^\/])*)\//
-eq          = /\A=/
+ra    = /\A->/
+fs    = /\A\//
+_     = /\A[ \t]+/
+ws    = /\A\s*/
+eof   = /\A\z/
+eol   = /\A\s*(?:$|\z)/
+pm    = /\A[!>]/            -> head
+pq    = /\A[?]/             -> head
+var   = /\A\w+/
+regex = /\A\/((?:\\.|[^\/])*)\//
+eq    = /\A=/

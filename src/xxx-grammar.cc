@@ -68,7 +68,7 @@ namespace xxx {
         ss << std::endl;
 
         ss << "\t\tusing M = predicate_modifier::type;" << std::endl;
-        ss << "\t\tusing Q = predicate_quantifier;" << std::endl;
+        ss << "\t\tusing Q = predicate_quantifier::type;" << std::endl;
 
         ss << std::endl;
 

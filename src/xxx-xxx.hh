@@ -5,14 +5,14 @@ namespace xxx {
 	namespace local {
 
 		using M = predicate_modifier::type;
-		using Q = predicate_quantifier;
+		using Q = predicate_quantifier::type;
 
-		transform_function Q_transform_1;
 		transform_function document_transform_1;
 		transform_function entry_transform_1;
 		transform_function grammar_transform_1;
 		transform_function grammar_transform_2;
-		transform_function m_transform_1;
+		transform_function pm_transform_1;
+		transform_function pq_transform_1;
 		transform_function predicate_transform_1;
 		transform_function predicates_transform_1;
 		transform_function predicates_transform_2;
@@ -25,7 +25,6 @@ namespace xxx {
 		transform_function var_transform_1;
 
 		grammar spec = grammar({
-			{ "Q"         , { R("\\A[?]") >> Q_transform_1 } },
 			{ "_"         , { R("\\A[ \\t]+") } },
 			{ "document"  , { rule() << "grammar" << "eof" << M::drop >> document_transform_1 } },
 			{ "entry"     , { rule() << "ws" << M::drop << "var" << "_" << M::drop << "eq" << M::drop << "_" << M::drop << "rules" << "eol" << M::drop >> entry_transform_1 } },
@@ -37,8 +36,9 @@ namespace xxx {
 				rule() << "entry" << "grammar" >> grammar_transform_1,
 				rule() << "entry" >> grammar_transform_2,
 			} },
-			{ "m"         , { R("\\A[!>]") >> m_transform_1 } },
-			{ "predicate" , { rule() << "m" << Q::maybe << "var" << "Q" << Q::maybe >> predicate_transform_1 } },
+			{ "pm"        , { R("\\A[!>]") >> pm_transform_1 } },
+			{ "pq"        , { R("\\A[?]") >> pq_transform_1 } },
+			{ "predicate" , { rule() << "pm" << Q::maybe << "var" << "pq" << Q::maybe >> predicate_transform_1 } },
 			{ "predicates", {
 				rule() << "predicate" << "_" << M::drop << "predicates" >> predicates_transform_1,
 				rule() << "predicate" >> predicates_transform_2,
@@ -57,11 +57,6 @@ namespace xxx {
 			{ "var"       , { R("\\A\\w+") >> var_transform_1 } },
 			{ "ws"        , { R("\\A\\s*") } },
 		});
-
-		void Q_transform_1(tree *a, void *x) {
-			// terminal rule : Q = /[?]/
-			*(Q *)x = Q((a->match));
-		}
 
 		void document_transform_1(tree *a, void *x) {
 			grammar arg0;
@@ -103,20 +98,25 @@ namespace xxx {
 			*(grammar *)x = grammar(arg0);
 		}
 
-		void m_transform_1(tree *a, void *x) {
-			// terminal rule : m = /[!>]/
-			*(m *)x = m(head(a->match));
+		void pm_transform_1(tree *a, void *x) {
+			// terminal rule : pm = /[!>]/
+			*(pm *)x = pm(head(a->match));
+		}
+
+		void pq_transform_1(tree *a, void *x) {
+			// terminal rule : pq = /[?]/
+			*(pq *)x = pq(head(a->match));
 		}
 
 		void predicate_transform_1(tree *a, void *x) {
-			m arg0;
+			pm arg0;
 			var arg1;
-			Q arg2;
+			pq arg2;
 			auto iter = a->children.begin();
-			if(iter != a->children.end() and iter->match_name() == "m")
+			if(iter != a->children.end() and iter->match_name() == "pm")
 				(iter++)->transform(&arg0);
 			(iter++)->transform(&arg1);
-			if(iter != a->children.end() and iter->match_name() == "Q")
+			if(iter != a->children.end() and iter->match_name() == "pq")
 				(iter++)->transform(&arg2);
 			if(iter != a->children.end())
 				throw std::runtime_error("not all arguments processed by predicate rule");

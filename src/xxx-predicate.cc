@@ -2,49 +2,35 @@
 
 namespace xxx {
 
-    const predicate_quantifier predicate_quantifier::maybe (0,1);
-    const predicate_quantifier predicate_quantifier::one   (1,1);
-
-    predicate_quantifier::predicate_quantifier(const std::string& s) : predicate_quantifier(s.empty() ? '\0' : s.front()) {
-    }
-
-    std::string predicate_quantifier::str() const {
-        char ch = operator char();
-        return std::string(1, ch);
-    }
-
     //
     // predicate
     //
 
-    predicate::predicate() : modifier(predicate_modifier::type::push), quantifier(predicate_quantifier::one) {
+    predicate::predicate() : modifier(predicate_modifier::type::push), quantifier(predicate_quantifier::type::one) {
     }
 
-    predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::type::push, my_name, predicate_quantifier::one) 
+    predicate::predicate(const std::string& my_name) : predicate(predicate_modifier::type::push, my_name, predicate_quantifier::type::one) 
     {
     }
 
-    predicate::predicate(predicate_modifier my_modifier, const predicate_name& my_name, const predicate_quantifier& my_quantifier)
+    predicate::predicate(const predicate_modifier& my_modifier, const predicate_name& my_name, const predicate_quantifier& my_quantifier)
         : modifier(my_modifier), name(my_name), quantifier(my_quantifier)
     {
     }
 
     size_t predicate::lower() const {
-        return quantifier.first;
+        return quantifier == predicate_quantifier::type::one ? 1 : 0;
     }
 
     size_t predicate::upper() const {
-        return quantifier.second;
+        return quantifier == predicate_quantifier::type::one ? 1 : 1;
     }
 
     std::string predicate::str() const {
 
         std::stringstream ss;
 
-        if(modifier != predicate_modifier::type::push)
-            ss << (char)modifier;
-
-        ss << name << quantifier.str();
+        ss << modifier.str() << name << quantifier.str();
 
         return ss.str();
     }
@@ -61,7 +47,7 @@ namespace xxx {
 
         std::stringstream ss; 
 
-        if(quantifier == predicate_quantifier::maybe)
+        if(quantifier == predicate_quantifier::type::maybe)
             ss << "\t\t\tif" << cond << std::endl << '\t';
 
         ss << "\t\t\t" << expr;

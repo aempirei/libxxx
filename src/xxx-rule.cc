@@ -69,7 +69,7 @@ namespace xxx {
 
         for(const auto& p : composite)
             if(p.modifier == predicate_modifier::type::push)
-                sig.push_back(p.name + p.quantifier.str());
+                sig.push_back(p.modifier.str() + p.name + p.quantifier.str());
 
         return sig;
     }
@@ -86,7 +86,7 @@ namespace xxx {
         for(const auto& p : composite) {
             ss << " << \"" << p.name << '\"';
 
-            ss << ( p.quantifier == predicate_quantifier::maybe ? " << Q::maybe" : "" );
+            ss << ( p.quantifier == predicate_quantifier::type::maybe ? " << Q::maybe" : "" );
 
             ss << ( p.modifier == predicate_modifier::type::drop ? " << M::drop" :
                     p.modifier == predicate_modifier::type::peek ? " << M::peek" : "" );
@@ -161,7 +161,7 @@ namespace xxx {
         return *this;
     }
 
-    rule& rule::operator<<(predicate_modifier x) {
+    rule& rule::operator<<(const predicate_modifier& x) {
 
         if(type != rule_type::composite)
             throw std::runtime_error("rule::type is not rule_type::composite in rule::operator<<");

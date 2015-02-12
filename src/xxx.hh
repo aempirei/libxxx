@@ -20,7 +20,6 @@
 namespace xxx {
 
     template <typename E, typename, E> struct enum_wrapper;
-    struct predicate_quantifier;
     struct predicate;
     struct rule;
     struct grammar;
@@ -57,12 +56,6 @@ namespace xxx {
     extern template struct _s<predicate>;
 
     //
-    // predicate
-    //
-
-    enum struct predicate_modifier_enum : char { push = '\0', peek = '>', drop = '!' };
-
-    //
     // enum_wrapper
     //
 
@@ -75,42 +68,30 @@ namespace xxx {
         constexpr enum_wrapper(base my_x) : x((type)my_x) { }
         constexpr operator type() const { return x; }
         constexpr operator base() const { return (base)x; }
+        inline std::basic_string<base> str() const {
+            return (x == x0) ? "" : std::basic_string<base>(1, (base)x);
+        }
+    };
+
+    //
+    // predicate
+    //
+
+    enum struct predicate_modifier_enum : char {
+        push = '\0',
+        peek = '>',
+        drop = '!'
+    };
+
+    enum struct predicate_quantifier_enum : char {
+        one   = '\0',
+        maybe = '?'
     };
 
     using predicate_modifier = enum_wrapper<predicate_modifier_enum, char, predicate_modifier_enum::push>;
+    using predicate_quantifier = enum_wrapper<predicate_quantifier_enum, char, predicate_quantifier_enum::one>;
 
     using predicate_name = var;
-
-    using _predicate_quantifier = std::pair<size_t,size_t>;
-    struct predicate_quantifier : _predicate_quantifier {
-
-        static const predicate_quantifier maybe;
-        static const predicate_quantifier one;
-
-        using _predicate_quantifier::_predicate_quantifier;
-
-        predicate_quantifier(const std::string&);
-
-        constexpr predicate_quantifier() : predicate_quantifier(1,1) {
-        }
-
-        constexpr predicate_quantifier(char ch) : predicate_quantifier(ch == '?' ? maybe : one) {
-        }
-
-        constexpr bool operator!=(predicate_quantifier x) const {
-            return first != x.first or second != x.second;
-        }
-
-        constexpr bool operator==(predicate_quantifier x) const {
-            return first == x.first and second == x.second;
-        }
-
-        constexpr explicit operator char() const {
-            return (first == 0 and second == 1) ? '?' : '\0';
-        }
-
-        std::string str() const;
-    };
 
     struct predicate {
 
@@ -120,7 +101,7 @@ namespace xxx {
 
         predicate();
         predicate(const predicate_name&);
-        predicate(predicate_modifier, const predicate_name&, const predicate_quantifier&);
+        predicate(const predicate_modifier&, const predicate_name&, const predicate_quantifier&);
 
         size_t upper() const;
         size_t lower() const;
@@ -159,7 +140,7 @@ namespace xxx {
         rule(const terminal_type&, const var&);
 
         rule& operator<<(const var&);
-        rule& operator<<(predicate_modifier);
+        rule& operator<<(const predicate_modifier&);
         rule& operator<<(const predicate_quantifier&);
         rule& operator<<(const predicate&);
 
