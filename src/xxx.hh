@@ -70,6 +70,7 @@ namespace xxx {
         static constexpr predicate_modifier_type peek = predicate_modifier_type::peek;
         static constexpr predicate_modifier_type drop = predicate_modifier_type::drop;
         constexpr operator predicate_modifier_type() const { return m; }
+        constexpr explicit operator char() const { return (char)m; }
     };
 
     using predicate_name = var;

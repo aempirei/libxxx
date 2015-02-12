@@ -42,7 +42,7 @@ namespace xxx {
         std::stringstream ss;
 
         if(modifier != predicate_modifier::push)
-            ss << (char)(predicate_modifier::predicate_modifier_type)modifier;
+            ss << (char)modifier;
 
         ss << name << quantifier.str();
 
