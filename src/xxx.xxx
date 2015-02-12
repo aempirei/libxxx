@@ -5,7 +5,7 @@ rules                   = rule !_ !fs !_ rules / rule
 rule                    = predicates / regex repl?
 repl                    = !_ !ra !_ var
 predicates              = predicate !_ predicates / predicate
-predicate               = M? var Q?
+predicate               = m? var Q?
 
 ra          = /\A->/
 fs          = /\A\//
@@ -13,7 +13,7 @@ _           = /\A[ \t]+/
 ws          = /\A\s*/
 eof         = /\A\z/
 eol         = /\A\s*(?:$|\z)/
-M           = /\A[!>]/ -> head
+m           = /\A[!>]/ -> head
 Q           = /\A[?]/
 var         = /\A\w+/
 regex       = /\A\/((?:\\.|[^\/])*)\//

@@ -4,15 +4,15 @@
 namespace xxx {
 	namespace local {
 
-		using M = predicate_modifier;
+		using M = predicate_modifier::type;
 		using Q = predicate_quantifier;
 
-		transform_function M_transform_1;
 		transform_function Q_transform_1;
 		transform_function document_transform_1;
 		transform_function entry_transform_1;
 		transform_function grammar_transform_1;
 		transform_function grammar_transform_2;
+		transform_function m_transform_1;
 		transform_function predicate_transform_1;
 		transform_function predicates_transform_1;
 		transform_function predicates_transform_2;
@@ -25,11 +25,10 @@ namespace xxx {
 		transform_function var_transform_1;
 
 		grammar spec = grammar({
-			{ "M"         , { R("\\A[!>]") >> M_transform_1 } },
 			{ "Q"         , { R("\\A[?]") >> Q_transform_1 } },
 			{ "_"         , { R("\\A[ \\t]+") } },
-			{ "document"  , { rule() << "grammar" << "eof" << M::type::drop >> document_transform_1 } },
-			{ "entry"     , { rule() << "ws" << M::type::drop << "var" << "_" << M::type::drop << "eq" << M::type::drop << "_" << M::type::drop << "rules" << "eol" << M::type::drop >> entry_transform_1 } },
+			{ "document"  , { rule() << "grammar" << "eof" << M::drop >> document_transform_1 } },
+			{ "entry"     , { rule() << "ws" << M::drop << "var" << "_" << M::drop << "eq" << M::drop << "_" << M::drop << "rules" << "eol" << M::drop >> entry_transform_1 } },
 			{ "eof"       , { R("\\A\\z") } },
 			{ "eol"       , { R("\\A\\s*(?:$|\\z)") } },
 			{ "eq"        , { R("\\A=") } },
@@ -38,30 +37,26 @@ namespace xxx {
 				rule() << "entry" << "grammar" >> grammar_transform_1,
 				rule() << "entry" >> grammar_transform_2,
 			} },
-			{ "predicate" , { rule() << "M" << Q::maybe << "var" << "Q" << Q::maybe >> predicate_transform_1 } },
+			{ "m"         , { R("\\A[!>]") >> m_transform_1 } },
+			{ "predicate" , { rule() << "m" << Q::maybe << "var" << "Q" << Q::maybe >> predicate_transform_1 } },
 			{ "predicates", {
-				rule() << "predicate" << "_" << M::type::drop << "predicates" >> predicates_transform_1,
+				rule() << "predicate" << "_" << M::drop << "predicates" >> predicates_transform_1,
 				rule() << "predicate" >> predicates_transform_2,
 			} },
 			{ "ra"        , { R("\\A->") } },
 			{ "regex"     , { R("\\A\\/((?:\\\\.|[^\\/])*)\\/") >> regex_transform_1 } },
-			{ "repl"      , { rule() << "_" << M::type::drop << "ra" << M::type::drop << "_" << M::type::drop << "var" >> repl_transform_1 } },
+			{ "repl"      , { rule() << "_" << M::drop << "ra" << M::drop << "_" << M::drop << "var" >> repl_transform_1 } },
 			{ "rule"      , {
 				rule() << "predicates" >> rule_transform_1,
 				rule() << "regex" << "repl" << Q::maybe >> rule_transform_2,
 			} },
 			{ "rules"     , {
-				rule() << "rule" << "_" << M::type::drop << "fs" << M::type::drop << "_" << M::type::drop << "rules" >> rules_transform_1,
+				rule() << "rule" << "_" << M::drop << "fs" << M::drop << "_" << M::drop << "rules" >> rules_transform_1,
 				rule() << "rule" >> rules_transform_2,
 			} },
 			{ "var"       , { R("\\A\\w+") >> var_transform_1 } },
 			{ "ws"        , { R("\\A\\s*") } },
 		});
-
-		void M_transform_1(tree *a, void *x) {
-			// terminal rule : M = /[!>]/
-			*(M *)x = M(head(a->match));
-		}
 
 		void Q_transform_1(tree *a, void *x) {
 			// terminal rule : Q = /[?]/
@@ -108,12 +103,17 @@ namespace xxx {
 			*(grammar *)x = grammar(arg0);
 		}
 
+		void m_transform_1(tree *a, void *x) {
+			// terminal rule : m = /[!>]/
+			*(m *)x = m(head(a->match));
+		}
+
 		void predicate_transform_1(tree *a, void *x) {
-			M arg0;
+			m arg0;
 			var arg1;
 			Q arg2;
 			auto iter = a->children.begin();
-			if(iter != a->children.end() and iter->match_name() == "M")
+			if(iter != a->children.end() and iter->match_name() == "m")
 				(iter++)->transform(&arg0);
 			(iter++)->transform(&arg1);
 			if(iter != a->children.end() and iter->match_name() == "Q")

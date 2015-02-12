@@ -8,6 +8,7 @@ namespace xxx {
         using terminal = regex;
         using repl = std::string;
         using entry = std::pair<var,rules>;
+        using m = predicate_modifier;
         static inline char head(const std::string& s) {
             return s.front();
         }
