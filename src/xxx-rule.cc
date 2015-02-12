@@ -60,18 +60,6 @@ namespace xxx {
         return ss.str();
     }
 
-    bool rule::is_product() const {
-
-        // is_product is false if any predicate contains predicate_quantifier::star or predicate_quantifier::plus
-
-        for(const auto& p : composite)
-            if(p.modifier == predicate_modifier::push)
-                if(p.quantifier == predicate_quantifier::star or p.quantifier == predicate_quantifier::plus)
-                    return false;
-
-        return true;
-    }
-
     vars rule::to_sig() const {
 
         if(type == rule_type::terminal)
@@ -177,5 +165,4 @@ namespace xxx {
 
         return *this;
     }
-
 }

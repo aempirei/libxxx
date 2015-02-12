@@ -2,6 +2,13 @@
 
 namespace xxx {
 
+    const predicate_modifier predicate_modifier::push = predicate_modifier(0);
+    const predicate_modifier predicate_modifier::peek = predicate_modifier('>');
+    const predicate_modifier predicate_modifier::discard = predicate_modifier('!');
+
+    predicate_modifier::predicate_modifier(const std::string& s) : ch(s.front()) {
+    }
+
     const predicate_quantifier predicate_quantifier::star     ( 0, SIZE_MAX );
     const predicate_quantifier predicate_quantifier::plus     ( 1, SIZE_MAX );
     const predicate_quantifier predicate_quantifier::question ( 0, 1        );
@@ -82,18 +89,18 @@ namespace xxx {
 
         std::stringstream ss; 
 
-        /**/ if(quantifier == predicate_quantifier::one     ) ss << expr;
-        else if(quantifier == predicate_quantifier::question) ss <<                  "if"    << cond         << std::endl << '\t' << expr;
-        else if(quantifier == predicate_quantifier::star    ) ss <<                  "while" << cond         << std::endl << '\t' << expr;
-        else if(quantifier == predicate_quantifier::plus    ) ss << "do " << expr << "while" << cond << ";"  << std::endl                ;
-        else                                                  ss <<                  "for(;" << cond << ";)" << std::endl << '\t' << expr;
+        /**/ if(quantifier == predicate_quantifier::one     ) ss << "\t\t\t" << expr;
+        else if(quantifier == predicate_quantifier::question) ss <<                  "\t\t\tif"    << cond         << std::endl << '\t' << "\t\t\t" << expr;
+        else if(quantifier == predicate_quantifier::star    ) ss <<                  "\t\t\twhile" << cond         << std::endl << '\t' << "\t\t\t" << expr;
+        else if(quantifier == predicate_quantifier::plus    ) ss << "\t\t\tdo " << expr << "while" << cond << ";"  << std::endl                ;
+        else                                                  ss <<                  "\t\t\tfor(;" << cond << ";)" << std::endl << '\t' << "\t\t\t" << expr;
 
         return ss.str();
     }
 
     std::string predicate::to_cc_decl(size_t n) const {
         std::stringstream ss;
-        ss << name << " arg" << n << ';' << std::endl;
+        ss << "\t\t\t" << name << " arg" << n << ';' << std::endl;
         return ss.str();
     }
 }

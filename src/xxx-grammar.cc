@@ -2,23 +2,24 @@
 
 namespace xxx {
 
+    grammar::grammar(const value_type& x, grammar&& g) : _grammar(g) {
+        insert(x);
+    }
+
+    grammar::grammar(const value_type& x, const grammar& g) : _grammar(g) {
+        insert(x);
+    }
+
+    grammar::grammar(const value_type& x) : _grammar() {
+        insert(x);
+    }
+
+    grammar::grammar() : _grammar() {
+    }
+
     std::string grammar::to_js() const {
         throw std::runtime_error("grammar::to_js() unimplemented");
         return "";
-    }
-
-    std::set<var> grammar::appendix() const {
-
-        std::set<var> u;
-
-        for(const auto& x : *this)
-            for(const auto& r : x.second)
-                if(r.type == rule_type::composite)
-                    for(const auto& p : r.composite)
-                        if(p.modifier == predicate_modifier::push)
-                            u.insert(p.name); 
-
-        return u;
     }
 
     grammar::iterator grammar::concat(const value_type& x) {
@@ -32,6 +33,25 @@ namespace xxx {
 
         return iter;
     }
+
+    std::set<var> grammar::appendix() const {
+
+        std::set<var> u;
+
+        for(const auto& x : *this) {
+            for(const auto& r : x.second) {
+                if(r.type == rule_type::composite) {
+                    u.insert(x.first);
+                    for(const auto& p : r.composite)
+                        if(p.modifier == predicate_modifier::push)
+                            u.insert(p.name); 
+                }
+            }
+        }
+
+        return u;
+    }
+
 
 	std::string grammar::to_cc() const {
 
@@ -52,11 +72,11 @@ namespace xxx {
 
         ss << std::endl;
 
-        auto ts = appendix();
-
         //
         // transform declarations
         //
+
+        auto ts = appendix();
 
         for(const auto& s : ts)
             for(size_t n = 0; n < at(s).size(); n++)
@@ -86,21 +106,16 @@ namespace xxx {
             if(rs.size() == 1) {
 
                 ss << ' ' << rs.front().to_cc();
-
                 if(ts.find(s) != ts.end())
                     ss << " >> " << s << "_transform_1";
-
-                ss << ' '; 
+                ss << ' ';
 
             } else {
 
                 ss << std::endl;
 
                 for(size_t n = 0; n < rs.size(); n++) {
-
-                    const auto& r = rs[n];
-
-                    ss << "\t\t\t\t" << r.to_cc();
+                    ss << "\t\t\t\t" << rs[n].to_cc();
                     if(ts.find(s) != ts.end())
                         ss << " >> " << s << "_transform_" << (n + 1);
                     ss << ',' << std::endl;
@@ -130,18 +145,6 @@ namespace xxx {
 
                 ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(tree *a, void *x) {" << std::endl;
 
-                ss << "\t\t\t//";
-
-                for(const auto& sig : r.to_sig())
-                    ss << ' ' << sig;
-
-                ss << " -> " << s;
-
-                if(not r.is_product())
-                    ss << ".push_back";
-
-                ss << std::endl;
-
                 ss << to_cc_transform(s, r);
 
                 ss << "\t\t}" << std::endl;
@@ -165,7 +168,8 @@ namespace xxx {
         std::stringstream ss;
 
         if(r.type == rule_type::terminal) {
-            ss << "// TERMINAL RULE : " << name << " = " << r.str() << std::endl;           
+            ss << "\t\t\t// terminal rule : " << name << " = " << r.str() << std::endl;           
+            ss << "\t\t\t*(" << name << " *)x = " << name << "(a->match);" << std::endl;
         } else {
 
             {
@@ -175,18 +179,25 @@ namespace xxx {
                         ss << p.to_cc_decl(n++);
             }
 
-            if(r.is_product()) {
 
-                {
-                    size_t n = 0;
-                    for(const auto& p : r.composite)
-                        if(p.modifier == predicate_modifier::push)
-                            ss << p.to_cc_def(n++);
+            ss << "\t\t\tauto iter = a->children.begin();" << std::endl;
+
+            {
+                size_t n = 0;
+                for(const auto& p : r.composite)
+                    if(p.modifier == predicate_modifier::push)
+                        ss << p.to_cc_def(n++);
+
+                ss << "\t\t\tif(iter != a->children.end())" << std::endl;
+                ss << "\t\t\t\tthrow std::runtime_error(\"not all arguments processed by " << name << " rule\");" << std::endl;
+
+                ss << "\t\t\t*(" << name << " *)x = " << name << '(';
+                if(n > 0) {
+                    ss << "arg" << 0;
+                    for(size_t i = 1; i < n; i++)
+                        ss << ",arg" << i;
                 }
-
-                ss << "// PRODUCT RULE : " << name << "(arg...)" << std::endl;
-            } else {
-                ss << "// FUNCTOR RULE : map (arg...) " << name << std::endl;
+                ss << ");" << std::endl;
             }
         }
 

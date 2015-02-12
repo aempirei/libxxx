@@ -4,8 +4,8 @@ CXXFLAGS = -Wall -pedantic -std=gnu++11 -O3
 LIBFLAGS = -Llib -lxxx -lboost_regex
 TARGETS = lib/libxxx.a bin/xxx
 INSTALL_PATH = /usr/local
-SOURCES = src/xxx-tree.cc src/xxx-rule.cc src/xxx-predicate.cc src/xxx-grammar.cc
-OBJECTS = src/xxx-tree.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o
+SOURCES = src/xxx-tree.cc src/xxx-rule.cc src/xxx-predicate.cc src/xxx-grammar.cc src/xxx.cc
+OBJECTS = src/xxx-tree.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o src/xxx.o
 
 .PHONY: all clean install test library
 
@@ -23,13 +23,16 @@ install:
 test: $(TARGETS)
 	./bin/xxx -apg ./test/p-lang.xxx < ./test/example.p-lang
 
+code: $(TARGETS)
+	./bin/xxx -g src/xxx.xxx -c | less
+
 library: lib/libxxx.a
 
 lib/libxxx.a: $(OBJECTS)
 	if [ ! -d lib ]; then mkdir -vp lib; fi
 	ar crfv $@ $^ 
 
-bin/xxx: src/xxx.o lib/libxxx.a
+bin/xxx: src/main.o lib/libxxx.a
 	if [ ! -d bin ]; then mkdir -vp bin; fi
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBFLAGS)
 

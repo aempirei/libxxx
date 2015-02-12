@@ -19,28 +19,61 @@
 
 namespace xxx {
 
+    struct predicate_modifier;
     struct predicate_quantifier;
     struct predicate;
-    struct grammar;
     struct rule;
+    struct grammar;
     struct tree;
+
+    template <typename> struct _s;
 
     using var = std::string;
 
-    plural(predicate);  // predicates
-    plural(rule);       // rules
     plural(tree);       // trees
     plural(var);        // vars
+
+    using rules = _s<rule>;
+    using predicates = _s<predicate>;
 
     using transform_function = void(tree *, void *);
 
     transform_function passthru_transform;
 
     //
+    // _s<T>
+    //
+
+    template <typename T> struct _s : std::vector<T> {
+        using value_type = T;
+        using base_type = std::vector<value_type>;
+        using base_type::base_type;
+        _s();
+        _s(const value_type&);
+        _s(const value_type&, const _s&);
+    };
+
+    extern template struct _s<rule>;
+    extern template struct _s<predicate>;
+
+    //
     // predicate
     //
 
-    enum class predicate_modifier : char { push = 0, peek = '>', discard = '!' };
+    struct predicate_modifier {
+        char ch;
+        predicate_modifier(const std::string&);
+        constexpr predicate_modifier(char my_ch) : ch(my_ch) {
+        }
+        constexpr predicate_modifier() : ch(0) {
+        }
+        constexpr operator char() const {
+            return ch;
+        }
+        const static predicate_modifier push;
+        const static predicate_modifier peek;
+        const static predicate_modifier discard;
+    };
 
     using predicate_name = var;
 
@@ -135,8 +168,6 @@ namespace xxx {
         std::string to_cc() const;
 
         vars to_sig() const;
-
-        bool is_product() const;
     };
 
     //
@@ -149,13 +180,18 @@ namespace xxx {
 
             using _grammar::_grammar;
 
-            std::set<var> appendix() const;
+            grammar(const value_type&, grammar&&);
+            grammar(const value_type&, const grammar&);
+            grammar(const value_type&);
+            grammar();
 
             iterator concat(const value_type&);
 
             std::string to_xxx() const;
             std::string to_cc() const;
             std::string to_js() const;
+
+            std::set<var> appendix() const;
 
             std::string to_cc_transform(const key_type&, const rule&) const;
             std::string to_cc_transforms(const key_type&) const;
