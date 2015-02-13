@@ -168,16 +168,12 @@ namespace xxx {
     // grammar
     //
 
-    using _grammar = std::map<var,rules>;
+    using __grammar = std::map<var,rules>;
+    using _grammar = fold<__grammar>;
 
     struct grammar : _grammar {
 
             using _grammar::_grammar;
-
-            grammar(const value_type&, grammar&&);
-            grammar(const value_type&, const grammar&);
-            grammar(const value_type&);
-            grammar();
 
             iterator concat(const value_type&);
 

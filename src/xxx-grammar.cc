@@ -2,21 +2,6 @@
 
 namespace xxx {
 
-    grammar::grammar(const value_type& x, grammar&& g) : _grammar(g) {
-        insert(x);
-    }
-
-    grammar::grammar(const value_type& x, const grammar& g) : _grammar(g) {
-        insert(x);
-    }
-
-    grammar::grammar(const value_type& x) : _grammar() {
-        insert(x);
-    }
-
-    grammar::grammar() : _grammar() {
-    }
-
     std::string grammar::to_js() const {
         throw std::runtime_error("grammar::to_js() unimplemented");
         return "";
