@@ -175,8 +175,6 @@ namespace xxx {
 
             using _grammar::_grammar;
 
-            iterator concat(const value_type&);
-
             std::string to_xxx() const;
             std::string to_js() const;
 

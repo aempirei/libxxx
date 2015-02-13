@@ -7,18 +7,6 @@ namespace xxx {
         return "";
     }
 
-    grammar::iterator grammar::concat(const value_type& x) {
-
-        auto iter = find(x.first);
-
-        if(iter == end())
-            return insert(x).first;
-
-        iter->second.insert(iter->second.end(), x.second.begin(), x.second.end());
-
-        return iter;
-    }
-
     std::set<var> grammar::appendix() const {
 
         std::set<var> u;
