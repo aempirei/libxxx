@@ -2,7 +2,7 @@
 
 #include <map>
 #include <set>
-#include <vector>
+#include <list>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -15,7 +15,7 @@
 
 #include <boost/regex.hpp>
 
-#define plural(x) using x##s = std::vector<x>
+#define plural(x) using x##s = std::list<x>
 
 namespace xxx {
 
@@ -44,13 +44,13 @@ namespace xxx {
     // _s<T>
     //
 
-    template <typename T> struct _s : std::vector<T> {
+    template <typename T> struct _s : std::list<T> {
         using value_type = T;
-        using base_type = std::vector<value_type>;
+        using base_type = std::list<value_type>;
         using base_type::base_type;
         _s();
-        _s(const _s&);
         _s(const value_type&);
+        _s(const value_type&, _s&&);
         _s(const value_type&, const _s&);
     };
 

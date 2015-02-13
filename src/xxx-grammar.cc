@@ -125,9 +125,10 @@ namespace xxx {
 
                 ss << std::endl;
 
-                for(size_t n = 0; n < rs.size(); n++) {
+                size_t n = 0;
+                for(const auto& r : rs) {
                     ss << "\t\t\t\t";
-                    print_rules(rs[n], n);
+                    print_rules(r, n++);
                     ss << ',' << std::endl;
                 }
 
@@ -150,11 +151,10 @@ namespace xxx {
 
                 const auto& rs = at(s);
 
-                for(size_t n = 0; n < rs.size(); n++) {
+                size_t n = 0;
+                for(const auto& r : rs) {
 
-                    const auto& r = rs[n];
-
-                    ss << "\t\tvoid " << s << "_transform_" << (n + 1) << "(tree *a, void *x) {" << std::endl;
+                    ss << "\t\tvoid " << s << "_transform_" << ++n << "(tree *a, void *x) {" << std::endl;
 
                     ss << to_cc_transform(s, r);
 
