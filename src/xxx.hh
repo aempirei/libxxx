@@ -15,7 +15,7 @@
 
 #include <boost/regex.hpp>
 
-#define plural(x) using x##s = std::list<x>
+#define plural(X) using X##s = _s<X>; extern template struct _s<X>; static_assert(std::is_default_constructible<X##s>::value, #X "s isn't default-constructible.")
 
 namespace xxx {
 
@@ -28,15 +28,9 @@ namespace xxx {
     struct rule;
     struct tree;
 
-    using rules = _s<rule>;
-    using predicates = _s<predicate>;
-
     using var = std::string;
 
     using transform_function = void(tree *, void *);
-
-    plural(tree);   // trees
-    plural(var);    // vars
 
     transform_function passthru_transform;
 
@@ -54,8 +48,10 @@ namespace xxx {
         _s(const value_type&, const _s&);
     };
 
-    extern template struct _s<rule>;
-    extern template struct _s<predicate>;
+    plural(tree);       // trees
+    plural(var);        // vars
+    plural(rule);       // rules
+    plural(predicate);  // predicates
 
     //
     // enum_wrapper

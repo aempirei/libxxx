@@ -17,6 +17,8 @@ namespace xxx {
         this->push_front(x);
     }
 
-    template struct _s<rule>;
     template struct _s<predicate>;
+    template struct _s<rule>;
+    template struct _s<tree>;
+    template struct _s<var>;
 }
