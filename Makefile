@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -Isrc
-CXXFLAGS = -Wall -pedantic -std=gnu++11 -O3 -ggdb
+CXXFLAGS = -Wall -pedantic -std=gnu++11 -O2
 LIBFLAGS = -Llib -lxxx -lboost_regex
 TARGETS = lib/libxxx.a bin/xxx
 INSTALL_PATH = /usr/local
@@ -21,7 +21,7 @@ install:
 	install -m 755 bin/xxx $(INSTALL_PATH)/bin
 
 test: $(TARGETS)
-	./bin/xxx -apg ./test/p-lang.xxx < ./test/example.p-lang
+	./bin/xxx -iapg ./test/p-lang.xxx < ./test/example.p-lang
 
 library: lib/libxxx.a
 
