@@ -15,18 +15,20 @@
 
 #include <boost/regex.hpp>
 
-#define plural(X) using X##s = _s<X>; extern template struct _s<X>; static_assert(std::is_default_constructible<X##s>::value, #X "s isn't default-constructible.")
+#define plural(X) using X##s = _s<X>; extern template struct fold<std::list<X>>; static_assert(std::is_default_constructible<X##s>::value, #X "s isn't default-constructible.")
 
 namespace xxx {
 
     template <typename E, typename, E> struct enum_wrapper;
 
-    template <typename> struct _s;
+    template <typename> struct fold;
 
     struct predicate;
     struct grammar;
     struct rule;
     struct tree;
+
+    template <typename T> using _s = fold<std::list<T>>;
 
     using var = std::string;
 
@@ -35,17 +37,17 @@ namespace xxx {
     transform_function passthru_transform;
 
     //
-    // _s<T>
+    // fold<T>
     //
 
-    template <typename T> struct _s : std::list<T> {
-        using value_type = T;
-        using base_type = std::list<value_type>;
+    template <typename T> struct fold : T {
+        using value_type = typename T::value_type;
+        using base_type = T;
         using base_type::base_type;
-        _s();
-        _s(const value_type&);
-        _s(const value_type&, _s&&);
-        _s(const value_type&, const _s&);
+        fold();
+        fold(const value_type&);
+        fold(const value_type&, fold&&);
+        fold(const value_type&, const fold&);
     };
 
     plural(tree);       // trees

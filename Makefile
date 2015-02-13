@@ -36,5 +36,9 @@ bin/xxx: src/main.o lib/libxxx.a
 code: bin/xxx src/xxx.xxx
 	bin/xxx -g src/xxx.xxx -ct | less
 
+check: bin/xxx src/xxx.xxx
+	bin/xxx -g src/xxx.xxx -ct | sha256sum
+	cat src/xxx-xxx.hh | sha256sum
+
 src/xxx-xxx.hh: bin/xxx src/xxx.xxx
 	bin/xxx -g src/xxx.xxx -ct > src/xxx-xxx.hh
