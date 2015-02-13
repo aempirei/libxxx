@@ -36,8 +36,8 @@ namespace xxx {
 				rule() << "entry" << "grammar" >> grammar_transform_1,
 				rule() << "entry" >> grammar_transform_2,
 			} },
-			{ "pm"        , { R("\\A[=!>]") >> pm_transform_1 } },
-			{ "pq"        , { R("\\A\\?") >> pq_transform_1 } },
+			{ "pm"        , { R("\\A[=!>]") >> pm_transform_1 >> "head" } },
+			{ "pq"        , { R("\\A\\?") >> pq_transform_1 >> "head" } },
 			{ "predicate" , { rule() << "pm" << Q::maybe << "var" << "pq" << Q::maybe >> predicate_transform_1 } },
 			{ "predicates", {
 				rule() << "predicate" << "_" << M::drop << "predicates" >> predicates_transform_1,
@@ -113,10 +113,10 @@ namespace xxx {
 			var arg1;
 			pq arg2;
 			auto iter = a->children.begin();
-			if(iter != a->children.end() and iter->match_name() == "pm")
+			if(iter != a->children.end() and iter->match_name == "pm")
 				(iter++)->transform(&arg0);
 			(iter++)->transform(&arg1);
-			if(iter != a->children.end() and iter->match_name() == "pq")
+			if(iter != a->children.end() and iter->match_name == "pq")
 				(iter++)->transform(&arg2);
 			if(iter != a->children.end())
 				throw std::runtime_error("not all arguments processed by predicate rule");
@@ -171,7 +171,7 @@ namespace xxx {
 			repl arg1;
 			auto iter = a->children.begin();
 			(iter++)->transform(&arg0);
-			if(iter != a->children.end() and iter->match_name() == "repl")
+			if(iter != a->children.end() and iter->match_name == "repl")
 				(iter++)->transform(&arg1);
 			if(iter != a->children.end())
 				throw std::runtime_error("not all arguments processed by rule rule");

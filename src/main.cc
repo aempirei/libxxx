@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
     bool do_print_code      = false;
     bool do_print_xml       = false;
     bool do_print_grammar   = false;
-    bool do_load_grammar    = false;
     bool do_print_tree      = false;
+    bool do_load_grammar    = false;
     bool do_parse_input     = false;
     bool use_transforms     = false;
 
@@ -85,8 +85,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if(do_print_grammar and not do_parse_input)
-        std::cout << local::spec.to_xxx();
+    grammar g;
 
     if(do_load_grammar) {
 
@@ -96,34 +95,31 @@ int main(int argc, char **argv) {
             return -1;
         }
 
-        tree a(local::spec, fp);
-
+        tree t(local::spec, fp);
         fclose(fp);
 
-        if(do_print_tree and not do_parse_input)
-            std::cout << a.str() << std::endl;
+        t.transform(&g);
 
-        grammar h;
-
-        a.transform(&h);
-
-        if(do_print_code)
-            std::cout << h.to_cc(use_transforms);
-
-        if(do_parse_input) {
-
-            tree b(h, stdin);
-
-            if(do_print_grammar)
-                std::cout << h.to_xxx();
-
-            if(do_print_tree)
-                std::cout << b.str() << std::endl;
-
-            if(do_print_xml)
-                std::cout << b.xml() << std::endl;
+        if(not do_parse_input) {
+            if(do_print_xml ) std::cout << t.xml();
+            if(do_print_tree) std::cout << t.str();
         }
+
+    } else {
+
+        g = local::spec;
     }
+
+    if(do_parse_input) {
+
+        tree t(g, stdin);
+    
+        if(do_print_xml ) std::cout << t.xml();
+        if(do_print_tree) std::cout << t.str();
+    }
+
+    if(do_print_code   ) std::cout << g.to_cc(use_transforms);
+    if(do_print_grammar) std::cout << g.to_xxx();
 
     return 0;
 }

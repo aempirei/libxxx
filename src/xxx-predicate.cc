@@ -42,7 +42,7 @@ namespace xxx {
         std::string expr = ssexpr.str();
 
         std::stringstream sscond; 
-        sscond << "(iter != a->children.end() and iter->match_name() == \"" << name << "\")";
+        sscond << "(iter != a->children.end() and iter->match_name == \"" << name << "\")";
         std::string cond = sscond.str();
 
         std::stringstream ss; 

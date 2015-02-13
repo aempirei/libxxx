@@ -105,11 +105,20 @@ namespace xxx {
 
             ss << "\t\t\t{ \"" << s << "\"" << std::setw(w - s.length()) << "" << ", {";
 
+            auto print_rules = [&s, &ts, &ss, &use_transforms](const rule& r, size_t n) {
+                ss << r.to_cc();
+                if(use_transforms) {
+                    if(ts.find(s) != ts.end())
+                        ss << " >> " << s << "_transform_" << (n + 1);
+                    if(not r.repl.empty())
+                        ss << " >> " << '"' << r.repl << '"';
+                }
+            };
+
             if(rs.size() == 1) {
 
-                ss << ' ' << rs.front().to_cc();
-                if(use_transforms and ts.find(s) != ts.end())
-                    ss << " >> " << s << "_transform_1";
+                ss << ' ';
+                print_rules(rs.front(), 0);
                 ss << ' ';
 
             } else {
@@ -117,9 +126,8 @@ namespace xxx {
                 ss << std::endl;
 
                 for(size_t n = 0; n < rs.size(); n++) {
-                    ss << "\t\t\t\t" << rs[n].to_cc();
-                    if(use_transforms and ts.find(s) != ts.end())
-                        ss << " >> " << s << "_transform_" << (n + 1);
+                    ss << "\t\t\t\t";
+                    print_rules(rs[n], n);
                     ss << ',' << std::endl;
                 }
 
@@ -222,7 +230,7 @@ namespace xxx {
 
         for(const auto& x : *this)
             for(const auto& r : x.second)
-                ss << x.first << ' ' << (char)r.type << "= " << r.str() << std::endl;
+                ss << x.first << " = " << r.str() << std::endl;
 
 		return ss.str();
 	}

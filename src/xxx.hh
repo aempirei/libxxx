@@ -49,6 +49,7 @@ namespace xxx {
         using base_type = std::vector<value_type>;
         using base_type::base_type;
         _s();
+        _s(const _s&);
         _s(const value_type&);
         _s(const value_type&, const _s&);
     };
@@ -193,14 +194,13 @@ namespace xxx {
             std::string to_cc_transforms(const key_type&) const;
     };
 
-    using entry = grammar::value_type;
-
     //
     // tree
     //
 
     struct tree {
 
+        grammar::key_type match_name;
         grammar::const_iterator match_def;
         rules::const_iterator match_rule;
 
@@ -221,7 +221,6 @@ namespace xxx {
 
         void transform(void *);
 
-        const var& match_name() const;
         rule_type match_type() const;
 
         size_t node_count() const;

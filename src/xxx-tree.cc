@@ -83,10 +83,6 @@ namespace xxx {
         }
     }
 
-    const var& tree::match_name() const {
-        return match_def->first;
-    }
-
     rule_type tree::match_type() const {
         return match_rule->type;
     }
@@ -100,9 +96,10 @@ namespace xxx {
         if(match_def == g.end())
             throw std::runtime_error("definition not found for \"" + name + "\"");
 
-        const auto& rs = match_def->second;
+        match_name = match_def->first;
+        const auto& match_rules = match_def->second;
 
-        for(match_rule = rs.begin(); match_rule != rs.end(); match_rule++) {
+        for(match_rule = match_rules.begin(); match_rule != match_rules.end(); match_rule++) {
 
             children.clear();
 
@@ -165,9 +162,9 @@ namespace xxx {
         std::stringstream ss;
 
         if(basic)
-            ss << x.match_name();
+            ss << x.match_name;
         else
-            ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.match_name();
+            ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.match_name;
 
         if(x.match_type() == rule_type::terminal) {
 
@@ -203,7 +200,7 @@ namespace xxx {
         std::stringstream ss;
 
         std::string content;
-        std::string tag = x.match_name();
+        std::string tag = x.match_name;
 
         if(!tag.empty()) {
             if(isdigit(tag[0])) {
