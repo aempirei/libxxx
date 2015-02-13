@@ -201,8 +201,7 @@ namespace xxx {
     struct tree {
 
         grammar::key_type match_name;
-        grammar::const_iterator match_def;
-        rules::const_iterator match_rule;
+        rule match_rule;
 
         std::string match;
 
@@ -221,7 +220,7 @@ namespace xxx {
 
         void transform(void *);
 
-        rule_type match_type() const;
+        void clear();
 
         size_t node_count() const;
         size_t leaf_count() const;

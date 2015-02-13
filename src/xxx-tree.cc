@@ -16,6 +16,10 @@ namespace xxx {
         parse(g, s);
     }
 
+    void tree::clear() {
+        *this = tree();
+    }
+
     template<typename T, typename F> static size_t sum(size_t sum0, size_t sum, const T& xs, F f) {
 
         if(xs.empty())
@@ -29,7 +33,7 @@ namespace xxx {
     }
 
     void tree::transform(void *x) {
-        match_rule->transform(this, x);
+        match_rule.transform(this, x);
     }
 
     size_t tree::node_count() const {
@@ -83,15 +87,11 @@ namespace xxx {
         }
     }
 
-    rule_type tree::match_type() const {
-        return match_rule->type;
-    }
-
     std::pair<ssize_t,ssize_t> tree::parse_recursive(const grammar& g, const var& name, const std::string& s, ssize_t my_offset) {
 
         offset = my_offset;
 
-        match_def = g.find(name);
+        auto match_def = g.find(name);
 
         if(match_def == g.end())
             throw std::runtime_error("definition not found for \"" + name + "\"");
@@ -99,16 +99,18 @@ namespace xxx {
         match_name = match_def->first;
         const auto& match_rules = match_def->second;
 
-        for(match_rule = match_rules.begin(); match_rule != match_rules.end(); match_rule++) {
+        for(auto iter = match_rules.cbegin(); iter != match_rules.cend(); iter++) {
+
+            match_rule = *iter;
 
             children.clear();
 
-            if(match_type() == rule_type::composite) {
+            if(match_rule.type  == rule_type::composite) {
 
                 ssize_t current = offset;
                 bool success = true;
 
-                for(const auto& p : match_rule->composite) {
+                for(const auto& p : match_rule.composite) {
 
                     size_t n;
 
@@ -147,7 +149,7 @@ namespace xxx {
                 boost::smatch matches;
                 std::string ms = s.substr(offset, std::string::npos);
 
-                if(boost::regex_search(ms, matches, match_rule->terminal)) {
+                if(boost::regex_search(ms, matches, match_rule.terminal)) {
                     match = matches[matches.size() > 1 ? 1 : 0];
                     return std::pair<ssize_t,ssize_t>(offset,offset + matches[0].length());
                 }
@@ -166,9 +168,9 @@ namespace xxx {
         else
             ss << std::setw(4) << x.offset << " " << std::setw(depth) << "" << x.match_name;
 
-        if(x.match_type() == rule_type::terminal) {
+        if(x.match_rule.type  == rule_type::terminal) {
 
-            ss << ' ' << (char)x.match_type() << "= " << x.match << std::endl;
+            ss << ' ' << (char)x.match_rule.type  << "= " << x.match << std::endl;
 
         } else {
 
@@ -189,7 +191,7 @@ namespace xxx {
     }
 
     std::string tree::str() const {
-        return tree_str_recursive(*this);
+        return match_name.empty() ? "" : tree_str_recursive(*this);
     }
 
     static std::string tree_xml_recursive(const tree& x, int df = 0, int dm = 1, int dl = 0) {
@@ -214,7 +216,7 @@ namespace xxx {
         if(tag == "document")
             ss << ' ' << xmlns;
 
-        if(x.match_type() == rule_type::terminal) {
+        if(x.match_rule.type  == rule_type::terminal) {
 
             content = x.match;
 
@@ -266,6 +268,6 @@ namespace xxx {
     std::string tree::xml() const {
         const std::string xml_header = "<?xml version=\"1.0\"?>\n";
 
-        return xml_header + tree_xml_recursive(*this);
+        return xml_header + (match_name.empty() ? "" : tree_xml_recursive(*this));
     }
 }
