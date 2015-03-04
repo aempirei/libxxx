@@ -68,28 +68,26 @@ namespace xxx {
 
     void tree::parse(const grammar& g, const std::string& s) {
 
-        auto ab = parse_recursive(g, "document", s, 0);
-
-        if(ab.first == -1) {
+        if(not parse(g, "document", s, 0)) {
 
             std::stringstream ss;
-            ss << "tree::parse failed at offset " << ab.second << " (";
 
-            if(ab.second + 16 < (ssize_t)s.length()) {
-                ss << s.substr(ab.second, ab.second + 16) << "...";
-            } else {
-                ss << s.substr(ab.second, std::string::npos);
-            }
+            ss << "tree::parse failed at offset " << (last + 1) << ": ";
 
-            ss << ")";
+            if(last + 33 < (ssize_t)s.length())
+                ss << s.substr(last + 1, 32) << "...";
+            else
+                ss << s.substr(last + 1, std::string::npos);
 
             throw std::runtime_error(ss.str());
         }
     }
 
-    std::pair<ssize_t,ssize_t> tree::parse_recursive(const grammar& g, const var& name, const std::string& s, ssize_t my_offset) {
+    bool tree::parse(const grammar& g, const var& name, const std::string& s, ssize_t my_offset) {
 
         offset = my_offset;
+
+        ssize_t current = offset;
 
         auto match_def = g.find(name);
 
@@ -107,8 +105,9 @@ namespace xxx {
 
             if(match_rule.type  == rule_type::composite) {
 
-                ssize_t current = offset;
                 bool success = true;
+
+                current = offset;
 
                 for(const auto& p : match_rule.composite) {
 
@@ -120,15 +119,13 @@ namespace xxx {
 
                         tree y;
 
-                        auto next = y.parse_recursive(g, p.name, s, current);
-
-                        if(next.first == -1)
+                        if(not y.parse(g, p.name, s, current))
                             break;
 
                         if(p.modifier == predicate::M::push)
                             children.push_back(y);
 
-                        current = next.second;
+                        current = y.last + 1;
                     }
 
                     if(n < p.lower())
@@ -141,8 +138,10 @@ namespace xxx {
                         break;
                 }
 
-                if(success)
-                    return std::pair<ssize_t,ssize_t>(offset,current);
+                if(success) {
+                    last = current - 1;
+                    return true;
+                }
 
             } else {
 
@@ -151,12 +150,15 @@ namespace xxx {
 
                 if(boost::regex_search(ms, matches, match_rule.terminal)) {
                     match = matches[matches.size() > 1 ? 1 : 0];
-                    return std::pair<ssize_t,ssize_t>(offset,offset + matches[0].length());
+                    current = offset + matches[0].length();
+                    last = current - 1;
+                    return true;
                 }
             }
         }
 
-        return std::pair<ssize_t,ssize_t>(-1,offset);
+        last = current - 1;
+        return false;
     }
 
     static std::string tree_str_recursive(const tree& x, int depth = 0, bool basic = false) {

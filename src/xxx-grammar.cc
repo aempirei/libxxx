@@ -26,7 +26,7 @@ namespace xxx {
     }
 
 
-	std::string grammar::to_cc(bool use_transforms) const {
+    std::string grammar::to_cc(bool use_transforms) const {
 
         std::stringstream ss;
 
@@ -197,7 +197,7 @@ namespace xxx {
     }
 
 
-	std::string grammar::to_xxx() const {
+    std::string grammar::to_xxx() const {
 
         std::stringstream ss;
 
@@ -205,6 +205,6 @@ namespace xxx {
             for(const auto& r : x.second)
                 ss << x.first << " = " << r.str() << std::endl;
 
-		return ss.str();
-	}
+        return ss.str();
+    }
 }

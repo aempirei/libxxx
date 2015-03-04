@@ -15,7 +15,9 @@
 
 #include <boost/regex.hpp>
 
-#define plural(X) using X##s = _s<X>; extern template struct fold<std::list<X>>; static_assert(std::is_default_constructible<X##s>::value, #X "s isn't default-constructible.")
+#define plural(X)       using X##s = _s<X>;\
+                        extern template struct fold<std::list<X>>;\
+                        static_assert(std::is_default_constructible<X##s>::value, #X "s isn't default-constructible.")
 
 namespace xxx {
 
@@ -192,7 +194,7 @@ namespace xxx {
 
     struct tree {
 
-        grammar::key_type match_name;
+        var match_name;
         rule match_rule;
 
         std::string match;
@@ -200,6 +202,7 @@ namespace xxx {
         trees children;
 
         ssize_t offset;
+        ssize_t last;
 
         tree();
         tree(const grammar&, FILE *);
@@ -208,7 +211,7 @@ namespace xxx {
         void parse(const grammar&, FILE *);
         void parse(const grammar&, const std::string&);
 
-        std::pair<ssize_t,ssize_t> parse_recursive(const grammar&, const var&, const std::string&, ssize_t);
+        bool parse(const grammar&, const var&, const std::string&, ssize_t);
 
         void transform(void *);
 

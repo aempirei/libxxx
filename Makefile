@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -Isrc
-CXXFLAGS = -Wall -pedantic -std=gnu++11 -O2
+CXXFLAGS = -Wall -pedantic -std=gnu++11 -O1
 LIBFLAGS = -Llib -lxxx -lboost_regex
 TARGETS = lib/libxxx.a bin/xxx
 INSTALL_PATH = /usr/local
