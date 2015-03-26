@@ -95,11 +95,10 @@ namespace xxx {
             throw std::runtime_error("definition not found for \"" + name + "\"");
 
         match_name = match_def->first;
-        const auto& match_rules = match_def->second;
 
-        for(auto iter = match_rules.cbegin(); iter != match_rules.cend(); iter++) {
-
-            match_rule = *iter;
+		for(const auto& mr : match_def->second) {
+		
+			match_rule = mr;
 
             children.clear();
 
