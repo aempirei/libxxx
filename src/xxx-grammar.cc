@@ -207,4 +207,16 @@ namespace xxx {
 
         return ss.str();
     }
+
+    tree grammar::parse(const std::string& s) const {
+        tree t;
+        t.parse(*this, s);
+        return t;
+    }
+
+    tree grammar::parse(FILE *fp) const {
+        tree t;
+        t.parse(*this, fp);
+        return t;
+    }
 }

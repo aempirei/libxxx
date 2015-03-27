@@ -186,6 +186,9 @@ namespace xxx {
 
             std::string to_cc_transform(const key_type&, const rule&) const;
             std::string to_cc_transforms(const key_type&) const;
+
+			tree parse(const std::string&) const;
+			tree parse(FILE *) const;
     };
 
     //
