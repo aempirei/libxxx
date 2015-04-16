@@ -115,9 +115,6 @@ namespace xxx {
         predicate(const predicate_name&);
         predicate(const predicate_modifier&, const predicate_name&, const predicate_quantifier&);
 
-        size_t upper() const;
-        size_t lower() const;
-
         std::string str() const;
 
         std::string to_cc_decl(size_t) const;

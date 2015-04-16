@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -Isrc
-CXXFLAGS = -Wall -pedantic -std=gnu++11 -O3
+CXXFLAGS = -Wall -pedantic -std=gnu++11 -O2
 LIBFLAGS = -Llib -lxxx -lboost_regex
 TARGETS = lib/libxxx.a bin/xxx
 INSTALL_PATH = /usr/local
@@ -12,8 +12,10 @@ OBJECTS = src/xxx-tree.o src/xxx-rule.o src/xxx-predicate.o src/xxx-grammar.o sr
 all: $(TARGETS)
 
 clean:
-	rm -f src/*.o $(TARGETS)
-	rm -rf bin lib
+	rm -f $(TARGETS)
+	rm -f src/*.o
+	rm -fr bin
+	rm -fr lib
 
 install:
 	install -m 644 lib/libxxx.a $(INSTALL_PATH)/lib
@@ -42,3 +44,5 @@ check: bin/xxx src/xxx.xxx
 
 src/xxx-xxx.hh: bin/xxx src/xxx.xxx
 	bin/xxx -g src/xxx.xxx -ct > src/xxx-xxx.hh
+
+src/main.cc: src/xxx.hh src/xxx-local.hh

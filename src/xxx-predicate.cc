@@ -18,14 +18,6 @@ namespace xxx {
     {
     }
 
-    size_t predicate::lower() const {
-        return quantifier == Q::one ? 1 : 0;
-    }
-
-    size_t predicate::upper() const {
-        return quantifier == Q::one ? 1 : 1;
-    }
-
     std::string predicate::str() const {
 
         std::stringstream ss;

@@ -110,25 +110,20 @@ namespace xxx {
 
                 for(const auto& p : match_rule.composite) {
 
-                    size_t n;
+					ssize_t rewind = current;
 
-                    ssize_t rewind = current;
+					tree y;
 
-                    for(n = 0; n < p.upper(); n++) {
+					if(y.parse(g, p.name, s, current)) {
 
-                        tree y;
+						if(p.modifier == predicate::M::push)
+							children.push_back(y);
+						current = y.last + 1;
 
-                        if(not y.parse(g, p.name, s, current))
-                            break;
+					} else if(p.quantifier == predicate::Q::one) {
 
-                        if(p.modifier == predicate::M::push)
-                            children.push_back(y);
-
-                        current = y.last + 1;
-                    }
-
-                    if(n < p.lower())
-                        success = false;
+						success = false;
+					}
 
                     if(p.modifier == predicate::M::peek)
                         current = rewind;
