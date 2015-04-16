@@ -13,7 +13,6 @@
 #define parse_push		(current != end) { current++; children.push_back(x); }
 #define parse_drop		(current != end) { current++; }
 
-
 #define parse_push_one(k)				\
 	do {								\
 		parse_init(k);					\
@@ -88,6 +87,15 @@ namespace xxx {
 				children.pop_back();
 			}
 		}
+	}
+}
+
+////////////////////
+// auto-generated //
+////////////////////
+
+namespace xxx {
+	namespace standalone {
 
 		//////////////////
 		// declarations //
@@ -154,8 +162,8 @@ namespace xxx {
 		}
 
 		document d;
+		blocks bs;
+		block b;
+		eof e;
 	}
 }
-
-
-
