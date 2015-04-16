@@ -2,41 +2,39 @@
 
 #include <list>
 
+#define nothing				do { /* nothing */ } while(false)
+
 #define define_name(k)		const char *k::name() const { return #k; }
 #define define_terminal(k)	bool k::is_terminal() const { return true; }
 #define define_parse(k)		position k::parse(position begin, position end)
 
-#define parse_start		base *x; position current = begin; do { /* nothing */ } while(false)
+#define parse_start		base *x; position current = begin; nothing
 #define parse_final		return std::prev(current); fail: children.clear(); return (end)
 
 #define parse_init(k)	do { x = new k(); current = x->parse(current, end); } while(false)
-#define parse_push		(current != end) { current++; children.push_back(x); }
-#define parse_drop		(current != end) { current++; }
+#define parse_ok(f)		(current != end) { current++; f; }
+#define parse_ok_push	parse_ok(children.push_back(x))
+#define parse_ok_drop	parse_ok(if(false))
+#define else_delete(f)	else { delete x; f; } nothing
 
-#define parse_push_one(k)		\
-	do {						\
-		parse_init(k);			\
-		if parse_push else {	\
-			delete x;			\
-			goto fail;			\
-		}						\
+#define parse_push_one(k)							\
+	do {											\
+		parse_init(k);								\
+		if parse_ok_push else_delete(goto fail);	\
 	} while(false)
 
-#define parse_push_maybe(k)			\
-	do {							\
-		position rewind = current;	\
-		parse_init(k);				\
-		if parse_push else {		\
-			delete x;				\
-			current = rewind;		\
-		}							\
+#define parse_push_maybe(k)								\
+	do {												\
+		position rewind = current;						\
+		parse_init(k);									\
+		if parse_ok_push else_delete(current = rewind);	\
 	} while(false)
 
-#define parse_drop_one(k)				\
-	do {								\
-		parse_init(k);					\
-		delete x;						\
-		if parse_drop else goto fail;	\
+#define parse_drop_one(k)					\
+	do {									\
+		parse_init(k);						\
+		delete x;							\
+		if parse_ok_drop else goto fail;	\
 	} while(false)
 
 #define parse_drop_maybe(k)						\
@@ -44,7 +42,7 @@
 		position rewind = current;				\
 		parse_init(k);							\
 		delete x;								\
-		if parse_drop else current = rewind;	\
+		if parse_ok_drop else current = rewind;	\
 	} while(false)
 
 #define declare_composite(k) struct k : base {	\
@@ -61,9 +59,8 @@
 namespace xxx {
 	namespace standalone {
 
-		//////////
-		// base //
-		//////////
+		////////
+		// base
 
 		typedef std::string::const_iterator position;
 
@@ -98,16 +95,14 @@ namespace xxx {
 	}
 }
 
-////////////////////
-// auto-generated //
-////////////////////
+//////////////////
+// auto-generated
 
 namespace xxx {
 	namespace standalone {
 
-		//////////////////
-		// declarations //
-		//////////////////
+		////////////////
+		// declarations
 
 		declare_composite(document);
 		declare_composite(blocks);
@@ -118,9 +113,8 @@ namespace xxx {
 		declare_terminal(eol);
 		declare_terminal(_);
 
-		/////////////////////////////
-		// document = blocks? !eof //
-		/////////////////////////////
+		///////////////////////////
+		// document = blocks? !eof
 
 		define_name(document)
 		define_parse(document) {
@@ -130,9 +124,8 @@ namespace xxx {
 			parse_final;
 		}
 
-		////////////////////////////
-		// blocks = block blocks? //
-		////////////////////////////
+		//////////////////////////
+		// blocks = block blocks?
 
 		define_name(blocks)
 		define_parse(blocks) {
@@ -142,9 +135,8 @@ namespace xxx {
 			parse_final;
 		}
 
-		/////////////////////////
-		// eop = !_ !eol !eop? //
-		/////////////////////////
+		///////////////////////
+		// eop = !_ !eol !eop? 
 
 		define_name(eop)
 		define_parse(eop) {
@@ -155,9 +147,8 @@ namespace xxx {
 			parse_final;
 		}
 
-		/////////////////////////////////////////////////////////
-		// block = blockquote / codeblock / header / paragraph //
-		/////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////
+		// block = blockquote / codeblock / header / paragraph
 
 		define_name(block)
 		define_parse(block) {
@@ -173,9 +164,8 @@ namespace xxx {
 			return begin == end ? end : begin;
 		}
 
-		///////
-		// _ //
-		///////
+		/////
+		// _ 
 
 		define_name(_)
 		define_terminal(_)
@@ -185,9 +175,8 @@ namespace xxx {
 			return current;
 		}
 
-		/////////
-		// eol //
-		/////////
+		///////
+		// eol
 
 		define_name(eol)
 		define_terminal(eol)
@@ -197,9 +186,8 @@ namespace xxx {
 			return current;
 		}
 
-		/////////
-		// eof //
-		/////////
+		///////
+		// eof
 
 		define_name(eof)
 		define_terminal(eof)
@@ -208,12 +196,5 @@ namespace xxx {
 			// /\A\z/
 			return current;
 		}
-
-		document d;
-		blocks bs;
-		block b;
-		eop p;
-		eol l;
-		eof f;
 	}
 }
