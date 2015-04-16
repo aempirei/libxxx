@@ -39,6 +39,14 @@
 		if parse_drop else goto fail;	\
 	} while(false)
 
+#define parse_drop_maybe(k)						\
+	do {										\
+		position rewind = current;				\
+		parse_init(k);							\
+		delete x;								\
+		if parse_drop else current = rewind;	\
+	} while(false)
+
 #define declare_composite(k) struct k : base {	\
 		const char *name() const;				\
 		position parse(position, position);		\
@@ -104,8 +112,11 @@ namespace xxx {
 		declare_composite(document);
 		declare_composite(blocks);
 		declare_composite(block);
+		declare_composite(eop);
 
 		declare_terminal(eof);
+		declare_terminal(eol);
+		declare_terminal(_);
 
 		/////////////////////////////
 		// document = blocks? !eof //
@@ -131,9 +142,22 @@ namespace xxx {
 			parse_final;
 		}
 
-		///////////
-		// block //
-		///////////
+		/////////////////////////
+		// eop = !_ !eol !eop? //
+		/////////////////////////
+
+		define_name(eop)
+		define_parse(eop) {
+			parse_start;
+			parse_drop_one(_);
+			parse_drop_one(eol);
+			parse_drop_maybe(eop);
+			parse_final;
+		}
+
+		/////////////////////////////////////////////////////////
+		// block = blockquote / codeblock / header / paragraph //
+		/////////////////////////////////////////////////////////
 
 		define_name(block)
 		define_parse(block) {
@@ -147,6 +171,30 @@ namespace xxx {
 			// paragraph
 			// parse_final;
 			return begin == end ? end : begin;
+		}
+
+		///////
+		// _ //
+		///////
+
+		define_name(_)
+		define_terminal(_)
+		define_parse(_) {
+			position current = begin;
+			// /\A[ \t]*/
+			return current;
+		}
+
+		/////////
+		// eol //
+		/////////
+
+		define_name(eol)
+		define_terminal(eol)
+		define_parse(eol) {
+			position current = begin;
+			// /\A\r?\n/
+			return current;
 		}
 
 		/////////
@@ -164,6 +212,8 @@ namespace xxx {
 		document d;
 		blocks bs;
 		block b;
-		eof e;
+		eop p;
+		eol l;
+		eof f;
 	}
 }
