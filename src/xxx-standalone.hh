@@ -2,6 +2,55 @@
 
 #include <list>
 
+#define define_name(k)		const char *k::name() const { return #k; }
+#define define_terminal(k)	bool k::is_terminal() const { return true; }
+#define define_parse(k)		position k::parse(position begin, position end)
+
+#define parse_start		base *x; position current = begin; do { /* nothing */ } while(false)
+#define parse_final		return std::prev(current); fail: children.clear(); return (end)
+
+#define parse_init(k)	do { x = new k(); current = x->parse(current, end); } while(false)
+#define parse_push		(current != end) { current++; children.push_back(x); }
+#define parse_drop		(current != end) { current++; }
+
+
+#define parse_push_one(k)				\
+	do {								\
+		parse_init(k);					\
+		if parse_push else {			\
+			delete x;					\
+			goto fail;					\
+		}								\
+	} while(false)
+
+#define parse_push_maybe(k)				\
+	do {								\
+		position rewind = current;		\
+		parse_init(k);					\
+		if parse_push else {			\
+			delete x;					\
+			current = rewind;			\
+		}								\
+	} while(false)
+
+#define parse_drop_one(k)				\
+	do {								\
+		parse_init(k);					\
+		delete x;						\
+		if parse_drop else goto fail;	\
+	} while(false)
+
+#define declare_composite(k) struct k : base {	\
+		const char *name() const;				\
+		position parse(position, position);		\
+	}
+
+#define declare_terminal(k) struct k : base {	\
+		const char *name() const;				\
+		bool is_terminal() const;				\
+		position parse(position, position);		\
+	}
+
 namespace xxx {
 	namespace standalone {
 
@@ -14,14 +63,24 @@ namespace xxx {
 		struct base {
 
 			std::list<base*> children;
+			std::string match;
 
 			virtual position parse(position, position) = 0;
-			virtual const std::string name() const = 0;
+			virtual const char *name() const = 0;
+
+			virtual bool is_terminal() const;
+			virtual ~base();
 
 			void clear();
-
-			virtual ~base();
 		};
+
+		bool base::is_terminal() const {
+			return false;
+		}
+
+		base::~base() {
+			clear();
+		}
 
 		void base::clear() {
 			while(not children.empty()) {
@@ -30,147 +89,47 @@ namespace xxx {
 			}
 		}
 
-		base::~base() {
-			clear();
-		}
-
 		//////////////////
 		// declarations //
 		//////////////////
 
-		struct document : base {
-			const std::string name() const;
-			position parse(position begin, position end);
-		};
+		declare_composite(document);
+		declare_composite(blocks);
+		declare_composite(block);
 
-		struct blocks : base {
-			const std::string name() const;
-			position parse(position begin, position end);
-		};
+		declare_terminal(eof);
 
-		struct block : base {
-			const std::string name() const;
-			position parse(position begin, position end);
-		};
+		/////////////////////////////
+		// document = blocks? !eof //
+		/////////////////////////////
 
-		struct eof : base {
-			const std::string name() const;
-			position parse(position begin, position end);
-		};
-
-		//////////////
-		// document //
-		//////////////
-
-		const std::string document::name() const {
-			return "document";
+		define_name(document)
+		define_parse(document) {
+			parse_start;
+			parse_push_maybe(blocks);
+			parse_drop_one(eof);
+			parse_final;
 		}
 
-		position document::parse(position begin, position end) {
+		////////////////////////////
+		// blocks = block blocks? //
+		////////////////////////////
 
-			base *x;
-
-			position current = begin;
-			position rewind;
-
-			// blocks?
-
-			rewind = current;
-			x = new blocks();
-			current = x->parse(current, end);
-			if(current != end) {
-				current++;
-				children.push_back(x);
-			} else {
-				delete x;
-				current = rewind;
-			}
-
-			// !eof
-
-			x = new eof();
-			current = x->parse(current, end);
-			delete x;
-			if(current != end) {
-				current++;
-			} else {
-				goto fail;
-			}
-
-			//
-
-			return std::prev(current);
-
-			//
-
-fail:
-
-			children.clear();
-			return end;
-		}
-
-		////////////
-		// blocks //
-		////////////
-
-		const std::string blocks::name() const {
-			return "blocks";
-		}
-
-		position blocks::parse(position begin, position end) {
-
-			base *x;
-
-			position current = begin;
-			position rewind;
-
-			// block
-
-			x = new block();
-			current = x->parse(current, end);
-			if(current != end) {
-				current++;
-				children.push_back(x);
-			} else {
-				delete x;
-				goto fail;
-			}
-
-			// blocks?
-
-			rewind = current;
-			x = new blocks();
-			current = x->parse(current, end);
-			if(current != end) {
-				current++;
-				children.push_back(x);
-			} else {
-				delete x;
-				current = rewind;
-			}
-
-			//
-
-			return std::prev(current);
-
-			//
-
-fail:
-
-			children.clear();
-			return end;
+		define_name(blocks)
+		define_parse(blocks) {
+			parse_start;
+			parse_push_one(block);
+			parse_push_maybe(blocks);
+			parse_final;
 		}
 
 		///////////
 		// block //
 		///////////
 
-		const std::string block::name() const {
-			return "block";
-		}
-
-		position block::parse(position begin, position end) {
-			position current = begin;
+		define_name(block)
+		define_parse(block) {
+			// parse_start;
 			// blockquote
 			// /
 			// codeblock
@@ -178,18 +137,17 @@ fail:
 			// header
 			// /
 			// paragraph
-			return current;
+			// parse_final;
+			return begin == end ? end : begin;
 		}
 
 		/////////
 		// eof //
 		/////////
 
-		const std::string eof::name() const {
-			return "eof";
-		}
-
-		position eof::parse(position begin, position end) {
+		define_name(eof)
+		define_terminal(eof)
+		define_parse(eof) {
 			position current = begin;
 			// /\A\z/
 			return current;
