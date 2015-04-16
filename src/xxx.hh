@@ -119,6 +119,8 @@ namespace xxx {
 
         std::string to_cc_decl(size_t) const;
         std::string to_cc_def(size_t) const;
+
+		std::string to_cc_standalone() const;
     };
 
     //
@@ -160,6 +162,8 @@ namespace xxx {
 
         std::string to_cc() const;
 
+		std::string to_cc_standalone() const;
+
         vars to_sig() const;
     };
 
@@ -183,6 +187,8 @@ namespace xxx {
 
             std::string to_cc_transform(const key_type&, const rule&) const;
             std::string to_cc_transforms(const key_type&) const;
+
+			std::string to_cc_standalone() const;
 
 			tree parse(const std::string&) const;
 			tree parse(FILE *) const;
