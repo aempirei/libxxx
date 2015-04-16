@@ -45,4 +45,4 @@ check: bin/xxx src/xxx.xxx
 src/xxx-xxx.hh: bin/xxx src/xxx.xxx
 	bin/xxx -g src/xxx.xxx -ct > src/xxx-xxx.hh
 
-src/main.cc: src/xxx.hh src/xxx-local.hh
+src/main.cc: src/xxx.hh src/xxx-local.hh src/xxx-standalone.hh

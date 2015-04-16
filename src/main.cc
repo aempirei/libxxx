@@ -12,6 +12,7 @@ extern "C" {
 
 #include <xxx.hh>
 #include <xxx-local.hh>
+#include <xxx-standalone.hh>
 #include <xxx-xxx.hh>
 
 using namespace xxx;
