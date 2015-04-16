@@ -13,23 +13,23 @@
 #define parse_push		(current != end) { current++; children.push_back(x); }
 #define parse_drop		(current != end) { current++; }
 
-#define parse_push_one(k)				\
-	do {								\
-		parse_init(k);					\
-		if parse_push else {			\
-			delete x;					\
-			goto fail;					\
-		}								\
+#define parse_push_one(k)		\
+	do {						\
+		parse_init(k);			\
+		if parse_push else {	\
+			delete x;			\
+			goto fail;			\
+		}						\
 	} while(false)
 
-#define parse_push_maybe(k)				\
-	do {								\
-		position rewind = current;		\
-		parse_init(k);					\
-		if parse_push else {			\
-			delete x;					\
-			current = rewind;			\
-		}								\
+#define parse_push_maybe(k)			\
+	do {							\
+		position rewind = current;	\
+		parse_init(k);				\
+		if parse_push else {		\
+			delete x;				\
+			current = rewind;		\
+		}							\
 	} while(false)
 
 #define parse_drop_one(k)				\
