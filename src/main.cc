@@ -29,16 +29,17 @@ static void usage(const char *arg0) {
         if(msg != nullptr) std::cerr << ' ' << msg;
         std::cerr << std::endl;
     };
+  
+    std::cerr << std::endl << "usage: " << arg0 << " [-{actpsixh}] [-g filename]" << std::endl << std::endl;
 
-    std::cerr << std::endl << "usage: " << arg0 << " [-{hpaxci}] [-g filename]" << std::endl << std::endl;
-
-    usageline('h', nullptr   , "show this help"          );
     usageline('p', nullptr   , "display grammar"         );
     usageline('a', nullptr   , "display parse tree"      );
     usageline('x', nullptr   , "display xml"             );
     usageline('c', nullptr   , "display code"            );
     usageline('t', nullptr   , "generate code transforms");
+	usageline('s', nullptr   , "display stand-alone code");
     usageline('i', nullptr   , "parse stdin"             );
+    usageline('h', nullptr   , "show this help"          );
     usageline('g', "filename", "grammar specification"   );
 
     std::cerr << std::endl;
@@ -48,13 +49,14 @@ static void usage(const char *arg0) {
 
 int main(int argc, char **argv) {
 
-    bool do_print_code      = false;
-    bool do_print_xml       = false;
-    bool do_print_grammar   = false;
-    bool do_print_tree      = false;
-    bool do_load_grammar    = false;
-    bool do_parse_input     = false;
-    bool use_transforms     = false;
+    bool do_print_code       = false;
+    bool do_print_standalone = false;
+    bool do_print_xml        = false;
+    bool do_print_grammar    = false;
+    bool do_print_tree       = false;
+    bool do_load_grammar     = false;
+    bool do_parse_input      = false;
+    bool use_transforms      = false;
 
     const char *filename = nullptr;
 
@@ -65,17 +67,18 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    while ((opt = getopt(argc, argv, "acthpsixg:")) != -1) {
+    while ((opt = getopt(argc, argv, "actpsixg:h")) != -1) {
 
         switch (opt) {
 
-            case 'g': do_load_grammar   = true; filename = optarg;  break;
-            case 'a': do_print_tree     = true;                     break;
-            case 'x': do_print_xml      = true;                     break;
-            case 'p': do_print_grammar  = true;                     break;
-            case 'c': do_print_code     = true;                     break;
-            case 't': use_transforms    = true;                     break;
-            case 'i': do_parse_input    = true;                     break;
+            case 'a': do_print_tree       = true;                     break;
+            case 'c': do_print_code       = true;                     break;
+            case 't': use_transforms      = true;                     break;
+            case 'p': do_print_grammar    = true;                     break;
+            case 's': do_print_standalone = true;                     break;
+            case 'i': do_parse_input      = true;                     break;
+            case 'x': do_print_xml        = true;                     break;
+            case 'g': do_load_grammar     = true; filename = optarg;  break;
 
             case 'h':
             case '?':
@@ -119,8 +122,9 @@ int main(int argc, char **argv) {
         if(do_print_tree) std::cout << t.str();
     }
 
-    if(do_print_code   ) std::cout << g.to_cc(use_transforms);
-    if(do_print_grammar) std::cout << g.to_xxx();
+    if(do_print_standalone) std::cout << g.to_cc_standalone();
+    if(do_print_code   )    std::cout << g.to_cc(use_transforms);
+    if(do_print_grammar)    std::cout << g.to_xxx();
 
     return 0;
 }

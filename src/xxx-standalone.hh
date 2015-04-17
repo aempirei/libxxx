@@ -5,7 +5,6 @@
 #define nothing				do { /* nothing */ } while(false)
 
 #define define_name(k)		const char *k::name() const { return #k; }
-#define define_terminal(k)	bool k::is_terminal() const { return true; }
 #define define_parse(k)		position k::parse(position begin, position end)
 
 #define parse_start		base *x; position current = begin; nothing
@@ -45,15 +44,9 @@
 		if parse_ok_drop else current = rewind;	\
 	} while(false)
 
-#define declare_composite(k) struct k : base {	\
-		const char *name() const;				\
-		position parse(position, position);		\
-	}
-
-#define declare_terminal(k) struct k : base {	\
-		const char *name() const;				\
-		bool is_terminal() const;				\
-		position parse(position, position);		\
+#define declare_rule(k) struct k : base {	\
+		const char *name() const;			\
+		position parse(position, position);	\
 	}
 
 namespace xxx {
@@ -72,15 +65,10 @@ namespace xxx {
 			virtual position parse(position, position) = 0;
 			virtual const char *name() const = 0;
 
-			virtual bool is_terminal() const;
 			virtual ~base();
 
 			void clear();
 		};
-
-		bool base::is_terminal() const {
-			return false;
-		}
 
 		base::~base() {
 			clear();
@@ -104,14 +92,14 @@ namespace xxx {
 		////////////////
 		// declarations
 
-		declare_composite(document);
-		declare_composite(blocks);
-		declare_composite(block);
-		declare_composite(eop);
+		declare_rule(document);
+		declare_rule(blocks);
+		declare_rule(block);
+		declare_rule(eop);
 
-		declare_terminal(eof);
-		declare_terminal(eol);
-		declare_terminal(_);
+		declare_rule(eof);
+		declare_rule(eol);
+		declare_rule(_);
 
 		///////////////////////////
 		// document = blocks? !eof
@@ -168,7 +156,6 @@ namespace xxx {
 		// _ 
 
 		define_name(_)
-		define_terminal(_)
 		define_parse(_) {
 			position current = begin;
 			// /\A[ \t]*/
@@ -179,7 +166,6 @@ namespace xxx {
 		// eol
 
 		define_name(eol)
-		define_terminal(eol)
 		define_parse(eol) {
 			position current = begin;
 			// /\A\r?\n/
@@ -190,7 +176,6 @@ namespace xxx {
 		// eof
 
 		define_name(eof)
-		define_terminal(eof)
 		define_parse(eof) {
 			position current = begin;
 			// /\A\z/

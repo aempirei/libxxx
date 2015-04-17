@@ -25,6 +25,41 @@ namespace xxx {
         return u;
     }
 
+	std::string grammar::to_cc_standalone() const {
+
+		std::stringstream ss;
+
+        ss << "#pragma once" << std::endl;
+        ss << "namespace xxx {" << std::endl;
+        ss << "namespace standalone {" << std::endl;
+
+		for(const auto& x : *this)
+			ss << "declare_rule(" << x.first << ");" << std::endl;
+
+		for(const auto& x : *this) {
+
+			const auto& s = x.first;
+			const auto& rs = x.second;
+
+			ss << "define_name(" << s << ")" << std::endl;
+			ss << "define_parse(" << s << ") {" << std::endl;
+
+			size_t n = 1;
+
+			for(const auto& r : rs) {
+				ss << "/* rule " << n++ << " */" << std::endl;
+				ss << r.to_cc_standalone();
+			}
+
+			ss << '}' << std::endl;
+		}
+
+        ss << '}' << std::endl;
+        ss << '}' << std::endl;
+
+
+		return ss.str();
+	}
 
     std::string grammar::to_cc(bool use_transforms) const {
 
