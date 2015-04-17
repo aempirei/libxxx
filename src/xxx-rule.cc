@@ -74,6 +74,25 @@ namespace xxx {
         return sig;
     }
 
+	std::string rule::to_cc_standalone() const {
+
+		std::stringstream ss;
+
+		if(type == rule_type::terminal) {
+
+			ss << "/* terminal rule */" << std::endl;
+
+		} else {
+
+			ss << "parse_start;" << std::endl;
+			for(const auto& p : composite)
+				ss << p.to_cc_standalone() << std::endl;
+			ss << "parse_final;" << std::endl;
+		}
+
+		return ss.str();
+	}
+
     std::string rule::to_cc() const {
 
         if(type == rule_type::terminal)
