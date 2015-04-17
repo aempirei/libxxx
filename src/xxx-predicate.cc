@@ -52,4 +52,14 @@ namespace xxx {
         ss << "\t\t\t" << name << " arg" << n << ';' << std::endl;
         return ss.str();
     }
+
+	std::string predicate::to_cc_standalone() const {
+		std::stringstream ss;
+		ss << "parse_";
+		ss << (modifier == M::push ? "push" : modifier == M::peek ? "peek" : "drop");
+		ss << '_';
+		ss << (quantifier == Q::one ? "one" : "maybe");
+		ss << '(' << name << ");";
+		return ss.str();
+	}
 }
