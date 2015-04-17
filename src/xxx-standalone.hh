@@ -4,8 +4,11 @@
 
 #define nothing				do { /* nothing */ } while(false)
 
-#define define_name(k)		const char *k::name() const { return #k; }
 #define define_parse(k)		position k::parse(position begin, position end)
+#define	define_rule(k,n)	static position \
+							rule_##k##n(position begin, position end, base::children_type& children, base::match_type& match)
+
+#define parse_rule(k,n)		rule_##k##n(begin,end,children,match)							
 
 #define parse_start		base *x; position current = begin; nothing
 #define parse_final		return std::prev(current); fail: children.clear(); return (end)
@@ -44,9 +47,9 @@
 		if parse_ok_drop else current = rewind;	\
 	} while(false)
 
-#define declare_rule(k) struct k : base {	\
-		const char *name() const;			\
-		position parse(position, position);	\
+#define declare_rule(k) struct k : base {			\
+		const char *name() const { return #k; };	\
+		position parse(position, position);			\
 	}
 
 namespace xxx {
@@ -59,8 +62,11 @@ namespace xxx {
 
 		struct base {
 
-			std::list<base*> children;
-			std::string match;
+			typedef std::list<base*> children_type;
+			typedef std::string match_type;
+
+			children_type children;
+			match_type match;
 
 			virtual position parse(position, position) = 0;
 			virtual const char *name() const = 0;
@@ -104,7 +110,6 @@ namespace xxx {
 		///////////////////////////
 		// document = blocks? !eof
 
-		define_name(document)
 		define_parse(document) {
 			parse_start;
 			parse_push_maybe(blocks);
@@ -115,7 +120,6 @@ namespace xxx {
 		//////////////////////////
 		// blocks = block blocks?
 
-		define_name(blocks)
 		define_parse(blocks) {
 			parse_start;
 			parse_push_one(block);
@@ -126,7 +130,6 @@ namespace xxx {
 		///////////////////////
 		// eop = !_ !eol !eop? 
 
-		define_name(eop)
 		define_parse(eop) {
 			parse_start;
 			parse_drop_one(_);
@@ -138,7 +141,6 @@ namespace xxx {
 		///////////////////////////////////////////////////////
 		// block = blockquote / codeblock / header / paragraph
 
-		define_name(block)
 		define_parse(block) {
 			// parse_start;
 			// blockquote
@@ -155,7 +157,6 @@ namespace xxx {
 		/////
 		// _ 
 
-		define_name(_)
 		define_parse(_) {
 			position current = begin;
 			// /\A[ \t]*/
@@ -165,7 +166,6 @@ namespace xxx {
 		///////
 		// eol
 
-		define_name(eol)
 		define_parse(eol) {
 			position current = begin;
 			// /\A\r?\n/
@@ -175,7 +175,6 @@ namespace xxx {
 		///////
 		// eof
 
-		define_name(eof)
 		define_parse(eof) {
 			position current = begin;
 			// /\A\z/

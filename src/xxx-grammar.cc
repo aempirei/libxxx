@@ -41,15 +41,21 @@ namespace xxx {
 			const auto& s = x.first;
 			const auto& rs = x.second;
 
-			ss << "define_name(" << s << ")" << std::endl;
-			ss << "define_parse(" << s << ") {" << std::endl;
-
 			size_t n = 1;
 
 			for(const auto& r : rs) {
-				ss << "/* rule " << n++ << " */" << std::endl;
+				ss << "define_rule(" << s << ',' << n++ << ") {" << std::endl;
 				ss << r.to_cc_standalone();
+				ss << '}' << std::endl;
 			}
+
+			ss << "define_parse(" << s << ") {" << std::endl;
+
+			for(n = 1; n <= rs.size(); n++) {
+				ss << "parse_rule(" << s << ',' << n << ");" << std::endl;
+			}
+
+			ss << "return end;" << std::endl;
 
 			ss << '}' << std::endl;
 		}
